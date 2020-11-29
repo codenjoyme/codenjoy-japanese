@@ -49,12 +49,15 @@ public class Japanese implements Field {
     private final int size;
     private Dice dice;
 
-    public Japanese(Level level, Dice dice) {
+    public Japanese(Level level, Dice dice, boolean clean) {
         this.dice = dice;
         size = level.getSize();
 
         pixels = level.getPixels();
-        pixels.forEach(pixel -> pixel.change(Color.UNSET));
+        if (clean) {
+            pixels.forEach(pixel -> pixel.change(Color.UNSET));
+        }
+
         offset = pt(getOffsetX(), getOffsetY());
 
         numbers = level.getNumbers();

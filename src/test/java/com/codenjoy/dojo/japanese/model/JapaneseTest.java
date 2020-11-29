@@ -63,7 +63,7 @@ public class JapaneseTest {
     private void givenFl(String board) {
         LevelImpl level = new LevelImpl(board);
 
-        game = new Japanese(level, dice);
+        game = new Japanese(level, dice, false);
         listener = mock(EventListener.class);
         player = new Player(listener);
         game.newGame(player);

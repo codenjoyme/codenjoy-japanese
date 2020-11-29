@@ -82,7 +82,7 @@ public class GameRunner extends AbstractGameType implements GameType {
 
     @Override
     public GameField createGame(int levelNumber) {
-        return new Japanese(level, getDice());
+        return new Japanese(level, getDice(), true);
     }
 
     @Override

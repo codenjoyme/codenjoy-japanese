@@ -51,40 +51,26 @@ public class SolverTest {
 
     @Test
     public void should() {
-        asertAI("☼☼☼☼☼☼☼" +
-                "☼  x  ☼" +
-                "☼ $   ☼" +
-                "☼     ☼" +
-                "☼ ☺ $ ☼" +
-                "☼  ☻  ☼" +
-                "☼☼☼☼☼☼☼", Direction.UP);
+        asertAI("........" +
+                "....1.1." +
+                "...01100" +
+                "..0-----" +
+                ".11-*-*-" +
+                "..0     " +
+                "..3 *** " +
+                "..0     ", Direction.ACT(1, 1, 0));
 
-        asertAI("☼☼☼☼☼☼☼" +
-                "☼  x  ☼" +
-                "☼ $   ☼" +
-                "☼ ☺   ☼" +
-                "☼   $ ☼" +
-                "☼  ☻  ☼" +
-                "☼☼☼☼☼☼☼", Direction.UP);
-
-        asertAI("☼☼☼☼☼☼☼" +
-                "☼  x  ☼" +
-                "☼ ☺   ☼" +
-                "☼     ☼" +
-                "☼   $ ☼" +
-                "☼$ ☻  ☼" +
-                "☼☼☼☼☼☼☼", Direction.UP);
-
-        asertAI("☼☼☼☼☼☼☼" +
-                "☼ ☺x  ☼" +
-                "☼     ☼" +
-                "☼     ☼" +
-                "☼   $ ☼" +
-                "☼$ ☻  ☼" +
-                "☼☼☼☼☼☼☼", Direction.UP);
+        asertAI("........" +
+                "....1.1." +
+                "...01100" +
+                "..0-----" +
+                ".11-*-*-" +
+                "..0     " +
+                "..3 *** " +
+                "..0     ", Direction.ACT(1, 1, 0));
     }
 
-    private void asertAI(String board, Direction expected) {
+    private void asertAI(String board, String expected) {
         String actual = ai.get(board(board));
         assertEquals(expected.toString(), actual);
     }
