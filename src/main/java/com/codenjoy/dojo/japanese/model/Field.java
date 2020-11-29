@@ -32,4 +32,6 @@ public interface Field extends GameField<Player> {
     void setPixel(Point pt, Color color);
 
     int size();
+
+    Point offset();
 }

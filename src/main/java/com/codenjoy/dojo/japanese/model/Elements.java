@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toList;
 public enum Elements implements CharElements {
 
     WHITE('-', 1),      // игрок утверждает, что пиксель белый
-    BLACK('X', 0),      // игрок утверждает, что пиксель черный
+    BLACK('*', 0),      // игрок утверждает, что пиксель черный
     UNSET(' ', -1),    // игрок пока не определился, какого цвета этот пиксель
 
     NAN('.', -1),        // пустое место в полое для цифер

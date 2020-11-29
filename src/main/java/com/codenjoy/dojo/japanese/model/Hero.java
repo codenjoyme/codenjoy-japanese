@@ -56,6 +56,10 @@ public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
 
         if (point.isOutOf(field.size())) return;
 
+        Point offset = field.offset();
+        if (point.getX() < offset.getX()
+            || point.getY() > offset.getY()) return;
+
         int color = p[2];
 
         if (color != BLACK.code()
@@ -69,6 +73,7 @@ public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
     @Override
     public void tick() {
         if (!alive) return;
+        if (point == null) return;
 
         field.setPixel(point, color);
 

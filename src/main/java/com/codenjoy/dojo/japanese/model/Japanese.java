@@ -35,11 +35,14 @@ import com.codenjoy.dojo.services.printer.BoardReader;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.codenjoy.dojo.services.PointImpl.pt;
+
 public class Japanese implements Field {
 
     private List<Pixel> pixels;
     private List<Nan> nan;
     private List<Number> numbers;
+    private Point offset;
 
     private Player player;
 
@@ -48,10 +51,36 @@ public class Japanese implements Field {
 
     public Japanese(Level level, Dice dice) {
         this.dice = dice;
+        size = level.getSize();
+
         pixels = level.getPixels();
+        pixels.forEach(pixel -> pixel.change(Color.UNSET));
+        offset = pt(getOffsetX(), getOffsetY());
+
         numbers = level.getNumbers();
         nan = level.getNan();
-        size = level.getSize();
+    }
+
+    private int getOffsetX() {
+        int x;
+        int y = 0;
+        for (x = 0; x < size; x++) {
+            if (pixels.indexOf(pt(x, y)) != -1) {
+                break;
+            }
+        }
+        return x;
+    }
+
+    private int getOffsetY() {
+        int x = size - 1;
+        int y;
+        for (y = 0; y < size; y++) {
+            if (pixels.indexOf(pt(x, y)) == -1) {
+                break;
+            }
+        }
+        return y - 1;
     }
 
     @Override
@@ -97,6 +126,11 @@ public class Japanese implements Field {
 
     public List<Pixel> getPixels() {
         return pixels;
+    }
+
+    @Override
+    public Point offset() {
+        return offset;
     }
 
     @Override
