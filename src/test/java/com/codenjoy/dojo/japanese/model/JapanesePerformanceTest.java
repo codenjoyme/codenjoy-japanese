@@ -37,7 +37,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
-public class SamplePerformanceTest {
+public class JapanesePerformanceTest {
 
     @Test
     public void test() {

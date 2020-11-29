@@ -39,9 +39,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
-public class SampleTest {
+public class JapaneseTest {
 
-    private Sample game;
+    private Japanese game;
     private Hero hero;
     private Dice dice;
     private EventListener listener;
@@ -64,7 +64,7 @@ public class SampleTest {
         LevelImpl level = new LevelImpl(board);
         Hero hero = level.getHero().get(0);
 
-        game = new Sample(level, dice);
+        game = new Japanese(level, dice);
         listener = mock(EventListener.class);
         player = new Player(listener);
         game.newGame(player);

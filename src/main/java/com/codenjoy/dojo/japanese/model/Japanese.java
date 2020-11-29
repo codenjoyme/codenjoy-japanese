@@ -43,7 +43,7 @@ import static java.util.stream.Collectors.toList;
  * Если какой-то из жителей борды вдруг захочет узнать что-то у нее, то лучше ему дать интефейс {@see Field}
  * Борда реализует интерфейс {@see Tickable} чтобы быть уведомленной о каждом тике игры. Обрати внимание на {Sample#tick()}
  */
-public class Sample implements Field {
+public class Japanese implements Field {
 
     private List<Wall> walls;
     private List<Gold> gold;
@@ -54,7 +54,7 @@ public class Sample implements Field {
     private final int size;
     private Dice dice;
 
-    public Sample(Level level, Dice dice) {
+    public Japanese(Level level, Dice dice) {
         this.dice = dice;
         walls = level.getWalls();
         gold = level.getGold();
@@ -172,7 +172,7 @@ public class Sample implements Field {
     @Override
     public BoardReader reader() {
         return new BoardReader() {
-            private int size = Sample.this.size;
+            private int size = Japanese.this.size;
 
             @Override
             public int size() {
@@ -182,10 +182,10 @@ public class Sample implements Field {
             @Override
             public Iterable<? extends Point> elements() {
                 return new LinkedList<Point>(){{
-                    addAll(Sample.this.getWalls());
-                    addAll(Sample.this.getHeroes());
-                    addAll(Sample.this.getGold());
-                    addAll(Sample.this.getBombs());
+                    addAll(Japanese.this.getWalls());
+                    addAll(Japanese.this.getHeroes());
+                    addAll(Japanese.this.getGold());
+                    addAll(Japanese.this.getBombs());
                 }};
             }
         };

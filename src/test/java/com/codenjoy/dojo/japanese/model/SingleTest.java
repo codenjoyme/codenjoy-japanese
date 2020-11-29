@@ -47,7 +47,7 @@ public class SingleTest {
     private Game game2;
     private Game game3;
     private Dice dice;
-    private Sample field;
+    private Japanese field;
 
     // появляется другие игроки, игра становится мультипользовательской
     @Before
@@ -61,7 +61,7 @@ public class SingleTest {
                 "☼☼☼☼☼☼");
 
         dice = mock(Dice.class);
-        field = new Sample(level, dice);
+        field = new Japanese(level, dice);
         PrinterFactory factory = new PrinterFactoryImpl();
 
         listener1 = mock(EventListener.class);
