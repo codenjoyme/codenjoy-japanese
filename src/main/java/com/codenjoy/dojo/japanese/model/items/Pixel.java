@@ -29,21 +29,27 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
 import com.codenjoy.dojo.services.State;
 
-/**
- * Артефакт: Стена на поле
- */
-public class Wall extends PointImpl implements State<Elements, Player> {
+public class Pixel extends PointImpl implements State<Elements, Player> {
 
-    public Wall(int x, int y) {
-        super(x, y);
-    }
+    private Color color;
 
-    public Wall(Point point) {
+    public Pixel(Point point, Color color) {
         super(point);
+        this.color = color;
     }
 
     @Override
     public Elements state(Player player, Object... alsoAtPoint) {
-        return Elements.WALL;
+        switch (color) {
+            case BLACK: return Elements.BLACK;
+            case WHITE: return Elements.WHITE;
+            default: return Elements.UNSET;
+        }
+    }
+
+    public Color change(Color color) {
+        Color old = this.color;
+        this.color = color;
+        return old;
     }
 }

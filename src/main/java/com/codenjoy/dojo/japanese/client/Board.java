@@ -27,11 +27,8 @@ import com.codenjoy.dojo.client.AbstractBoard;
 import com.codenjoy.dojo.japanese.model.Elements;
 import com.codenjoy.dojo.services.Point;
 
-/**
- * Класс, обрабатывающий строковое представление доски.
- * Содержит ряд унаследованных методов {@see AbstractBoard},
- * но ты можешь добавить сюда любые свои методы на их основе.
- */
+import java.util.List;
+
 public class Board extends AbstractBoard<Elements> {
 
     @Override
@@ -39,20 +36,14 @@ public class Board extends AbstractBoard<Elements> {
         return Elements.valueOf(ch);
     }
 
-    public boolean isBarrierAt(int x, int y) {
-        return isAt(x, y, Elements.WALL, Elements.OTHER_HERO);
+    public List<Point> getNumbers() {
+        return get(Elements.getNumbers());
     }
 
-    public Point getMe() {
-        return get(Elements.DEAD_HERO,
-                Elements.HERO).get(0);
+    public List<Point> getPixels() {
+        return get(Elements.BLACK,
+                Elements.WHITE,
+                Elements.UNSET);
     }
 
-    public boolean isGameOver() {
-        return !get(Elements.DEAD_HERO).isEmpty();
-    }
-
-    public boolean isBombAt(int x, int y) {
-        return isAt(x, y, Elements.BOMB);
-    }
 }

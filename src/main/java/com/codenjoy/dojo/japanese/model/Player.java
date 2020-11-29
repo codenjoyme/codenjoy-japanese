@@ -26,10 +26,6 @@ package com.codenjoy.dojo.japanese.model;
 import com.codenjoy.dojo.services.EventListener;
 import com.codenjoy.dojo.services.multiplayer.GamePlayer;
 
-/**
- * Класс игрока. Тут кроме героя может подсчитываться очки.
- * Тут же ивенты передабтся лиснеру фреймворка.
- */
 public class Player extends GamePlayer<Hero, Field> {
 
     Hero hero;
@@ -44,7 +40,7 @@ public class Player extends GamePlayer<Hero, Field> {
 
     @Override
     public void newHero(Field field) {
-        hero = new Hero(field.getFreeRandom());
+        hero = new Hero();
         hero.init(field);
     }
 

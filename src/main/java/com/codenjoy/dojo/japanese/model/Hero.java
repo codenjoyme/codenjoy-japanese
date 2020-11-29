@@ -23,25 +23,21 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
-import com.codenjoy.dojo.services.Direction;
+import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.services.Point;
-import com.codenjoy.dojo.services.State;
+import com.codenjoy.dojo.services.joystick.NoDirectionJoystick;
 import com.codenjoy.dojo.services.multiplayer.PlayerHero;
 
-/**
- * Это реализация героя. Обрати внимание, что он имплементит {@see Joystick}, а значит может быть управляем фреймворком
- * Так же он имплементит {@see Tickable}, что значит - есть возможность его оповещать о каждом тике игры.
- * Ну и конечно же он имплементит {@see State}, а значит может быть отрисован на поле.
- * Часть этих интерфейсов объявлены в {@see PlayerHero}, а часть явно тут.
- */
-public class Hero extends PlayerHero<Field> implements State<Elements, Player> {
+import static com.codenjoy.dojo.japanese.model.Elements.*;
+
+public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
 
     private boolean alive;
-    private Direction direction;
+    private Point point;
+    private Color color;
 
-    public Hero(Point xy) {
-        super(xy);
-        direction = null;
+    public Hero() {
+        super();
         alive = true;
     }
 
@@ -51,73 +47,37 @@ public class Hero extends PlayerHero<Field> implements State<Elements, Player> {
     }
 
     @Override
-    public void down() {
-        if (!alive) return;
-
-        direction = Direction.DOWN;
-    }
-
-    @Override
-    public void up() {
-        if (!alive) return;
-
-        direction = Direction.UP;
-    }
-
-    @Override
-    public void left() {
-        if (!alive) return;
-
-        direction = Direction.LEFT;
-    }
-
-    @Override
-    public void right() {
-        if (!alive) return;
-
-        direction = Direction.RIGHT;
-    }
-
-    @Override
     public void act(int... p) {
         if (!alive) return;
 
-        field.setBomb(this);
+        if (p.length != 3) return;
+
+        Point point = pt(p[0], p[1]);
+
+        if (point.isOutOf(field.size())) return;
+
+        int color = p[2];
+
+        if (color != BLACK.code()
+            && color != WHITE.code()
+            && color != UNSET.code()) return;
+
+        this.point = point;
+        this.color = Color.get(color);
     }
 
     @Override
     public void tick() {
         if (!alive) return;
 
-        if (direction != null) {
-            Point to = direction.change(this.copy());
+        field.setPixel(point, color);
 
-            if (field.isBomb(to)) {
-                alive = false;
-                field.removeBomb(to);
-            }
-
-            if (!field.isBarrier(to)) {
-                move(to);
-            }
-        }
-        direction = null;
+        point = null;
+        color = Color.UNSET;
     }
 
     public boolean isAlive() {
         return alive;
     }
 
-    @Override
-    public Elements state(Player player, Object... alsoAtPoint) {
-        if (!isAlive()) {
-            return Elements.DEAD_HERO;
-        }
-
-        if (this == player.getHero()) {
-            return Elements.HERO;
-        } else {
-            return Elements.OTHER_HERO;
-        }
-    }
 }

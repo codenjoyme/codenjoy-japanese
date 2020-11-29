@@ -23,150 +23,80 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
-import com.codenjoy.dojo.japanese.model.items.Bomb;
-import com.codenjoy.dojo.japanese.model.items.Gold;
-import com.codenjoy.dojo.japanese.model.items.Wall;
+import com.codenjoy.dojo.japanese.model.items.Color;
+import com.codenjoy.dojo.japanese.model.items.Nan;
+import com.codenjoy.dojo.japanese.model.items.Number;
+import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.japanese.services.Events;
-import com.codenjoy.dojo.services.BoardUtils;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Point;
-import com.codenjoy.dojo.services.Tickable;
 import com.codenjoy.dojo.services.printer.BoardReader;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
-/**
- * О! Это самое сердце игры - борда, на которой все происходит.
- * Если какой-то из жителей борды вдруг захочет узнать что-то у нее, то лучше ему дать интефейс {@see Field}
- * Борда реализует интерфейс {@see Tickable} чтобы быть уведомленной о каждом тике игры. Обрати внимание на {Sample#tick()}
- */
 public class Japanese implements Field {
 
-    private List<Wall> walls;
-    private List<Gold> gold;
-    private List<Bomb> bombs;
+    private List<Pixel> pixels;
+    private List<Nan> nan;
+    private List<Number> numbers;
 
-    private List<Player> players;
+    private Player player;
 
     private final int size;
     private Dice dice;
 
     public Japanese(Level level, Dice dice) {
         this.dice = dice;
-        walls = level.getWalls();
-        gold = level.getGold();
+        pixels = level.getPixels();
+        numbers = level.getNumbers();
+        nan = level.getNan();
         size = level.getSize();
-        players = new LinkedList<>();
-        bombs = new LinkedList<>();
     }
 
-    /**
-     * @see Tickable#tick()
-     */
     @Override
     public void tick() {
-        for (Player player : players) {
-            Hero hero = player.getHero();
+        Hero hero = player.getHero();
 
-            hero.tick();
+        hero.tick();
 
-            if (gold.contains(hero)) {
-                gold.remove(hero);
-                player.event(Events.WIN);
-
-                Point pos = getFreeRandom();
-                gold.add(new Gold(pos));
-            }
-        }
-
-        for (Player player : players) {
-            Hero hero = player.getHero();
-
-            if (!hero.isAlive()) {
-                player.event(Events.LOOSE);
-            }
+        if (!hero.isAlive()) {
+            player.event(Events.LOOSE);
         }
     }
 
+    @Override
     public int size() {
         return size;
     }
 
     @Override
-    public boolean isBarrier(Point pt) {
-        int x = pt.getX();
-        int y = pt.getY();
-
-        return x > size - 1
-                || x < 0
-                || y < 0
-                || y > size - 1
-                || walls.contains(pt)
-                || getHeroes().contains(pt);
+    public void setPixel(Point pt, Color color) {
+        pixels.removeIf(pixel -> pixel.equals(pt));
+        pixels.add(new Pixel(pt, color));
     }
 
-    @Override
-    public Point getFreeRandom() {
-        return BoardUtils.getFreeRandom(size, dice, pt -> isFree(pt));
-    }
-
-    @Override
-    public boolean isFree(Point pt) {
-        return !(gold.contains(pt)
-                || bombs.contains(pt)
-                || walls.contains(pt)
-                || getHeroes().contains(pt));
-    }
-
-    @Override
-    public boolean isBomb(Point pt) {
-        return bombs.contains(pt);
-    }
-
-    @Override
-    public void setBomb(Point pt) {
-        if (!bombs.contains(pt)) {
-            bombs.add(new Bomb(pt));
-        }
-    }
-
-    @Override
-    public void removeBomb(Point pt) {
-        bombs.remove(pt);
-    }
-
-    public List<Gold> getGold() {
-        return gold;
-    }
-
-    public List<Hero> getHeroes() {
-        return players.stream()
-                .map(Player::getHero)
-                .collect(toList());
+    public List<Number> getNumbers() {
+        return numbers;
     }
 
     @Override
     public void newGame(Player player) {
-        if (!players.contains(player)) {
-            players.add(player);
-        }
+        this.player = player;
         player.newHero(this);
     }
 
     @Override
     public void remove(Player player) {
-        players.remove(player);
+        this.player = null;
     }
 
-    public List<Wall> getWalls() {
-        return walls;
+    public List<Nan> getNans() {
+        return nan;
     }
 
-    public List<Bomb> getBombs() {
-        return bombs;
+    public List<Pixel> getPixels() {
+        return pixels;
     }
 
     @Override
@@ -181,11 +111,10 @@ public class Japanese implements Field {
 
             @Override
             public Iterable<? extends Point> elements() {
-                return new LinkedList<Point>(){{
-                    addAll(Japanese.this.getWalls());
-                    addAll(Japanese.this.getHeroes());
-                    addAll(Japanese.this.getGold());
-                    addAll(Japanese.this.getBombs());
+                return new LinkedList<>(){{
+                    addAll(Japanese.this.getPixels());
+                    addAll(Japanese.this.getNans());
+                    addAll(Japanese.this.getNumbers());
                 }};
             }
         };

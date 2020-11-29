@@ -23,24 +23,19 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
-import com.codenjoy.dojo.japanese.model.items.Gold;
-import com.codenjoy.dojo.japanese.model.items.Wall;
+import com.codenjoy.dojo.japanese.model.items.Nan;
+import com.codenjoy.dojo.japanese.model.items.Number;
+import com.codenjoy.dojo.japanese.model.items.Pixel;
 
 import java.util.List;
 
-/**
- * Я вот для простоты и удобства хочу указывать борду в тестовом виде, а реализация этого интерфейса позволяет мне это сделать
- */
 public interface Level {
 
-    /**
-     * @return Размер поля (обязательно квадратное)
-     */
     int getSize();
 
-    List<Wall> getWalls();
+    List<Number> getNumbers();
 
-    List<Hero> getHero();
+    List<Nan> getNan();
 
-    List<Gold> getGold();
+    List<Pixel> getPixels();
 }

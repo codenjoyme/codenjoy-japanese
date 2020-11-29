@@ -23,18 +23,13 @@ package com.codenjoy.dojo.japanese.client;
  */
 
 
+import com.codenjoy.dojo.japanese.model.Elements;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.RandomDice;
 
-/**
- * User: your name
- * Это твой алгоритм AI для игры. Реализуй его на свое усмотрение.
- * Обрати внимание на {@see YourSolverTest} - там приготовлен тестовый
- * фреймворк для тебя.
- */
 public class YourSolver implements Solver<Board> {
 
     private Dice dice;
@@ -47,9 +42,8 @@ public class YourSolver implements Solver<Board> {
     @Override
     public String get(Board board) {
         this.board = board;
-        if (board.isGameOver()) return "";
 
-        return Direction.UP.toString();
+        return Direction.ACT(1, 1, Elements.BLACK.code());
     }
 
     public static void main(String[] args) {

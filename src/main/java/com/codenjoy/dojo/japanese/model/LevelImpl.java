@@ -23,23 +23,20 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
-import com.codenjoy.dojo.japanese.model.items.Gold;
-import com.codenjoy.dojo.japanese.model.items.Wall;
+import com.codenjoy.dojo.japanese.model.items.Color;
+import com.codenjoy.dojo.japanese.model.items.Nan;
+import com.codenjoy.dojo.japanese.model.items.Number;
+import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.LengthToXY;
-import com.codenjoy.dojo.services.Point;
+import com.codenjoy.dojo.utils.LevelUtils;
 
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
 
-import static com.codenjoy.dojo.japanese.model.Elements.GOLD;
-import static com.codenjoy.dojo.japanese.model.Elements.HERO;
-import static com.codenjoy.dojo.japanese.model.Elements.WALL;
-import static java.util.stream.Collectors.toList;
+import static com.codenjoy.dojo.japanese.model.Elements.*;
 
-/**
- * Полезный утилитный класс для получения объектов на поле из текстового вида.
- */
 public class LevelImpl implements Level {
+
     private final LengthToXY xy;
 
     private String map;
@@ -55,34 +52,27 @@ public class LevelImpl implements Level {
     }
 
     @Override
-    public List<Hero> getHero() {
-        return pointsOf(HERO).stream()
-                .map(Hero::new)
-                .collect(toList());
-
+    public List<Number> getNumbers() {
+        return LevelUtils.getObjects(xy, map,
+                (pt, el) -> new Number(pt, el.code()),
+                Elements.getNumbers());
     }
 
     @Override
-    public List<Gold> getGold() {
-        return pointsOf(GOLD).stream()
-                .map(Gold::new)
-                .collect(toList());
+    public List<Nan> getNan() {
+        return LevelUtils.getObjects(xy, map,
+                Nan::new,
+                NAN);
     }
 
     @Override
-    public List<Wall> getWalls() {
-        return pointsOf(WALL).stream()
-                .map(Wall::new)
-                .collect(toList());
+    public List<Pixel> getPixels() {
+        return LevelUtils.getObjects(xy, map,
+                new HashMap<>(){{
+                    put(BLACK, pt -> new Pixel(pt, Color.BLACK));
+                    put(WHITE, pt -> new Pixel(pt, Color.WHITE));
+                    put(UNSET, pt -> new Pixel(pt, Color.UNSET));
+                }});
     }
 
-    private List<Point> pointsOf(Elements element) {
-        List<Point> result = new LinkedList<>();
-        for (int index = 0; index < map.length(); index++) {
-            if (map.charAt(index) == element.ch) {
-                result.add(xy.getXY(index));
-            }
-        }
-        return result;
-    }
 }

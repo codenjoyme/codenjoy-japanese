@@ -29,21 +29,17 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
 import com.codenjoy.dojo.services.State;
 
-/**
- * Артефакт: Бомба на поле
- */
-public class Bomb extends PointImpl implements State<Elements, Player> {
+public class Number extends PointImpl implements State<Elements, Player> {
 
-    public Bomb(int x, int y) {
-        super(x, y);
-    }
+    private final int number;
 
-    public Bomb(Point point) {
+    public Number(Point point, int number) {
         super(point);
+        this.number = number;
     }
 
     @Override
     public Elements state(Player player, Object... alsoAtPoint) {
-        return Elements.BOMB;
+        return Elements.forNumber(number);
     }
 }

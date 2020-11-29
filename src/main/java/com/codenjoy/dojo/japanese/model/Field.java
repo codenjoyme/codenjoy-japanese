@@ -23,24 +23,13 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
+import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.multiplayer.GameField;
 
-/**
- * Так случилось что доска знает про героя, а герой про доску.
- * И чтобы герой не знал про всю доску, я ему даю вот эту часть доски.
- */
 public interface Field extends GameField<Player> {
 
-    boolean isBarrier(Point pt);
+    void setPixel(Point pt, Color color);
 
-    Point getFreeRandom();
-
-    boolean isFree(Point pt);
-
-    boolean isBomb(Point pt);
-
-    void setBomb(Point pt);
-
-    void removeBomb(Point pt);
+    int size();
 }
