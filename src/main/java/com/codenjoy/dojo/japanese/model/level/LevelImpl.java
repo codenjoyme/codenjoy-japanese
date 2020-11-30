@@ -42,9 +42,29 @@ public class LevelImpl implements Level {
 
     private String map;
 
+    private List<Pixel> pixels;
+    private List<Number> numbers;
+    private List<Nan> nans;
+
     public LevelImpl(String map) {
         this.map = map;
         xy = new LengthToXY(size());
+
+        pixels = parsePixels();
+        numbers = parseNumbers();
+        nans = parseNans();
+
+        if (pixels.stream().allMatch(pixel -> pixel.color() == Color.UNSET)) {
+            // TODO рисунка нет - надо решить паззл и нарисовать
+            return;
+        }
+
+        if (nans.isEmpty()) {
+            // TODO нет цифер - надо сгенерить
+            return;
+        }
+
+        // TODO только проверяем соответствие циферок и рисунка
     }
 
     @Override
@@ -52,22 +72,20 @@ public class LevelImpl implements Level {
         return (int) Math.sqrt(map.length());
     }
 
-    @Override
-    public List<Number> numbers() {
+    private List<Number> parseNumbers() {
         return LevelUtils.getObjects(xy, map,
                 (pt, el) -> new Number(pt, el.code()),
                 Elements.getNumbers());
     }
 
-    @Override
-    public List<Nan> nans() {
+
+    private List<Nan> parseNans() {
         return LevelUtils.getObjects(xy, map,
                 Nan::new,
                 NAN);
     }
 
-    @Override
-    public List<Pixel> pixels() {
+    private List<Pixel> parsePixels() {
         return LevelUtils.getObjects(xy, map,
                 new HashMap<>(){{
                     put(BLACK, pt -> new Pixel(pt, Color.BLACK));
@@ -76,6 +94,20 @@ public class LevelImpl implements Level {
                 }});
     }
 
+    @Override
+    public List<Number> numbers() {
+        return numbers;
+    }
+
+    @Override
+    public List<Nan> nans() {
+        return nans;
+    }
+
+    @Override
+    public List<Pixel> pixels() {
+        return pixels;
+    }
     @Override
     public String map() {
         return map;
