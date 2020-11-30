@@ -236,6 +236,7 @@ public class JapaneseTest {
     public void shouldNotFireValidEvent_whenAlreadyFired() {
         // given
         shouldValidEvent_whenGuessedWhite();
+        reset(listener);
 
         assertE("........" +
                 "....1.1." +
@@ -261,6 +262,39 @@ public class JapaneseTest {
                 "..0     " +
                 "..3     " +
                 "..0-    ");
+    }
+
+    @Test
+    public void shouldInvalidEvent_whenDidNotGuessBlack_caseTwice() {
+        // given
+        shouldInvalidEvent_whenDidNotGuessBlack();
+        reset(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11 -   " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+
+        // when
+        hero.act(4, 3, Elements.WHITE.code());
+        game.tick();
+
+        // then
+        verify(listener).event(Events.INVALID);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11 -   " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
     }
 
     @Test
