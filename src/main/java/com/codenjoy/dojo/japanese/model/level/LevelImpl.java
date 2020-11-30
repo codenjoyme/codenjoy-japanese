@@ -62,8 +62,9 @@ public class LevelImpl implements Level, BoardReader {
             return;
         }
 
-        if (nans.isEmpty()) {
-            // TODO нет цифер - надо сгенерить
+        // нет цифер - надо сгенерить
+        if (nans.isEmpty() && numbers.isEmpty()) {
+            new NumbersBuilder(this).process();
             return;
         }
 
