@@ -1,6 +1,5 @@
 package com.codenjoy.dojo.japanese.model.level;
 
-import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
@@ -32,15 +31,34 @@ public class NumbersBuilder {
 
     static class Numbers {
         int pos;
-        List<Integer> line;
+        LinkedList<Integer> line;
+        int index;
 
         public Numbers(int pos) {
             this.pos = pos;
             this.line = new LinkedList<>();
+            index = 0;
         }
 
-        public void add(int item) {
-            line.add(item);
+        protected void addNext() {
+            if (line.isEmpty() || last() != 0) {
+                line.add(0);
+            }
+            index = line.size() - 1;
+        }
+
+        private Integer last() {
+            return line.get(line.size() - 1);
+        }
+
+        protected void increaseCurrent() {
+            line.set(index, line.get(index) + 1);
+        }
+
+        protected void removeLastEmpty() {
+            if (last() == 0) {
+                line.removeLast();
+            }
         }
     }
 
@@ -131,20 +149,14 @@ public class NumbersBuilder {
 
     private Numbers calculate(Pixels pixels) {
         return new Numbers(pixels.pos){{
-            int count = 0;
-            for (Pixel pixel :pixels.line) {
-                if (pixel.color() == Color.BLACK) {
-                    count++;
-                } else if (pixel.color() == Color.WHITE) {
-                    if (count != 0) {
-                        add(count);
-                    }
-                    count = 0;
+            this.addNext();
+            for (Pixel pixel : pixels.line) {
+                switch (pixel.color()) {
+                    case BLACK : this.increaseCurrent(); break;
+                    case WHITE : this.addNext(); break;
                 }
             }
-            if (count != 0) {
-                add(count);
-            }
+            this.removeLastEmpty();
         }};
     }
 }
