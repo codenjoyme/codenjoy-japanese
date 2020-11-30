@@ -51,7 +51,7 @@ public class JapaneseTest {
         dice = mock(Dice.class);
     }
 
-    private void dice(int...ints) {
+    private void dice(int... ints) {
         OngoingStubbing<Integer> when = when(dice.next(anyInt()));
         for (int i : ints) {
             when = when.thenReturn(i);
@@ -70,13 +70,15 @@ public class JapaneseTest {
     }
 
     private void assertE(String expected) {
-        assertEquals(TestUtils.injectN(expected),
-                printer.getPrinter(game.reader(), player).print());
+        assertEquals(TestUtils.injectN(expected), TestUtils.injectN(getBoard()));
+    }
+
+    private String getBoard() {
+        return ((String) printer.getPrinter(game.reader(), player).print()).replaceAll("[\r\n]", "");
     }
 
     private void assertNotE(String expected) {
-        assertNotEquals(TestUtils.injectN(expected),
-                printer.getPrinter(game.reader(), player).print());
+        assertNotEquals(TestUtils.injectN(expected), TestUtils.injectN(getBoard()));
     }
 
     @Test
@@ -265,11 +267,36 @@ public class JapaneseTest {
     }
 
     private void assertActIgnored(int x, int y) {
+        String board = getBoard();
+
         // when
         hero.act(x, y, Elements.WHITE.code());
         game.tick();
 
         // then
+        assertE(board);
+    }
+
+    private void assertActProcessed(int x, int y) {
+        String board = getBoard();
+
+        // when
+        hero.act(x, y, Elements.WHITE.code());
+        game.tick();
+
+        // then
+        assertNotE(board);
+
+        // clear
+        hero.act(x, y, Elements.UNSET.code());
+        game.tick();
+    }
+
+    @Test
+    public void shouldIgnore_whenBadPixelColor() {
+        // given
+        shouldEmptyField_whenStart();
+
         assertE("........" +
                 "....1.1." +
                 "...01100" +
@@ -278,26 +305,53 @@ public class JapaneseTest {
                 "..0     " +
                 "..3     " +
                 "..0     ");
+
+
+        // when then
+        assertActIgnored(-2); // -2
+
+        // when then
+        int valid = 3;
+        hero.act(valid, valid, Elements.WHITE.code());
+        game.tick();
+
+        assertActProcessed(-1); // -1
+
+        // when then
+        assertActProcessed(Elements.BLACK.code()); // 0
+
+        // when then
+        assertActProcessed(Elements.WHITE.code()); // 1
+
+        // when then
+        assertActIgnored(2); // 2
     }
 
-    private void assertActProcessed(int x, int y) {
+    private void assertActIgnored(int color) {
+        String board = getBoard();
+
         // when
-        hero.act(x, y, Elements.WHITE.code());
+        int valid = 3;
+        hero.act(valid, valid, color);
         game.tick();
 
         // then
-        assertNotE(
-                "........" +
-                "....1.1." +
-                "...01100" +
-                "..0     " +
-                ".11     " +
-                "..0     " +
-                "..3     " +
-                "..0     ");
-
-        // clear
-        hero.act(x, y, Elements.UNSET.code());
+        assertE(board);
     }
 
+    private void assertActProcessed(int color) {
+        String board = getBoard();
+
+        // when
+        int valid = 3;
+        hero.act(valid, valid, color);
+        game.tick();
+
+        // then
+        assertNotE(board);
+
+        // clear
+        hero.act(valid, valid, Elements.UNSET.code());
+        game.tick();
+    }
 }
