@@ -47,9 +47,7 @@ public class Pixel extends PointImpl implements State<Elements, Player> {
         }
     }
 
-    public Color change(Color color) {
-        Color old = this.color;
-        this.color = color;
-        return old;
+    public Color color() {
+        return color;
     }
 }

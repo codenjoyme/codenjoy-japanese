@@ -104,7 +104,16 @@ public class Japanese implements Field {
     @Override
     public void setPixel(Point pt, Color color) {
         actPixels.removeIf(pixel -> pixel.equals(pt));
-        actPixels.add(new Pixel(pt, color));
+        Pixel actual = new Pixel(pt, color);
+        actPixels.add(actual);
+
+        int index = pixels.indexOf(actual);
+        if (index != -1) {
+            Pixel expected = pixels.get(index);
+            if (expected.color().equals(actual.color())) {
+                player.event(Events.VALID);
+            }
+        }
     }
 
     public List<Number> getNumbers() {

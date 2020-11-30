@@ -78,6 +78,7 @@ public class JapaneseTest {
 
     @Test
     public void shouldEmptyField_whenStart() {
+        // given when
         givenFl("........" +
                 "....1.1." +
                 "...01100" +
@@ -87,6 +88,7 @@ public class JapaneseTest {
                 "..3-***-" +
                 "..0-----");
 
+        // then
         assertE("........" +
                 "....1.1." +
                 "...01100" +
@@ -95,6 +97,38 @@ public class JapaneseTest {
                 "..0     " +
                 "..3     " +
                 "..0     ");
+    }
+
+    @Test
+    public void shouldValid_whenGuessedWhite() {
+        // given
+        shouldEmptyField_whenStart();
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+
+        // when
+        hero.act(3, 0, Elements.WHITE.code());
+        game.tick();
+
+        // then
+        verify(listener).event(Events.VALID);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0-    ");
     }
 
 }
