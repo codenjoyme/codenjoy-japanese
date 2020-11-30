@@ -58,7 +58,7 @@ public final class SettingsWrapper {
         validScore = settings.addEditBox("Valid pixel score").type(Integer.class).def(10);
         invalidPenalty = settings.addEditBox("Invalid pixel penalty").type(Integer.class).def(1);
         winScore = settings.addEditBox("Win score").type(Integer.class).def(1000);
-        loosePenalty = settings.addEditBox("Loose penalty").type(Integer.class).def(100);
+        loosePenalty = settings.addEditBox("Loose penalty").type(Integer.class).def(1000);
 
         levelsCount = settings.addEditBox("levels.count").type(Integer.class).def(0);
         Levels.setup();
