@@ -108,13 +108,15 @@ public class Japanese implements Field {
         actPixels.add(actual);
 
         int index = pixels.indexOf(actual);
-        if (index != -1) {
-            Pixel expected = pixels.get(index);
-            if (expected.color().equals(actual.color())) {
-                player.event(Events.VALID);
-            } else {
-                player.event(Events.INVALID);
-            }
+        if (index == -1) {
+            return;
+        }
+
+        Pixel expected = pixels.get(index);
+        if (expected.color().equals(actual.color())) {
+            player.event(Events.VALID);
+        } else {
+            player.event(Events.INVALID);
         }
     }
 
