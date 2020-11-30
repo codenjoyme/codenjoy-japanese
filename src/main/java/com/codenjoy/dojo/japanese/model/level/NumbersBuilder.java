@@ -132,8 +132,7 @@ public class NumbersBuilder {
     private Numbers calculate(Pixels pixels) {
         return new Numbers(pixels.pos){{
             int count = 0;
-            for (int index = 0; index < pixels.line.size(); index++) {
-                Pixel pixel = pixels.line.get(index);
+            for (Pixel pixel :pixels.line) {
                 if (pixel.color() == Color.BLACK) {
                     count++;
                 } else if (pixel.color() == Color.WHITE) {
