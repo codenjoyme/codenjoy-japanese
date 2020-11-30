@@ -116,14 +116,17 @@ public class Japanese implements Field {
         }
 
         Pixel expected = pixels.get(index);
-        if (expected.color().equals(actual.color())) {
-            if (winPixels.indexOf(actual) == -1) {
-                player.event(Events.VALID);
-                winPixels.add(actual);
-            }
-        } else {
+        if (expected.color() != actual.color()) {
             player.event(Events.INVALID);
+            return;
         }
+
+        if (winPixels.indexOf(actual) != -1) {
+            return;
+        }
+
+        winPixels.add(actual);
+        player.event(Events.VALID);
     }
 
     public List<Number> getNumbers() {
