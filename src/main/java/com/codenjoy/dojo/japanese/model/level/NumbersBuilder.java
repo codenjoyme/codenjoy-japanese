@@ -6,7 +6,6 @@ import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.Point;
 
-import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,20 +14,44 @@ import java.util.function.Function;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 
 public class NumbersBuilder {
 
     private LevelImpl level;
 
-    private Map<Integer, List<Pixel>> pixelsRows;
-    private Map<Integer, List<Pixel>> pixelsCols;
-    private Map<Integer, List<Integer>> numbersRows;
-    private Map<Integer, List<Integer>> numbersCols;
+    private List<Pixels> pixelsRows;
+    private List<Pixels> pixelsCols;
+    private List<Numbers> numbersRows;
+    private List<Numbers> numbersCols;
 
     public NumbersBuilder(LevelImpl level) {
         this.level = level;
+    }
+
+    static class Numbers {
+        int pos;
+        List<Integer> line;
+
+        public Numbers(int pos) {
+            this.pos = pos;
+            this.line = new LinkedList<>();
+        }
+
+        public void add(int item) {
+            line.add(item);
+        }
+    }
+
+    static class Pixels {
+        int pos;
+        List<Pixel> line;
+
+        public Pixels(Map.Entry<Integer, List<Pixel>> entry) {
+            pos = entry.getKey();
+            line = entry.getValue();
+        }
     }
 
     public void process() {
@@ -61,18 +84,18 @@ public class NumbersBuilder {
         return level.size() - 1 - pos;
     }
 
-    private void generate(Map<Integer, List<Integer>> map, BiFunction<Integer, Integer, Point> pt, int max) {
-        map.entrySet().forEach(entry -> {
-            List<Integer> numbers = entry.getValue();
-            Integer y = entry.getKey();
+    private void generate(List<Numbers> list, BiFunction<Integer, Integer, Point> pt, int max) {
+        list.forEach(numbers -> {
+            List<Integer> line = numbers.line;
+            Integer y = numbers.pos;
 
-            int end = max - numbers.size();
+            int end = max - line.size();
 
             range(0, end).forEach(x ->
                     addNan(pt.apply(x, y)));
 
             range(end, max).forEach(x ->
-                    addNumber(pt.apply(x, y), numbers.get(x - end)));
+                    addNumber(pt.apply(x, y), line.get(x - end)));
         });
     }
 
@@ -84,45 +107,45 @@ public class NumbersBuilder {
         level.nans().add(new Nan(pt));
     }
 
-    private Integer maxLength(Map<Integer, List<Integer>> numbers) {
-        return numbers.entrySet().stream()
-                    .map(entry -> entry.getValue().size())
+    private Integer maxLength(List<Numbers> numbers) {
+        return numbers.stream()
+                    .map(it -> it.line.size())
                     .max(Integer::compareTo)
                     .get();
     }
 
-    private Map<Integer, List<Integer>> numbers(Map<Integer, List<Pixel>> pixels) {
-        return pixels.entrySet().stream()
-                    .map(this::calculateNumbers)
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+    private List<Numbers> numbers(List<Pixels> pixels) {
+        return pixels.stream()
+                    .map(this::calculate)
+                    .collect(toList());
     }
 
-    private Map<Integer, List<Pixel>> lines(Function<Pixel, Integer> grouping) {
+    private List<Pixels> lines(Function<Pixel, Integer> grouping) {
         return level.pixels().stream()
                 .sorted()
-                .collect(groupingBy(grouping));
+                .collect(groupingBy(grouping))
+                .entrySet().stream()
+                .map(Pixels::new)
+                .collect(toList());
     }
 
-    private Map.Entry<Integer, List<Integer>> calculateNumbers(Map.Entry<Integer, List<Pixel>> entry) {
-        List<Integer> result = new LinkedList<>();
-
-        int count = 0;
-        List<Pixel> pixels = entry.getValue();
-        for (int index = 0; index < pixels.size(); index++) {
-            Pixel pixel = pixels.get(index);
-            if (pixel.color() == Color.BLACK) {
-                count++;
-            } else if (pixel.color() == Color.WHITE) {
-                if (count != 0) {
-                    result.add(count);
+    private Numbers calculate(Pixels pixels) {
+        return new Numbers(pixels.pos){{
+            int count = 0;
+            for (int index = 0; index < pixels.line.size(); index++) {
+                Pixel pixel = pixels.line.get(index);
+                if (pixel.color() == Color.BLACK) {
+                    count++;
+                } else if (pixel.color() == Color.WHITE) {
+                    if (count != 0) {
+                        add(count);
+                    }
+                    count = 0;
                 }
-                count = 0;
             }
-        }
-        if (count != 0) {
-            result.add(count);
-        }
-
-        return new AbstractMap.SimpleEntry(entry.getKey(), result);
+            if (count != 0) {
+                add(count);
+            }
+        }};
     }
 }
