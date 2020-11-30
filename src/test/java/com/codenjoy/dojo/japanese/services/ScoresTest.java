@@ -32,11 +32,15 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class ScoresTest {
+
     private PlayerScores scores;
+    private SettingsWrapper wrapper;
 
     private Settings settings;
     private Integer loosePenalty;
     private Integer winScore;
+    private Integer validScore;
+    private Integer invalidPenalty;
 
     public void loose() {
         scores.event(Events.LOOSE);
@@ -46,27 +50,50 @@ public class ScoresTest {
         scores.event(Events.WIN);
     }
 
+    public void valid() {
+        scores.event(Events.VALID);
+    }
+
+    public void invalid() {
+        scores.event(Events.INVALID);
+    }
+
     @Before
     public void setup() {
         settings = new SettingsImpl();
-        scores = new Scores(0, settings);
+        wrapper = SettingsWrapper.setup(settings);
+        scores = new Scores(0, wrapper);
 
         loosePenalty = settings.getParameter("Loose penalty").type(Integer.class).getValue();
         winScore = settings.getParameter("Win score").type(Integer.class).getValue();
+        validScore = settings.getParameter("Valid pixel score").type(Integer.class).getValue();
+        invalidPenalty = settings.getParameter("Invalid pixel penalty").type(Integer.class).getValue();
     }
 
     @Test
     public void shouldCollectScores() {
-        scores = new Scores(140, settings);
+        scores = new Scores(140, wrapper);
 
-        win();  //+30
-        win();  //+30
-        win();  //+30
-        win();  //+30
+        valid();
+        valid();
+        valid();
 
-        loose(); //-100
+        invalid();
+        invalid();
+        invalid();
+        invalid();
 
-        assertEquals(140 + 4 * winScore - loosePenalty, scores.getScore());
+        win();
+        win();
+
+        loose();
+
+        assertEquals(140
+                + 3 * validScore
+                - 4 * invalidPenalty
+                + 2 * winScore
+                - loosePenalty,
+                scores.getScore());
     }
 
     @Test

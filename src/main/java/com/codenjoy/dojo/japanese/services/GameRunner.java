@@ -39,55 +39,28 @@ import static com.codenjoy.dojo.services.settings.SimpleParameter.v;
 
 public class GameRunner extends AbstractGameType implements GameType {
 
-    private final Level level;
-
     public GameRunner() {
-        new Scores(0, settings);
-        level = new LevelImpl(getMap());
+        setupSettings();
     }
 
-    protected String getMap() {
-        return  "........1................." +
-                "........23122.2.34...2...." +
-                "........114332321321432..." +
-                "........2444431312612111.." +
-                "......2312521326622612222." +
-                "......34151233222141114141" +
-                "....52--*****-----------**" +
-                "...143---*-****-------***-" +
-                "...252---**--*****---**---" +
-                "....37----***--*******----" +
-                "...531----*****-***-*-----" +
-                "...813--********-*-***----" +
-                "..3412***----****-*-**----" +
-                ".24133**-****--*-***-***--" +
-                "...852-********-*****--**-" +
-                "..5161---*****-*-******-*-" +
-                "..6223--******-**-**--***-" +
-                "..2321-**-----***-**----*-" +
-                "..2443**-****-****-***----" +
-                "..6142******-*-****--**---" +
-                "211231**--*--*-**-***-*---" +
-                "..2322---**-***-**---**---" +
-                ".21221---**-*-**-**---*---" +
-                "..1221---*-**--**-*-------" +
-                "....33---***----***-------" +
-                "....21--**--------*-------";
+    private void setupSettings() {
+        SettingsWrapper.setup(settings);
     }
 
     @Override
     public PlayerScores getPlayerScores(Object score) {
-        return new Scores((Integer)score, settings);
+        return new Scores((Integer)score, SettingsWrapper.data);
     }
 
     @Override
     public GameField createGame(int levelNumber) {
+        Level level = new LevelImpl(SettingsWrapper.data.levelMap());
         return new Japanese(level, getDice());
     }
 
     @Override
     public Parameter<Integer> getBoardSize() {
-        return v(level.getSize());
+        return v(SettingsWrapper.data.getSize());
     }
 
     @Override

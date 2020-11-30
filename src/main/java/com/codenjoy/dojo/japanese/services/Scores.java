@@ -30,20 +30,13 @@ import com.codenjoy.dojo.services.settings.Settings;
 
 public class Scores implements PlayerScores {
 
-    private final Parameter<Integer> winScore;
-    private final Parameter<Integer> loosePenalty;
-    private final Parameter<Integer> validScore;
-    private final Parameter<Integer> invalidPenalty;
-
     private volatile int score;
 
-    public Scores(int startScore, Settings settings) {
-        this.score = startScore;
+    private SettingsWrapper settings;
 
-        validScore = settings.addEditBox("Valid pixel score").type(Integer.class).def(1);
-        invalidPenalty = settings.addEditBox("Invalid pixel penalty").type(Integer.class).def(1);
-        winScore = settings.addEditBox("Win score").type(Integer.class).def(30);
-        loosePenalty = settings.addEditBox("Loose penalty").type(Integer.class).def(100);
+    public Scores(int startScore, SettingsWrapper settings) {
+        this.score = startScore;
+        this.settings = settings;
     }
 
     @Override
@@ -59,13 +52,13 @@ public class Scores implements PlayerScores {
     @Override
     public void event(Object event) {
         if (event.equals(Events.WIN)) {
-            score += winScore.getValue();
+            score += settings.winScore();
         } else if (event.equals(Events.LOOSE)) {
-            score -= loosePenalty.getValue();
+            score -= settings.loosePenalty();
         } else if (event.equals(Events.VALID)) {
-            score -= validScore.getValue();
+            score += settings.validScore();
         } else if (event.equals(Events.INVALID)) {
-            score -= invalidPenalty.getValue();
+            score -= settings.invalidPenalty();
         }
         score = Math.max(0, score);
     }
