@@ -131,4 +131,36 @@ public class JapaneseTest {
                 "..0-    ");
     }
 
+    @Test
+    public void shouldValid_whenGuessedBlack() {
+        // given
+        shouldEmptyField_whenStart();
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+
+        // when
+        hero.act(4, 3, Elements.BLACK.code());
+        game.tick();
+
+        // then
+        verify(listener).event(Events.VALID);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11 *   " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+    }
+
 }
