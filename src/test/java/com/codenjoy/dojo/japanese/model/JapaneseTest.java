@@ -414,6 +414,65 @@ public class JapaneseTest {
     @Test
     public void shouldWinEvent_whenSolvedPuzzle() {
         // given
+        givenAlmostSolved();
+
+        // when then
+        assertEquals(true, hero.isAlive());
+        assertEquals(false, hero.isWin());
+
+        reset(listener);
+        act(7, 0, WHITE);
+
+        assertEquals(false, hero.isAlive());
+        assertEquals(true, hero.isWin());
+
+        // then
+        verify(listener).event(VALID);
+        verify(listener).event(WIN);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0-----" +
+                ".11-*-*-" +
+                "..0-----" +
+                "..3-***-" +
+                "..0-----");
+    }
+
+    @Test
+    public void shouldLooseEvent_whenSolvedPuzzleWithErrors() {
+        // given
+        givenAlmostSolved();
+
+        // when then
+        assertEquals(true, hero.isAlive());
+        assertEquals(false, hero.isWin());
+
+        reset(listener);
+        act(7, 0, BLACK); // error!
+
+        assertEquals(false, hero.isAlive());
+        assertEquals(false, hero.isWin());
+
+        // then
+        verify(listener).event(INVALID);
+        verify(listener).event(LOOSE);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0-----" +
+                ".11-*-*-" +
+                "..0-----" +
+                "..3-***-" +
+                "..0----*");
+    }
+
+    private void givenAlmostSolved() {
+        // given
         shouldEmptyField_whenStart();
 
         assertE("........" +
@@ -454,30 +513,6 @@ public class JapaneseTest {
         act(4, 0, WHITE);
         act(5, 0, WHITE);
         act(6, 0, WHITE);
-
-        // when then
-        assertEquals(true, hero.isAlive());
-        assertEquals(false, hero.isWin());
-
-        reset(listener);
-        act(7, 0, WHITE);
-
-        assertEquals(false, hero.isAlive());
-        assertEquals(true, hero.isWin());
-
-        // then
-        verify(listener).event(VALID);
-        verify(listener).event(WIN);
-        verifyNoMoreInteractions(listener);
-
-        assertE("........" +
-                "....1.1." +
-                "...01100" +
-                "..0-----" +
-                ".11-*-*-" +
-                "..0-----" +
-                "..3-***-" +
-                "..0-----");
     }
 
     private void act(int x, int y, Elements color) {

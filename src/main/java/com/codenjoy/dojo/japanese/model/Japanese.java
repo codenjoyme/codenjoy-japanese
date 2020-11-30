@@ -98,6 +98,10 @@ public class Japanese implements Field {
 
         hero.tick();
 
+        checkSolved(hero);
+    }
+
+    private void checkSolved(Hero hero) {
         if (isSolved()) {
             boolean win = isGotItRight();
             if (win) {
