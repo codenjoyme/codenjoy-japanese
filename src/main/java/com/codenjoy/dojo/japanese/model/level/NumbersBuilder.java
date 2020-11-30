@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.IntStream.range;
 
 public class NumbersBuilder {
 
@@ -32,41 +32,72 @@ public class NumbersBuilder {
     }
 
     public void process() {
-        pixelsRows = getLines(Pixel::getY);
-        pixelsCols = getLines(Pixel::getX);
-        numbersRows = getNumbers(pixelsRows);
-        numbersCols = getNumbers(pixelsCols);
+        // получаем строчки/рядки пикселей
+        pixelsRows = lines(Pixel::getY);
+        pixelsCols = lines(Pixel::getX);
+
+        // получаем строчки/рядки цифер
+        numbersRows = numbers(pixelsRows);
+        numbersCols = numbers(pixelsCols);
+
+        // определяем максимальную длинну циферок
         int max = Math.max(maxLength(numbersRows), maxLength(numbersCols));
 
-        generateResult(numbersRows, (x, y) -> pt(x, y), max);
-        generateResult(numbersCols, (x, y) -> pt(y, x), max);
+        // меняем размер поля и двигаем все пиксели так, чтобы поместились циферки
+        level.size(level.size() + max);
+        level.pixels().forEach(pixel -> pixel.change(pt(max, 0)));
+
+        // закрашиваем квадратик пустоты слева сверху
+        range(0, max).forEach(x ->
+            range(0, max).forEach(y ->
+                    level.nans().add(new Nan(pt(x, invert(y))))));
+
+        // прописываем цифры и nan'ы в соостветствующих местах на поле
+        generate(numbersRows, (x, y) -> pt(x, y), max);
+        generate(numbersCols, (x, y) -> pt(invert(y), invert(x)), max);
     }
 
-    private void generateResult(Map<Integer, List<Integer>> numbers, BiFunction<Integer, Integer, Point> pt, int max) {
-        numbers.entrySet().forEach(entry -> {
-            List<Integer> line = entry.getValue();
-            int end = max - line.size();
-            IntStream.range(0, end)
-                    .forEach(pos -> level.nans().add(new Nan(pt.apply(pos, entry.getKey()))));
-            IntStream.range(end, max)
-                    .forEach(pos -> level.numbers().add(new Number(pt.apply(pos, entry.getKey()), line.get(pos - end))));
+    private int invert(int pos) {
+        return level.size() - 1 - pos;
+    }
+
+    private void generate(Map<Integer, List<Integer>> map, BiFunction<Integer, Integer, Point> pt, int max) {
+        map.entrySet().forEach(entry -> {
+            List<Integer> numbers = entry.getValue();
+            Integer y = entry.getKey();
+
+            int end = max - numbers.size();
+
+            range(0, end).forEach(x ->
+                    addNan(pt.apply(x, y)));
+
+            range(end, max).forEach(x ->
+                    addNumber(pt.apply(x, y), numbers.get(x - end)));
         });
     }
 
-    private Integer maxLength(Map<Integer, List<Integer>> numbersLine) {
-        return numbersLine.entrySet().stream()
+    private void addNumber(Point pt, int number) {
+        level.numbers().add(new Number(pt, number));
+    }
+
+    private void addNan(Point pt) {
+        level.nans().add(new Nan(pt));
+    }
+
+    private Integer maxLength(Map<Integer, List<Integer>> numbers) {
+        return numbers.entrySet().stream()
                     .map(entry -> entry.getValue().size())
                     .max(Integer::compareTo)
                     .get();
     }
 
-    private Map<Integer, List<Integer>> getNumbers(Map<Integer, List<Pixel>> lines) {
-        return lines.entrySet().stream()
+    private Map<Integer, List<Integer>> numbers(Map<Integer, List<Pixel>> pixels) {
+        return pixels.entrySet().stream()
                     .map(this::calculateNumbers)
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private Map<Integer, List<Pixel>> getLines(Function<Pixel, Integer> grouping) {
+    private Map<Integer, List<Pixel>> lines(Function<Pixel, Integer> grouping) {
         return level.pixels().stream()
                 .sorted()
                 .collect(groupingBy(grouping));

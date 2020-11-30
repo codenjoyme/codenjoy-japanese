@@ -39,4 +39,9 @@ public enum Color {
 
         return UNSET;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(name().charAt(0));
+    }
 }

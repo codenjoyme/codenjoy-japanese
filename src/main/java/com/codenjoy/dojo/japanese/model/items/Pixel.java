@@ -50,4 +50,9 @@ public class Pixel extends PointImpl implements State<Elements, Player> {
     public Color color() {
         return color;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s=%s", super.toString(), color);
+    }
 }

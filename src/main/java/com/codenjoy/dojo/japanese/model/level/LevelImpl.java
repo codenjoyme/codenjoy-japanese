@@ -45,13 +45,15 @@ public class LevelImpl implements Level, BoardReader {
 
     private String map;
 
+    private int size;
     private List<Pixel> pixels;
     private List<Number> numbers;
     private List<Nan> nans;
 
     public LevelImpl(String map) {
         this.map = map;
-        xy = new LengthToXY(size());
+        size = (int) Math.sqrt(map.length());
+        xy = new LengthToXY(size);
 
         pixels = parsePixels();
         numbers = parseNumbers();
@@ -73,7 +75,11 @@ public class LevelImpl implements Level, BoardReader {
 
     @Override
     public int size() {
-        return (int) Math.sqrt(map.length());
+        return size;
+    }
+
+    public void size(int size) {
+        this.size = size;
     }
 
     private List<Number> parseNumbers() {
