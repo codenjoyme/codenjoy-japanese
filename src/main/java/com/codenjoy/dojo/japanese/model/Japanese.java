@@ -57,13 +57,17 @@ public class Japanese implements Field {
         size = level.getSize();
 
         pixels = level.getPixels();
-        actPixels = new LinkedList<>();
-        winPixels = new LinkedList<>();
+        resetActs();
 
         offset = pt(getOffsetX(), getOffsetY());
 
         numbers = level.getNumbers();
         nan = level.getNan();
+    }
+
+    private void resetActs() {
+        actPixels = new LinkedList<>();
+        winPixels = new LinkedList<>();
     }
 
     private int getOffsetX() {
@@ -136,12 +140,14 @@ public class Japanese implements Field {
     @Override
     public void newGame(Player player) {
         this.player = player;
+        resetActs();
         player.newHero(this);
     }
 
     @Override
     public void remove(Player player) {
         this.player = null;
+        resetActs();
     }
 
     public List<Nan> getNans() {
