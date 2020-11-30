@@ -28,9 +28,13 @@ import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.japanese.client.Board;
 import com.codenjoy.dojo.japanese.client.ai.AISolver;
 import com.codenjoy.dojo.japanese.model.*;
+import com.codenjoy.dojo.japanese.model.level.Level;
+import com.codenjoy.dojo.japanese.model.level.LevelImpl;
+import com.codenjoy.dojo.japanese.model.level.Levels;
 import com.codenjoy.dojo.services.*;
 import com.codenjoy.dojo.services.multiplayer.GameField;
 import com.codenjoy.dojo.services.multiplayer.GamePlayer;
+import com.codenjoy.dojo.services.multiplayer.LevelProgress;
 import com.codenjoy.dojo.services.multiplayer.MultiplayerType;
 import com.codenjoy.dojo.services.printer.CharElements;
 import com.codenjoy.dojo.services.settings.Parameter;
@@ -54,8 +58,13 @@ public class GameRunner extends AbstractGameType implements GameType {
 
     @Override
     public GameField createGame(int levelNumber) {
-        Level level = new LevelImpl(SettingsWrapper.data.levelMap());
-        return new Japanese(level, getDice());
+        int index = levelNumber - LevelProgress.levelsStartsFrom1;
+        Level level = getLevel(levelNumber);
+        return new Japanese(level, getDice(), index);
+    }
+
+    private Level getLevel(int levelNumber) {
+        return new LevelImpl(SettingsWrapper.data.levelMap(levelNumber));
     }
 
     @Override
@@ -85,7 +94,7 @@ public class GameRunner extends AbstractGameType implements GameType {
 
     @Override
     public MultiplayerType getMultiplayerType() {
-        return MultiplayerType.SINGLE;
+        return MultiplayerType.SINGLE_LEVELS.apply(Levels.all().size());
     }
 
     @Override

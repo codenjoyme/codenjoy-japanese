@@ -24,11 +24,15 @@ package com.codenjoy.dojo.japanese.model;
 
 
 import com.codenjoy.dojo.services.EventListener;
+import com.codenjoy.dojo.services.hero.HeroData;
+import com.codenjoy.dojo.services.hero.HeroDataImpl;
 import com.codenjoy.dojo.services.multiplayer.GamePlayer;
+import com.codenjoy.dojo.services.multiplayer.MultiplayerType;
 
 public class Player extends GamePlayer<Hero, Field> {
 
     Hero hero;
+    private Field field;
 
     public Player(EventListener listener) {
         super(listener);
@@ -42,6 +46,13 @@ public class Player extends GamePlayer<Hero, Field> {
     public void newHero(Field field) {
         hero = new Hero();
         hero.init(field);
+        this.field = field;
+    }
+
+    @Override
+    public HeroData getHeroData() {
+        return new HeroDataImpl(field.level(),
+                MultiplayerType.SINGLE.isSingle());
     }
 
     @Override

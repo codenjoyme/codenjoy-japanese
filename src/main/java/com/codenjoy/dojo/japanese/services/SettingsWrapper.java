@@ -23,7 +23,9 @@ package com.codenjoy.dojo.japanese.services;
  */
 
 
-import com.codenjoy.dojo.japanese.model.LevelImpl;
+import com.codenjoy.dojo.japanese.model.level.Level;
+import com.codenjoy.dojo.japanese.model.level.LevelImpl;
+import com.codenjoy.dojo.japanese.model.level.Levels;
 import com.codenjoy.dojo.services.settings.Parameter;
 import com.codenjoy.dojo.services.settings.Settings;
 import com.codenjoy.dojo.services.settings.SettingsImpl;
@@ -36,7 +38,7 @@ public final class SettingsWrapper {
     private final Parameter<Integer> loosePenalty;
     private final Parameter<Integer> validScore;
     private final Parameter<Integer> invalidPenalty;
-    private final Parameter<String> levelMap;
+    private final Parameter<Integer> levelsCount;
 
     private final Settings settings;
 
@@ -58,33 +60,29 @@ public final class SettingsWrapper {
         winScore = settings.addEditBox("Win score").type(Integer.class).def(1000);
         loosePenalty = settings.addEditBox("Loose penalty").type(Integer.class).def(100);
 
-        levelMap = settings.addEditBox("Level map").multiline().type(String.class)
-                .def("........1................." +
-                    "........23122.2.34...2...." +
-                    "........114332321321432..." +
-                    "........2444431312612111.." +
-                    "......2312521326622612222." +
-                    "......34151233222141114141" +
-                    "....52--*****-----------**" +
-                    "...143---*-****-------***-" +
-                    "...252---**--*****---**---" +
-                    "....37----***--*******----" +
-                    "...531----*****-***-*-----" +
-                    "...813--********-*-***----" +
-                    "..3412***----****-*-**----" +
-                    ".24133**-****--*-***-***--" +
-                    "...852-********-*****--**-" +
-                    "..5161---*****-*-******-*-" +
-                    "..6223--******-**-**--***-" +
-                    "..2321-**-----***-**----*-" +
-                    "..2443**-****-****-***----" +
-                    "..6142******-*-****--**---" +
-                    "211231**--*--*-**-***-*---" +
-                    "..2322---**-***-**---**---" +
-                    ".21221---**-*-**-**---*---" +
-                    "..1221---*-**--**-*-------" +
-                    "....33---***----***-------" +
-                    "....21--**--------*-------");
+        levelsCount = settings.addEditBox("levels.count").type(Integer.class).def(0);
+        Levels.setup();
+    }
+
+    public int levelsCount() {
+        return levelsCount.getValue();
+    }
+
+    public SettingsWrapper addLevel(int index, Level level) {
+        levelsCount.update(index);
+
+        String prefix = levelPrefix(index);
+        settings.addEditBox(prefix).multiline().type(String.class).def(level.map());
+        return this;
+    }
+
+    public String levelMap(int index) {
+        String prefix = levelPrefix(index);
+        return settings.addEditBox(prefix).type(String.class).getValue();
+    }
+
+    private String levelPrefix(int index) {
+        return "levels[" + index + "]";
     }
 
     public int loosePenalty() {
@@ -103,12 +101,10 @@ public final class SettingsWrapper {
         return validScore.getValue();
     }
 
-    public String levelMap() {
-        return levelMap.getValue();
-    }
-
     public int getSize() {
-        return new LevelImpl(levelMap()).getSize(); // TODO а что если уровней несколько?
+        // TODO надо сделать чтобы разные уровни имели разные размеры
+        // без рефакторинга в codenjoy не справиться
+        return new LevelImpl(levelMap(1)).size();
     }
 
     // setters for testing
@@ -133,8 +129,8 @@ public final class SettingsWrapper {
         return this;
     }
 
-    public SettingsWrapper levelMap(String value) {
-        levelMap.update(value);
+    public SettingsWrapper levelsCount(int value) {
+        levelsCount.update(value);
         return this;
     }
 

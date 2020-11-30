@@ -1,10 +1,10 @@
-package com.codenjoy.dojo.japanese.model;
+package com.codenjoy.dojo.japanese.model.level;
 
 /*-
  * #%L
  * Codenjoy - it's a dojo-like platform from developers to developers.
  * %%
- * Copyright (C) 2018 Codenjoy
+ * Copyright (C) 2018 - 2020 Codenjoy
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,18 +22,23 @@ package com.codenjoy.dojo.japanese.model;
  * #L%
  */
 
+import com.codenjoy.dojo.japanese.model.level.levels.Level1;
+import com.codenjoy.dojo.japanese.services.SettingsWrapper;
 
-import com.codenjoy.dojo.japanese.model.items.Color;
-import com.codenjoy.dojo.services.Point;
-import com.codenjoy.dojo.services.multiplayer.GameField;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public interface Field extends GameField<Player> {
+public class Levels {
 
-    void setPixel(Point pt, Color color);
+    public static void setup() {
+        AtomicInteger index = new AtomicInteger();
+        all().forEach(level -> SettingsWrapper.data.addLevel(index.incrementAndGet(), level));
+    }
 
-    int size();
-
-    Point offset();
-
-    int level();
+    public static List<Level> all() {
+        return Arrays.asList(
+                new Level1()
+        );
+    }
 }

@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.japanese.model;
+package com.codenjoy.dojo.japanese.model.level;
 
 /*-
  * #%L
@@ -31,11 +31,13 @@ import java.util.List;
 
 public interface Level {
 
-    int getSize();
+    int size();
 
-    List<Number> getNumbers();
+    List<Number> numbers();
 
-    List<Nan> getNan();
+    List<Nan> nans();
 
-    List<Pixel> getPixels();
+    List<Pixel> pixels();
+
+    String map();
 }

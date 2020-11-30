@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.japanese.model;
+package com.codenjoy.dojo.japanese.model.level;
 
 /*-
  * #%L
@@ -23,6 +23,7 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
+import com.codenjoy.dojo.japanese.model.Elements;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
@@ -43,36 +44,41 @@ public class LevelImpl implements Level {
 
     public LevelImpl(String map) {
         this.map = map;
-        xy = new LengthToXY(getSize());
+        xy = new LengthToXY(size());
     }
 
     @Override
-    public int getSize() {
+    public int size() {
         return (int) Math.sqrt(map.length());
     }
 
     @Override
-    public List<Number> getNumbers() {
+    public List<Number> numbers() {
         return LevelUtils.getObjects(xy, map,
                 (pt, el) -> new Number(pt, el.code()),
                 Elements.getNumbers());
     }
 
     @Override
-    public List<Nan> getNan() {
+    public List<Nan> nans() {
         return LevelUtils.getObjects(xy, map,
                 Nan::new,
                 NAN);
     }
 
     @Override
-    public List<Pixel> getPixels() {
+    public List<Pixel> pixels() {
         return LevelUtils.getObjects(xy, map,
                 new HashMap<>(){{
                     put(BLACK, pt -> new Pixel(pt, Color.BLACK));
                     put(WHITE, pt -> new Pixel(pt, Color.WHITE));
                     put(UNSET, pt -> new Pixel(pt, Color.UNSET));
                 }});
+    }
+
+    @Override
+    public String map() {
+        return map;
     }
 
 }

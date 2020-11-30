@@ -27,6 +27,7 @@ import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
+import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.japanese.services.Events;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Point;
@@ -51,18 +52,20 @@ public class Japanese implements Field {
 
     private final int size;
     private Dice dice;
+    private int levelNumber;
 
-    public Japanese(Level level, Dice dice) {
+    public Japanese(Level level, Dice dice, int levelNumber) {
         this.dice = dice;
-        size = level.getSize();
+        this.levelNumber = levelNumber;
+        size = level.size();
 
-        pixels = level.getPixels();
+        pixels = level.pixels();
         resetActs();
 
         offset = pt(getOffsetX(), getOffsetY());
 
-        numbers = level.getNumbers();
-        nan = level.getNan();
+        numbers = level.numbers();
+        nan = level.nans();
     }
 
     private void resetActs() {
@@ -99,6 +102,11 @@ public class Japanese implements Field {
         hero.tick();
 
         checkSolved(hero);
+    }
+
+    @Override
+    public int level() {
+        return levelNumber;
     }
 
     private void checkSolved(Hero hero) {
