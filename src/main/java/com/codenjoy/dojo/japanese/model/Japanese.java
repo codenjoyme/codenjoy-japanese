@@ -98,9 +98,23 @@ public class Japanese implements Field {
 
         hero.tick();
 
-        if (!hero.isAlive()) {
-            player.event(Events.LOOSE);
+        if (isSolved()) {
+            boolean win = isGotItRight();
+            if (win) {
+                player.event(Events.WIN);
+            } else {
+                player.event(Events.LOOSE);
+            }
+            hero.gameOver(win);
         }
+    }
+
+    public boolean isGotItRight() {
+        return winPixels.containsAll(pixels);
+    }
+
+    private boolean isSolved() {
+        return actPixels.containsAll(pixels);
     }
 
     @Override

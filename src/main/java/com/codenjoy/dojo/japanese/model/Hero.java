@@ -33,6 +33,7 @@ import static com.codenjoy.dojo.japanese.model.Elements.*;
 public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
 
     private boolean alive;
+    private boolean win;
     private Point point;
     private Color color;
 
@@ -85,4 +86,12 @@ public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
         return alive;
     }
 
+    public void gameOver(boolean win) {
+        alive = false;
+        this.win = win;
+    }
+
+    public boolean isWin() {
+        return win;
+    }
 }

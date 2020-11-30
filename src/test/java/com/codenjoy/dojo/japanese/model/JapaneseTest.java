@@ -33,6 +33,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.OngoingStubbing;
 
+import static com.codenjoy.dojo.japanese.model.Elements.*;
+import static com.codenjoy.dojo.japanese.services.Events.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -119,11 +121,10 @@ public class JapaneseTest {
                 "..0     ");
 
         // when
-        hero.act(3, 0, Elements.WHITE.code());
-        game.tick();
+        act(3, 0, WHITE);
 
         // then
-        verify(listener).event(Events.VALID);
+        verify(listener).event(VALID);
         verifyNoMoreInteractions(listener);
 
         assertE("........" +
@@ -151,11 +152,10 @@ public class JapaneseTest {
                 "..0     ");
 
         // when
-        hero.act(4, 3, Elements.BLACK.code());
-        game.tick();
+        act(4, 3, BLACK);
 
         // then
-        verify(listener).event(Events.VALID);
+        verify(listener).event(VALID);
         verifyNoMoreInteractions(listener);
 
         assertE("........" +
@@ -183,11 +183,10 @@ public class JapaneseTest {
                 "..0     ");
 
         // when
-        hero.act(3, 0, Elements.BLACK.code());
-        game.tick();
+        act(3, 0, BLACK);
 
         // then
-        verify(listener).event(Events.INVALID);
+        verify(listener).event(INVALID);
         verifyNoMoreInteractions(listener);
 
         assertE("........" +
@@ -215,11 +214,10 @@ public class JapaneseTest {
                 "..0     ");
 
         // when
-        hero.act(4, 3, Elements.WHITE.code());
-        game.tick();
+        act(4, 3, WHITE);
 
         // then
-        verify(listener).event(Events.INVALID);
+        verify(listener).event(INVALID);
         verifyNoMoreInteractions(listener);
 
         assertE("........" +
@@ -248,8 +246,7 @@ public class JapaneseTest {
                 "..0-    ");
 
         // when
-        hero.act(3, 0, Elements.WHITE.code());
-        game.tick();
+        act(3, 0, WHITE);
 
         // then
         verifyNoMoreInteractions(listener); // ничего не происходит, очки мы уже заработали
@@ -280,11 +277,10 @@ public class JapaneseTest {
                 "..0     ");
 
         // when
-        hero.act(4, 3, Elements.WHITE.code());
-        game.tick();
+        act(4, 3, WHITE);
 
         // then
-        verify(listener).event(Events.INVALID);
+        verify(listener).event(INVALID);
         verifyNoMoreInteractions(listener);
 
         assertE("........" +
@@ -335,8 +331,7 @@ public class JapaneseTest {
         String board = getBoard();
 
         // when
-        hero.act(x, y, Elements.WHITE.code());
-        game.tick();
+        act(x, y, WHITE);
 
         // then
         assertE(board);
@@ -346,15 +341,13 @@ public class JapaneseTest {
         String board = getBoard();
 
         // when
-        hero.act(x, y, Elements.WHITE.code());
-        game.tick();
+        act(x, y, WHITE);
 
         // then
         assertNotE(board);
 
         // clear
-        hero.act(x, y, Elements.UNSET.code());
-        game.tick();
+        act(x, y, UNSET);
     }
 
     @Test
@@ -377,16 +370,15 @@ public class JapaneseTest {
 
         // when then
         int valid = 3;
-        hero.act(valid, valid, Elements.WHITE.code());
-        game.tick();
+        act(valid, valid, WHITE);
 
         assertActProcessed(-1); // -1
 
         // when then
-        assertActProcessed(Elements.BLACK.code()); // 0
+        assertActProcessed(BLACK.code()); // 0
 
         // when then
-        assertActProcessed(Elements.WHITE.code()); // 1
+        assertActProcessed(WHITE.code()); // 1
 
         // when then
         assertActIgnored(2); // 2
@@ -416,7 +408,80 @@ public class JapaneseTest {
         assertNotE(board);
 
         // clear
-        hero.act(valid, valid, Elements.UNSET.code());
+        act(valid, valid, UNSET);
+    }
+
+    @Test
+    public void shouldWinEvent_whenSolvedPuzzle() {
+        // given
+        shouldEmptyField_whenStart();
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+
+        // when
+        act(3, 4, WHITE);
+        act(4, 4, WHITE);
+        act(5, 4, WHITE);
+        act(6, 4, WHITE);
+        act(7, 4, WHITE);
+
+        act(3, 3, WHITE);
+        act(4, 3, BLACK);
+        act(5, 3, WHITE);
+        act(6, 3, BLACK);
+        act(7, 3, WHITE);
+
+        act(3, 2, WHITE);
+        act(4, 2, WHITE);
+        act(5, 2, WHITE);
+        act(6, 2, WHITE);
+        act(7, 2, WHITE);
+
+        act(3, 1, WHITE);
+        act(4, 1, BLACK);
+        act(5, 1, BLACK);
+        act(6, 1, BLACK);
+        act(7, 1, WHITE);
+
+        act(3, 0, WHITE);
+        act(4, 0, WHITE);
+        act(5, 0, WHITE);
+        act(6, 0, WHITE);
+
+        // when then
+        assertEquals(true, hero.isAlive());
+        assertEquals(false, hero.isWin());
+
+        reset(listener);
+        act(7, 0, WHITE);
+
+        assertEquals(false, hero.isAlive());
+        assertEquals(true, hero.isWin());
+
+        // then
+        verify(listener).event(VALID);
+        verify(listener).event(WIN);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0-----" +
+                ".11-*-*-" +
+                "..0-----" +
+                "..3-***-" +
+                "..0-----");
+    }
+
+    private void act(int x, int y, Elements color) {
+        hero.act(x, y, color.code());
         game.tick();
     }
 }
