@@ -112,6 +112,8 @@ public class Japanese implements Field {
             Pixel expected = pixels.get(index);
             if (expected.color().equals(actual.color())) {
                 player.event(Events.VALID);
+            } else {
+                player.event(Events.INVALID);
             }
         }
     }

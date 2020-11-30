@@ -163,4 +163,68 @@ public class JapaneseTest {
                 "..0     ");
     }
 
+    @Test
+    public void shouldInvalid_whenDidNotGuessWhite() {
+        // given
+        shouldEmptyField_whenStart();
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+
+        // when
+        hero.act(3, 0, Elements.BLACK.code());
+        game.tick();
+
+        // then
+        verify(listener).event(Events.INVALID);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0*    ");
+    }
+
+    @Test
+    public void shouldInvalid_whenDidNotGuessBlack() {
+        // given
+        shouldEmptyField_whenStart();
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+
+        // when
+        hero.act(4, 3, Elements.WHITE.code());
+        game.tick();
+
+        // then
+        verify(listener).event(Events.INVALID);
+        verifyNoMoreInteractions(listener);
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11 -   " +
+                "..0     " +
+                "..3     " +
+                "..0     ");
+    }
+
 }
