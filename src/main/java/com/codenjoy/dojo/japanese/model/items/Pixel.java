@@ -55,4 +55,8 @@ public class Pixel extends PointImpl implements State<Elements, Player> {
     public String toString() {
         return String.format("%s=%s", super.toString(), color);
     }
+
+    public boolean isSet() {
+        return color != Color.UNSET;
+    }
 }

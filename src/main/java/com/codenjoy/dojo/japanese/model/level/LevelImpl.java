@@ -59,18 +59,26 @@ public class LevelImpl implements Level, BoardReader {
         numbers = parseNumbers();
         nans = parseNans();
 
-        if (pixels.stream().allMatch(pixel -> pixel.color() == Color.UNSET)) {
+        if (!pixelsExists()) {
             // TODO рисунка нет - надо решить паззл и нарисовать
             return;
         }
 
         // нет цифер - надо сгенерить
-        if (nans.isEmpty() && numbers.isEmpty()) {
+        if (!numbersExists()) {
             new NumbersBuilder(this).process();
             return;
         }
 
         // TODO только проверяем соответствие циферок и рисунка
+    }
+
+    private boolean numbersExists() {
+        return !(nans.isEmpty() && numbers.isEmpty());
+    }
+
+    private boolean pixelsExists() {
+        return pixels.stream().allMatch(Pixel::isSet);
     }
 
     @Override
