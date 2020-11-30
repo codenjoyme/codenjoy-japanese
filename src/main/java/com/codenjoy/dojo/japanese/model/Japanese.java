@@ -40,6 +40,7 @@ import static com.codenjoy.dojo.services.PointImpl.pt;
 public class Japanese implements Field {
 
     private List<Pixel> pixels;
+    private List<Pixel> actPixels;
     private List<Nan> nan;
     private List<Number> numbers;
     private Point offset;
@@ -49,14 +50,12 @@ public class Japanese implements Field {
     private final int size;
     private Dice dice;
 
-    public Japanese(Level level, Dice dice, boolean clean) {
+    public Japanese(Level level, Dice dice) {
         this.dice = dice;
         size = level.getSize();
 
         pixels = level.getPixels();
-        if (clean) {
-            pixels.forEach(pixel -> pixel.change(Color.UNSET));
-        }
+        actPixels = new LinkedList<>();
 
         offset = pt(getOffsetX(), getOffsetY());
 
@@ -104,8 +103,8 @@ public class Japanese implements Field {
 
     @Override
     public void setPixel(Point pt, Color color) {
-        pixels.removeIf(pixel -> pixel.equals(pt));
-        pixels.add(new Pixel(pt, color));
+        actPixels.removeIf(pixel -> pixel.equals(pt));
+        actPixels.add(new Pixel(pt, color));
     }
 
     public List<Number> getNumbers() {
@@ -127,8 +126,8 @@ public class Japanese implements Field {
         return nan;
     }
 
-    public List<Pixel> getPixels() {
-        return pixels;
+    public List<Pixel> getActPixels() {
+        return actPixels;
     }
 
     @Override
@@ -149,7 +148,7 @@ public class Japanese implements Field {
             @Override
             public Iterable<? extends Point> elements() {
                 return new LinkedList<>(){{
-                    addAll(Japanese.this.getPixels());
+                    addAll(Japanese.this.getActPixels());
                     addAll(Japanese.this.getNans());
                     addAll(Japanese.this.getNumbers());
                 }};

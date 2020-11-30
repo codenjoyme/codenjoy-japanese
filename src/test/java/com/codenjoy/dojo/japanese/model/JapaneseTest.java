@@ -63,7 +63,7 @@ public class JapaneseTest {
     private void givenFl(String board) {
         LevelImpl level = new LevelImpl(board);
 
-        game = new Japanese(level, dice, false);
+        game = new Japanese(level, dice);
         listener = mock(EventListener.class);
         player = new Player(listener);
         game.newGame(player);
@@ -83,17 +83,17 @@ public class JapaneseTest {
                 "...01100" +
                 "..0-----" +
                 ".11-*-*-" +
-                "..0     " +
-                "..3 *** " +
-                "..0     ");
+                "..0-----" +
+                "..3-***-" +
+                "..0-----");
 
         assertE("........" +
                 "....1.1." +
                 "...01100" +
-                "..0-----" +
-                ".11-*-*-" +
                 "..0     " +
-                "..3 *** " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
                 "..0     ");
     }
 
