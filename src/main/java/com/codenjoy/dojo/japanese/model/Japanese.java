@@ -41,6 +41,8 @@ public class Japanese implements Field {
 
     private List<Pixel> pixels;
     private List<Pixel> actPixels;
+    private List<Pixel> winPixels;
+
     private List<Nan> nan;
     private List<Number> numbers;
     private Point offset;
@@ -56,6 +58,7 @@ public class Japanese implements Field {
 
         pixels = level.getPixels();
         actPixels = new LinkedList<>();
+        winPixels = new LinkedList<>();
 
         offset = pt(getOffsetX(), getOffsetY());
 
@@ -114,7 +117,10 @@ public class Japanese implements Field {
 
         Pixel expected = pixels.get(index);
         if (expected.color().equals(actual.color())) {
-            player.event(Events.VALID);
+            if (winPixels.indexOf(actual) == -1) {
+                player.event(Events.VALID);
+                winPixels.add(actual);
+            }
         } else {
             player.event(Events.INVALID);
         }

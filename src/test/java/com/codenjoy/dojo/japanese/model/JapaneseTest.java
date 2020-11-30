@@ -105,7 +105,7 @@ public class JapaneseTest {
     }
 
     @Test
-    public void shouldValid_whenGuessedWhite() {
+    public void shouldValidEvent_whenGuessedWhite() {
         // given
         shouldEmptyField_whenStart();
 
@@ -137,7 +137,7 @@ public class JapaneseTest {
     }
 
     @Test
-    public void shouldValid_whenGuessedBlack() {
+    public void shouldValidEvent_whenGuessedBlack() {
         // given
         shouldEmptyField_whenStart();
 
@@ -169,7 +169,7 @@ public class JapaneseTest {
     }
 
     @Test
-    public void shouldInvalid_whenDidNotGuessWhite() {
+    public void shouldInvalidEvent_whenDidNotGuessWhite() {
         // given
         shouldEmptyField_whenStart();
 
@@ -201,7 +201,7 @@ public class JapaneseTest {
     }
 
     @Test
-    public void shouldInvalid_whenDidNotGuessBlack() {
+    public void shouldInvalidEvent_whenDidNotGuessBlack() {
         // given
         shouldEmptyField_whenStart();
 
@@ -230,6 +230,37 @@ public class JapaneseTest {
                 "..0     " +
                 "..3     " +
                 "..0     ");
+    }
+
+    @Test
+    public void shouldNotFireValidEvent_whenAlreadyFired() {
+        // given
+        shouldValidEvent_whenGuessedWhite();
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0-    ");
+
+        // when
+        hero.act(3, 0, Elements.WHITE.code());
+        game.tick();
+
+        // then
+        verifyNoMoreInteractions(listener); // ничего не происходит, очки мы уже заработали
+
+        assertE("........" +
+                "....1.1." +
+                "...01100" +
+                "..0     " +
+                ".11     " +
+                "..0     " +
+                "..3     " +
+                "..0-    ");
     }
 
     @Test
