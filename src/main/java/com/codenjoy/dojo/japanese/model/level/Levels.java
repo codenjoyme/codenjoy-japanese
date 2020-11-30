@@ -23,6 +23,7 @@ package com.codenjoy.dojo.japanese.model.level;
  */
 
 import com.codenjoy.dojo.japanese.model.level.levels.Level1;
+import com.codenjoy.dojo.japanese.model.level.levels.Level10;
 import com.codenjoy.dojo.japanese.services.SettingsWrapper;
 
 import java.util.Arrays;
@@ -38,7 +39,8 @@ public class Levels {
 
     public static List<Level> all() {
         return Arrays.asList(
-                new Level1()
+                new Level1(),
+                new Level10()
         );
     }
 }

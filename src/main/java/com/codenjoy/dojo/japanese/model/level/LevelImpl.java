@@ -29,14 +29,17 @@ import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.LengthToXY;
+import com.codenjoy.dojo.services.Point;
+import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.utils.LevelUtils;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.codenjoy.dojo.japanese.model.Elements.*;
 
-public class LevelImpl implements Level {
+public class LevelImpl implements Level, BoardReader {
 
     private final LengthToXY xy;
 
@@ -108,9 +111,19 @@ public class LevelImpl implements Level {
     public List<Pixel> pixels() {
         return pixels;
     }
+
     @Override
     public String map() {
         return map;
     }
 
+    // только для целей тестирования
+    @Override
+    public Iterable<? extends Point> elements() {
+        return new LinkedList<>() {{
+            addAll(LevelImpl.this.numbers());
+            addAll(LevelImpl.this.nans());
+            addAll(LevelImpl.this.pixels());
+        }};
+    }
 }
