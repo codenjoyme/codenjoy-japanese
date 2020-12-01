@@ -24,11 +24,6 @@ type
     udCount: TUpDown;
     pb: TPaintBox;
     btCalc: TButton;
-    Label1: TLabel;
-    Button1: TButton;
-    Label2: TLabel;
-    Label3: TLabel;
-    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -37,8 +32,6 @@ type
     procedure pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure pbMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure btCalcClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -171,7 +164,48 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var i, j, k:integer;
+    b:boolean;
 begin
+    if (X < bmpLeft.Width) then begin
+        X:=(X div wid) + 1;
+        if (ssLeft in Shift) then begin
+            j:=0;
+            for i:=1 to CountRjad do
+                j:=j + Rjad[i];
+            if (X > CountRjad) then begin
+                X:=CountRjad + 1;
+                if ((j + CountRjad) > udCount.Position - 1) then Exit;
+                inc(CountRjad);
+                Rjad[X]:=0;
+            end;
+            if ((j + CountRjad) > udCount.Position) then Exit;
+            Rjad[X]:=Rjad[X] + 1;
+        end;
+        if (ssRight in Shift) then begin
+            if (X > CountRjad) then X:=CountRjad;
+            Rjad[X]:=Rjad[X] - 1;
+            if (Rjad[X] = 0) then begin
+                if (X < CountRjad) then
+                    for i:=X to CountRjad do
+                        Rjad[i]:=Rjad[i + 1];
+                dec(CountRjad);
+            end;
+        end;
+
+        for i:=1 to udCount.Position do Data[i].Check:=0;
+        k:=1; i:=1;
+        while (i <= CountRjad) do begin
+            for j:=1 to Rjad[i] do
+                Data[k + j - 1].Check:=1;
+            Data[k + j].Check:=0;
+            k:=k + j;
+            inc(i);                                    
+        end;
+
+        Draw;
+        Exit;
+    end;
     bDown:=true;
     pbMouseMove(Sender, Shift, X, Y);    
 end;
@@ -186,7 +220,7 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edCountChange(Sender: TObject);
 begin
-//    ClearData;
+    ClearData;
     GetRjad;
     Draw;
 end;
@@ -236,7 +270,6 @@ procedure TForm1.btCalcClick(Sender: TObject);
 var i, j:integer;
     b:boolean;
 begin
-    Label1.Caption:='true';
     for i:=1 to udCount.Position do Data[i].Check:=0;
     GetCombine;
     for i:=1 to udCount.Position do begin
@@ -246,20 +279,12 @@ begin
         end;
         if (b) then Data[i].Check:=1;
     end;
-    GetRjad;
-    Draw;
-end;
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.Button1Click(Sender: TObject);
-var i, j:integer;
-    b:boolean;
-begin
-//    btCalc.Click;
+
     for i:=1 to udCount.Position do Data[i].Check:=0;
     GetNextCombine;
     for i:=1 to udCount.Position do begin
         b:=true;
-{df}        for j:=CountCombine to CountCombine do begin
+{df}        for j:=1 to CountCombine do begin
             b:=b and Combine[j, i];
         end;
         if (b) then Data[i].Check:=1;
@@ -290,18 +315,21 @@ end;
 procedure TForm1.GetNextCombine;
 var i:integer;
     bits1, bits2:PBitArray;
-
+    b:boolean;
     Rjad10:TRjad10;
     cr:integer;
 begin
-    inc(CountCombine);
-    inc(NumCombine);
-    bits1:=@Combine[CountCombine - 1];
-    bits2:=@Combine[CountCombine];
+    b:=true;
+    while (b) do begin
+        inc(CountCombine);
+        inc(NumCombine);
+        bits1:=@Combine[CountCombine - 1];
+        bits2:=@Combine[CountCombine];
 
-    GetRjadFromCombine(Rjad10, cr, bits1);
-    if (ManipuleRjad(Rjad10, cr)) then Label1.Caption:='true' else Label1.Caption:='false';
-    GetCombineFromRjad(Rjad10, cr, bits2);
+        GetRjadFromCombine(Rjad10, cr, bits1);
+        b:=ManipuleRjad(Rjad10, cr);
+        GetCombineFromRjad(Rjad10, cr, bits2);
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetCombineFromRjad(var r: TRjad10; var cr:integer; bits:PBitArray);
@@ -426,32 +454,6 @@ begin
    {X---------------------}Break; 
    {|}     {|}      end;
    {|}      end;
-    end;
-end;
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.Button2Click(Sender: TObject);
-var tstr:string;
-    i, a:integer;
-begin
-    Randomize;
-    while true do begin
-        for i:=1 to udCount.Position do Data[i].Check:=Random(100) div 50;
-        GetRjad;
-        btCalc.Click;
-        a:=1;
-        tstr:='';
-        for i:=1 to CountRjad do tstr:=tstr + IntToStr(Rjad[i]) + '-';
-        Label2.Caption:=tstr;        
-        while (Label1.Caption <> 'false') do begin
-            Button1.Click;
-            inc(a);
-            tstr:='';
-            for i:=1 to CountRjad do tstr:=tstr + IntToStr(Rjad[i]) + '-';
-            if (Label2.Caption <> tstr) then break;
-            Label2.Caption:=tstr;
-            Label3.Caption:=IntToStr(a);
-        end;
-        if (Label2.Caption <> tstr) then break;        
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
