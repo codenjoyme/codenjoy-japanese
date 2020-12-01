@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 144
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'Японские головоломки'
+  Caption = #1071#1087#1086#1085#1089#1082#1080#1077' '#1075#1086#1083#1086#1074#1086#1083#1086#1084#1082#1080
   ClientHeight = 242
   ClientWidth = 574
   Color = clBtnFace
@@ -61,7 +61,7 @@ object Form1: TForm1
     Top = 88
     Width = 65
     Height = 25
-    Caption = '&Расчет'
+    Caption = '&'#1056#1072#1089#1095#1077#1090
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -76,7 +76,7 @@ object Form1: TForm1
     Top = 64
     Width = 67
     Height = 17
-    Caption = 'Расш.'
+    Caption = #1056#1072#1089#1096'.'
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -119,7 +119,7 @@ object Form1: TForm1
     Top = 113
     Width = 65
     Height = 25
-    Caption = '&Сохранить'
+    Caption = '&'#1057#1086#1093#1088#1072#1085#1080#1090#1100
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -134,7 +134,7 @@ object Form1: TForm1
     Top = 138
     Width = 65
     Height = 25
-    Caption = '&Загрузить'
+    Caption = '&'#1047#1072#1075#1088#1091#1079#1080#1090#1100
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -149,7 +149,7 @@ object Form1: TForm1
     Top = 163
     Width = 65
     Height = 25
-    Caption = '&Очистить'
+    Caption = '&'#1054#1095#1080#1089#1090#1080#1090#1100
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -189,17 +189,27 @@ object Form1: TForm1
     Top = 188
     Width = 65
     Height = 25
-    Caption = 'Р&исунок'
+    Caption = #1056'&'#1080#1089#1091#1085#1086#1082
     TabOrder = 10
     OnClick = btSaveBimapClick
   end
+  object Button1: TButton
+    Left = 16
+    Top = 192
+    Width = 63
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 12
+    Visible = False
+    OnClick = Button1Click
+  end
   object od: TOpenDialog
-    Filter = 'Файлы расшифровщика (*.jap)|*.jap|Файлы редактора (*.jdt)|*.jdt'
+    Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
     Left = 56
     Top = 136
   end
   object sd: TSaveDialog
-    Filter = 'Файлы расшифровщика (*.jap)|*.jap|Файлы редактора (*.jdt)|*.jdt'
+    Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
     Left = 56
     Top = 112
   end
@@ -207,5 +217,18 @@ object Form1: TForm1
     Filter = 'Bitmaps (*.bmp)|*.bmp'
     Left = 56
     Top = 184
+  end
+  object WordApplication1: TWordApplication
+    AutoConnect = False
+    ConnectKind = ckRunningOrNew
+    AutoQuit = False
+    Left = 96
+    Top = 8
+  end
+  object WordDocument1: TWordDocument
+    AutoConnect = False
+    ConnectKind = ckRunningOrNew
+    Left = 112
+    Top = 16
   end
 end

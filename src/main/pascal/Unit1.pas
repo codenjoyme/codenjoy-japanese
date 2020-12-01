@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, Unit2, MyUnit, ExtDlgs;
+  ComCtrls, StdCtrls, ExtCtrls, Unit2, MyUnit, ExtDlgs, Word97, OleServer;
 
 type
   TXYData = array [1..MaxLen, 1..MaxLen] of byte;
@@ -28,6 +28,9 @@ type
     cbRjad: TCheckBox;
     btSaveBimap: TButton;
     spd: TSavePictureDialog;
+    Button1: TButton;
+    WordApplication1: TWordApplication;
+    WordDocument1: TWordDocument;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -44,6 +47,7 @@ type
     procedure cbRjadClick(Sender: TObject);
     procedure btSaveBimapClick(Sender: TObject);
     procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Button1Click(Sender: TObject);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -366,8 +370,7 @@ begin
     LenY:=udCountY.Position;
     bDown:=false;
 
-    CurrPt.pt:=Point(1, 1);
-    CurrPt.xy:=true;
+    ClearData;
 
     od.InitialDir:=ExtractFileDir(Application.ExeName);
     sd.InitialDir:=od.InitialDir;
@@ -425,79 +428,81 @@ end;
 procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var j, k, tx, ty:integer;
 begin
-
-    Shift:=Shift - [ssDouble];
-    if (edInput.Enabled) then edInput.SetFocus;
-    if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit;
-    if (X < bmpLeft.Width) then begin
-        if (cbRjad.Checked) then Exit;
-        Y:=Y - bmpTop.Height;
+    Shift:=Shift - [ssDouble]; // когда 2 раза нажимаеш возникает и это сообщение, а оно портачит
+    if (edInput.Enabled) then edInput.SetFocus; // фокус едиту! :)
+    if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit; // если кликаем в области SmallBmp то выходим
+    if (X < bmpLeft.Width) then begin // тут находится bmpLeft
+        if (cbRjad.Checked) then Exit; // это пока не проработал...
+        Y:=Y - bmpTop.Height; // получаем координаты начала bmpLeft
         X:=X;
-        Y:=(Y div wid) + 1;
+        Y:=(Y div wid) + 1; // теперь номер ячейки
         X:=(X div wid);
 
-        CurrPt.xy:=true;
+        CurrPt.xy:=true; // записываем номер ячейки
         CurrPt.pt.y:=X;
         CurrPt.pt.x:=Y;
 
-        if (Shift = [ssAlt, ssLeft]) then begin
-            PrepRjadX(Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
-            Unit2.glLen:=LenX;
-            if (not Unit2.Calculate) then begin
+        if (Shift = [ssAlt, ssLeft]) then begin // если нужно расчитать этот ряд
+            PrepRjadX(Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка ряда
+            Unit2.glLen:=LenX; // длинна
+            if (not Unit2.Calculate) then begin // расчет - если не получился ...
                 ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
-                RefreshPole;
-                Exit;
+                RefreshPole; // обновляем поле
+                Exit; // выходим
             end;
-            for x:=1 to LenX do
+            for x:=1 to LenX do // тут обновляем ряд
                 Form1.Data[x, y]:=Unit2.glData[x];
 //            GetFin;
-            RefreshPole;
-            Exit;
+            RefreshPole; // и выводим его на екран
+            Exit; // выходим
         end;
-
+        {пересчет для координат для рядов}
         if (cbRjad.Checked)
             then X:=X - 1
             else X:=X - (((LenX + 1) div 2) - CountRjadX[Y]) + 1;
-        if (Shift = [ssCtrl, ssLeft]) then begin
+        
+        if (Shift = [ssCtrl, ssLeft]) then begin // сдвиг рядов чисел
             for ty:=(Y + 1) to LenY do begin
                 CountRjadX[ty - 1]:=CountRjadX[ty];
                 for tx:=1 to CountRjadX[ty] do RjadX[tx, ty - 1]:=RjadX[tx, ty];
             end;
             CountRjadX[LenY]:=0;
         end;
-        if (Shift = [ssCtrl, ssRight]) then begin
-            for ty:=(LenY) downto Y do begin    // аозможен глюк
+        if (Shift = [ssCtrl, ssRight]) then begin // то же но в другую сторону
+            for ty:=(LenY) downto Y do begin    // а возможен глюк
                 CountRjadX[ty]:=CountRjadX[ty - 1];
                 for tx:=1 to CountRjadX[ty] do RjadX[tx, ty]:=RjadX[tx, ty - 1];
             end;
             CountRjadX[Y]:=0;
         end;
-        if (Shift = [ssLeft]) then begin
+        if (Shift = [ssLeft]) then begin // добавляем еще одну точку
+            {получаем сумму всех точек, включая пустые промежутки из длинной в 1}
             j:=0;
             for tx:=1 to CountRjadX[Y] do
                 j:=j + RjadX[tx, Y];
-            if (X <= 0) then begin
-                if ((j + CountRjadX[Y]) > (LenX - 1)) then Exit;
-                for tx:=CountRjadX[Y] downto 1 do RjadX[tx + 1, Y]:=RjadX[tx, Y];
-                X:=1;
-                inc(CountRjadX[Y]);
-                RjadX[X, Y]:=0;
+            if (X <= 0) then begin // добавление новой
+                if ((j + CountRjadX[Y]) > (LenX - 1)) then Exit; // если выходим при добавлении за граници, то выходим
+                for tx:=CountRjadX[Y] downto 1 do RjadX[tx + 1, Y]:=RjadX[tx, Y]; // смещаем все цифры ряда для добавления 1
+                X:=1; // позиция добавления 
+                inc(CountRjadX[Y]); // длинна ряда увеличилась
+                RjadX[X, Y]:=0; // пока ноль...
             end;
-            if ((j + CountRjadX[Y]) > LenX) then Exit;
-            RjadX[X, Y]:=RjadX[X, Y] + 1;
+            if ((j + CountRjadX[Y]) > LenX) then Exit; // если превышаем длинну - то выходим 
+            RjadX[X, Y]:=RjadX[X, Y] + 1; // увеличиваем на 1
         end;
+        {тут уменьшаем на 1}
         if (Shift = [ssRight]) then begin
-            if (CountRjadX[Y] = 0) then Exit;
-            if (X <= 0) then X:=1;
-            RjadX[X, Y]:=RjadX[X, Y] - 1;
-            if (RjadX[X, Y] = 0) then begin
-                if (X < CountRjadX[Y]) then
-                    for tx:=X to CountRjadX[Y] do
+            if (CountRjadX[Y] = 0) then Exit; // если ряд пуст то выходим
+            if (X <= 0) then X:=1; // если нажали на пустую ячейку, то удалять будем первый
+            RjadX[X, Y]:=RjadX[X, Y] - 1; // удаляем
+            if (RjadX[X, Y] = 0) then begin // если там ноль получился
+                if (X <> CountRjadX[Y]) then // и этот ноль не в конце  
+                    for tx:=X to CountRjadX[Y] do // то сдвигаем
                         RjadX[tx, Y]:=RjadX[tx + 1, Y];
-                dec(CountRjadX[Y]);
+                dec(CountRjadX[Y]); // уменьшаем на 1 количество
             end;
         end;
-
+        {тут прорисовка}
         if (cbMode.Checked) then begin
             DataFromRjadX(Y);
             DrawPole(Point(0, Y));
@@ -507,6 +512,7 @@ begin
         Draw(Point(-1, -1));
         Exit;
     end;
+    // далее то же, но только с рядами в bmpTop
     if (Y < bmpTop.Height) then begin
         if (cbRjad.Checked) then Exit;
         Y:=Y;
@@ -569,7 +575,7 @@ begin
             if (Y <= 0) then Y:=1;
             RjadY[X, Y]:=RjadY[X, Y] - 1;
             if (RjadY[X, Y] = 0) then begin
-                if (Y < CountRjadY[X]) then
+                if (Y <> CountRjadY[X]) then
                     for ty:=Y to CountRjadY[X] do
                         RjadY[X, ty]:=RjadY[X, ty + 1];
                 dec(CountRjadY[X]);
@@ -587,7 +593,7 @@ begin
         Exit;
     end;
     bDown:=true;
-    pbMouseMove(Sender, Shift, X, Y);
+    pbMouseMove(Sender, Shift, X, Y); // а тут если на поле попали
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DataFromRjadX(y: integer);
@@ -742,7 +748,7 @@ begin
             Exit; // сразу выходим
         end;
 
-    t:=Now; //
+//    t:=Now; //
 
     x:=Check; // проверка на совпадение рядов
     if (x <> 0) then begin
@@ -800,8 +806,8 @@ begin
         GetFin;
         RefreshPole;
     until (not b);
-    DecodeTime(Now - t, h, m, s, ms);  //
-    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);  //
+//    DecodeTime(Now - t, h, m, s, ms);  //
+//    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);  //
     // очистка массивв флагов заполнености
     for x:=1 to LenX do FinY[x]:=false;
     for y:=1 to LenY do FinX[y]:=false;
@@ -1185,6 +1191,107 @@ begin
                 'Оле, Наде, Наташе, Саше (Буля), компьютерке "Компьютер+": Руслану, Вове и Толику, которые собираль мой комп, 5 и 9 школе где я долго зависал в компьютерных классах,' + #$0D + #$0A +
                 'и всем всем, кто меня знает и уважает, но кого я не смог вспомнить... Пользуйтесь программой на здоровье, я буду только рад...');
 //    PlaySound(nil, 0, 0);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.Button1Click(Sender: TObject);
+var RangeW:Word97.Range;
+    v1, v2, v3:Variant;
+    ov1, ov2:OleVariant;
+    Row1:Word97.Row;
+    i, y, x, k, ax, ay:integer;
+    tstr:string;
+begin
+    WordApplication1.Connect; // запускаем ворд
+    WordApplication1.Visible:=true; // невидимый
+    WordDocument1.Activate;  // новый документ
+
+    ay:=((LenY + 1) div 2);
+    ax:=((LenX + 1) div 2);
+    for y:=1 to (LenY + ay) do begin // по всем строкам
+        tstr:='';
+        if (y <= ay)
+            then begin // ряды bmpTop
+                for x:=1 to ax do tstr:=tstr + ' ' + #9;
+                for x:=1 to LenX do begin
+                    k:=y - ay + CountRjadY[x];
+                    if (k > 0)
+                        then tstr:=tstr + IntToStr(RjadY[x, k]) + #9
+                        else tstr:=tstr + ' ' + #9;
+                end;
+            end
+            else begin // ряды bmpLeft и само поле
+                for x:=1 to (LenX + ax) do begin // по всей строке
+                    if (x <= ax)
+                        then begin // ряды bmpLeft
+                            if (x <= (ax - CountRjadX[y - ay]))
+                                then tstr:=tstr + ' ' + #9
+                                else tstr:=tstr + IntToStr(RjadX[x - (ax - CountRjadX[y - ay]), y - ay]) + #9;
+                        end
+                        else begin // поле
+                            tstr:=tstr + ' ' + #9;
+                        end;
+                end;
+            end;
+        tstr:=copy(tstr, 1, Length(tstr) - 1);
+        WordDocument1.Range.InsertParagraphAfter;
+        WordDocument1.Paragraphs.Last.Range.Font.Size:=6;
+        WordDocument1.Paragraphs.Last.Range.Text:=tstr;
+    end;
+
+    RangeW:=WordDocument1.Content;
+    v1:=RangeW;
+    v1.ConvertToTable(#9, 19, LenX + (LenX + 1) div 2);
+    Row1:=WordDocument1.Tables.Item(1).Rows.Get_First;
+    Row1.Range.Font.Size:=1;
+    Row1.Range.InsertParagraphAfter;
+    ov1:=' ';
+    Row1.ConvertToText(ov1);    
+
+    v1:=WordDocument1.Tables.Item(1).Columns;
+    for x:=1 to (ax + LenX) do
+        v1.Item(x).Width:=11;
+
+    v1:=WordDocument1.Tables.Item(1).Rows;
+    for y:=1 to (ay + LenY) do
+        v1.Item(y).Height:=11;
+
+    v1:=WordDocument1.Tables.Item(1);
+    for x:=(ax + 1) to (ax + LenX) do
+        for y:=(ay + 1) to (ay + LenY) do
+            if (Data[x - ax, y - ay] = 1)
+                then v1.Cell(y, x).Shading.BackgroundPatternColor:=clDkGray;
+
+    WordDocument1.Tables.Item(1).Range.Paragraphs.Format.SpaceBefore:=0;
+    WordDocument1.Tables.Item(1).Range.Paragraphs.Format.SpaceAfter:=0;
+    WordDocument1.Tables.Item(1).Range.Paragraphs.Format.FirstLineIndent:=0;
+
+    v1:=WordDocument1.Tables.Item(1).Columns;
+    for x:=(ax + 1) to (ax + LenX) do begin
+        v1.Item(x).Borders.OutsideLineStyle:=1;
+
+        v1.Item(x).Cells.VerticalAlignment:=wdCellAlignVerticalCenter;
+    end;
+
+    v1:=WordDocument1.Tables.Item(1).Rows;
+    for y:=(ay + 1) to (ay + LenY) do begin
+        v1.Item(y).Borders.OutsideLineStyle:=1;
+        v1.Item(y).Cells.VerticalAlignment:=wdCellAlignVerticalCenter;
+    end;
+
+    v1:=WordDocument1.Tables.Item(1).Columns;
+    for x:=ax to (ax + LenX) do
+        if (((x - ax) mod 5) = 0)
+            then v1.Item(x).Borders.Item(wdBorderRight).LineStyle:=7;
+
+    v1:=WordDocument1.Tables.Item(1).Rows;
+    for y:=ay to (ay + LenY) do
+        if (((y - ay) mod 5) = 0)
+            then v1.Item(y).Borders.Item(wdBorderBottom).LineStyle:=7;
+
+    WordDocument1.Tables.Item(1).Columns.Borders.OutsideLineStyle:=7;
+
+    WordApplication1.Visible:=true; // видимый
+    WordApplication1.Disconnect; // отсоеденячемся от ворда
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
