@@ -51,7 +51,7 @@ public class LevelImpl implements Level, BoardReader {
     private List<Nan> nans;
 
     public LevelImpl(String map) {
-        this.map = map;
+        this.map = map.replaceAll("[\n\r]", "");
         size = (int) Math.sqrt(map.length());
         xy = new LengthToXY(size);
 

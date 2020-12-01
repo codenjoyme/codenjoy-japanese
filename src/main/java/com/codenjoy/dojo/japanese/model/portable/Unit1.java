@@ -1,5 +1,11 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
+import com.codenjoy.dojo.japanese.model.items.Color;
+import com.codenjoy.dojo.japanese.model.items.Pixel;
+import com.codenjoy.dojo.services.Point;
+import com.codenjoy.dojo.services.printer.BoardReader;
+import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -7,6 +13,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
+import static com.codenjoy.dojo.services.PointImpl.pt;
 
 class Unit1 {
 
@@ -24,30 +31,38 @@ class Unit1 {
     TAllData AllData1 = new TAllData(); // масивы данных
     TAllData AllData2 = new TAllData();
     TAllData AllData3 = new TAllData();
-    PAllData pDM, pDT, pDP; // это указаьели на массивы данных
+    // это указатели на массивы данных
+    PAllData pDataMain; // тут решение точное
+    PAllData pDataAssumptionBlack; // тут предполагаем black
+    PAllData pDataAssumtionWhite; // тут предполагаем white
     TPredpl Predpl = new TPredpl(); //данные предположения
-    int LenX = 15, LenY = 15; // длинна и высота кроссворда
+    static int LenX = 15, LenY = 15; // длинна и высота кроссворда
     TXYRjad RjadX = new TXYRjad(); // тут хранятся цифры рядов
     TXYRjad RjadY = new TXYRjad();
     TXYCountRjad CountRjadX = new TXYCountRjad(); // тут хранятся количества цифер рядов
     TXYCountRjad CountRjadY = new TXYCountRjad();
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public String print() {
+        return (String)new PrinterFactoryImpl<>().getPrinter(
+                pDataMain.data.Data, null).print();
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void ClearData(boolean all) {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
-                pDM.data.Data.arr[x][y] = 0;
-                pDM.data.Ver.arr[x][y][1] = -1;
-                pDM.data.Ver.arr[x][y][2] = -1;
+                pDataMain.data.Data.arr[x][y] = 0;
+                pDataMain.data.Ver.arr[x][y][1] = -1;
+                pDataMain.data.Ver.arr[x][y][2] = -1;
             }
             if (all) {
                 CountRjadX.arr[x] = 0;
                 CountRjadY.arr[x] = 0;
             }
-            pDM.data.FinY.arr[x] = false;
-            pDM.data.FinX.arr[x] = false;
-            pDM.data.ChY.arr[x] = true;
-            pDM.data.ChX.arr[x] = true;
+            pDataMain.data.FinY.arr[x] = false;
+            pDataMain.data.FinX.arr[x] = false;
+            pDataMain.data.ChY.arr[x] = true;
+            pDataMain.data.ChX.arr[x] = true;
         }
     }
 
@@ -58,7 +73,7 @@ class Unit1 {
             a = 0;
             CountRjadX.arr[y] = 1;
             for (int x = 1; x <= LenX; x++) {
-                if (pDM.data.Data.arr[x][y] == 1) {
+                if (pDataMain.data.Data.arr[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
@@ -83,7 +98,7 @@ class Unit1 {
             a = 0;
             CountRjadY.arr[x] = 1;
             for (int y = 1; y <= LenY; y++) {
-                if (pDM.data.Data.arr[x][y] == 1) {
+                if (pDataMain.data.Data.arr[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
@@ -103,12 +118,12 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void FormCreate() {
-        pDM = new PAllData();
-        pDT = new PAllData();
-        pDP = new PAllData();
-        pDM.data = AllData1;
-        pDT.data = AllData2;
-        pDP.data = AllData3;
+        pDataMain = new PAllData();
+        pDataAssumptionBlack = new PAllData();
+        pDataAssumtionWhite = new PAllData();
+        pDataMain.data = AllData1;
+        pDataAssumptionBlack.data = AllData2;
+        pDataAssumtionWhite.data = AllData3;
         PredCoord = new TPoint(-1, -1);
         CurrPt.xy = true;
         CurrPt.pt = new TPoint(1, 1);
@@ -334,15 +349,15 @@ class Unit1 {
     public void DataFromRjadX(int y) {
         int k, tx, j;
         for (tx = 1; tx <= LenX; tx++) {
-            pDM.data.Data.arr[tx][y] = 0;
+            pDataMain.data.Data.arr[tx][y] = 0;
         }
         k = 1;
         tx = 1;
         while (tx <= CountRjadX.arr[y]) {
             for (j = 1; j <= RjadX.arr[tx][y]; j++) {
-                pDM.data.Data.arr[k + j - 1][y] = 1;
+                pDataMain.data.Data.arr[k + j - 1][y] = 1;
             }
-            pDM.data.Data.arr[k + j][y] = 0;
+            pDataMain.data.Data.arr[k + j][y] = 0;
             k = k + j;
             tx++;
         }
@@ -353,15 +368,15 @@ class Unit1 {
     public void DataFromRjadY(int x) {
         int k, j, ty;
         for (ty = 1; ty <= LenY; ty++) {
-            pDM.data.Data.arr[x][ty] = 0;
+            pDataMain.data.Data.arr[x][ty] = 0;
         }
         k = 1;
         ty = 1;
         while (ty <= CountRjadY.arr[x]) {
             for (j = 1; j <= RjadY.arr[x][ty]; j++) {
-                pDM.data.Data.arr[x][k + j - 1] = 1;
+                pDataMain.data.Data.arr[x][k + j - 1] = 1;
             }
-            pDM.data.Data.arr[x][k + j] = 0;
+            pDataMain.data.Data.arr[x][k + j] = 0;
             k = k + j;
             ty++;
         }
@@ -474,7 +489,7 @@ class Unit1 {
                 h = h + RjadX.arr[x][y];
             }
             if (h < (LenX / 2)) {
-                pDM.data.ChY.arr[x] = false;
+                pDataMain.data.ChY.arr[x] = false;
             }
         }
         for (int y = 1; y <= LenY; y++) {
@@ -484,25 +499,25 @@ class Unit1 {
 
             }
             if (h < (LenY / 2)) {
-                pDM.data.ChX.arr[y] = false;
+                pDataMain.data.ChX.arr[y] = false;
             }
         }
         //----------
         for (int x = 1; x <= LenX; x++) {
-            pDM.data.tChY.arr[x] = true;
-            pDT.data.tChY.arr[x] = true;
-            pDP.data.tChY.arr[x] = true;
+            pDataMain.data.tChY.arr[x] = true;
+            pDataAssumptionBlack.data.tChY.arr[x] = true;
+            pDataAssumtionWhite.data.tChY.arr[x] = true;
         }
         for (int y = 1; y <= LenY; y++) {
-            pDM.data.tChX.arr[y] = true;
-            pDT.data.tChX.arr[y] = true;
-            pDP.data.tChX.arr[y] = true;
+            pDataMain.data.tChX.arr[y] = true;
+            pDataAssumptionBlack.data.tChX.arr[y] = true;
+            pDataAssumtionWhite.data.tChX.arr[y] = true;
         }
         for (int x = 1; x <= LenX; x++) {
             for (int y = 1; y <= LenY; y++) {
-                pDM.data.NoSet.arr[x][y] = false;
-                pDT.data.NoSet.arr[x][y] = false;
-                pDP.data.NoSet.arr[x][y] = false;
+                pDataMain.data.NoSet.arr[x][y] = false;
+                pDataAssumptionBlack.data.NoSet.arr[x][y] = false;
+                pDataAssumtionWhite.data.NoSet.arr[x][y] = false;
             }
         }
         b5 = false;
@@ -532,12 +547,12 @@ class Unit1 {
             // с каким указателем работаем
             if (Predpl.B) {
                 if (Predpl.SetDot) {
-                    pWork = pDT;
+                    pWork = pDataAssumptionBlack;
                 } else {
-                    pWork = pDP;
+                    pWork = pDataAssumtionWhite;
                 }
             } else {
-                pWork = pDM;
+                pWork = pDataMain;
             }
 
             if (!(b5 || b11)) { // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
@@ -681,8 +696,8 @@ class Unit1 {
                                 b = true; // продолжаем дальше
                             } else { // нет ни там ни там - значит неизвестно, это потом сохранять будем
                                 pt = Predpl.SetTo;
-                                pDM.data.NoSet.arr[pt.x][pt.y] = true;
-                                pDM.data.Data.arr[pt.x][pt.y] = 0;
+                                pDataMain.data.NoSet.arr[pt.x][pt.y] = true;
+                                pDataMain.data.Data.arr[pt.x][pt.y] = 0;
                                 Draw(pt);
                                 b5 = true; // дальше предполагаем
                                 b = true; // продолжаем дальше
@@ -701,13 +716,13 @@ class Unit1 {
                         b6 = false;
                         for (int x = 1; x <= LenX; x++) {  // по всему полю
                             for (int y = 1; y <= LenY; y++) {
-                                if ((MaxVer1 <= pDM.data.Ver.arr[x][y][1])
-                                        && (MaxVer2 <= pDM.data.Ver.arr[x][y][2])
-                                        && (pDM.data.Ver.arr[x][y][1] < 1)
-                                        && (pDM.data.Ver.arr[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
-                                    if (pDM.data.NoSet.arr[x][y]) continue;
-                                    MaxVer1 = pDM.data.Ver.arr[x][y][1];
-                                    MaxVer2 = pDM.data.Ver.arr[x][y][2];
+                                if ((MaxVer1 <= pDataMain.data.Ver.arr[x][y][1])
+                                        && (MaxVer2 <= pDataMain.data.Ver.arr[x][y][2])
+                                        && (pDataMain.data.Ver.arr[x][y][1] < 1)
+                                        && (pDataMain.data.Ver.arr[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                    if (pDataMain.data.NoSet.arr[x][y]) continue;
+                                    MaxVer1 = pDataMain.data.Ver.arr[x][y][1];
+                                    MaxVer2 = pDataMain.data.Ver.arr[x][y][2];
                                     pt = new TPoint(x, y);
                                     b6 = true;
                                 }
@@ -721,7 +736,7 @@ class Unit1 {
                                 Predpl.B = true;
                                 SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
                             }
-                            pDM.data.Data.arr[pt.x][pt.y] = 3;
+                            pDataMain.data.Data.arr[pt.x][pt.y] = 3;
                             Draw(pt);
 //System.out.println(("Предп. в " + Integer.toString(pt.y) + ", " + Integer.toString(pt.x));
                             b = true; // произошли изменения
@@ -732,12 +747,12 @@ class Unit1 {
                             }
                             b = true; // изменений нету
                             for (int x = 1; x <= LenX; x++) {
-                                pDM.data.FinY.arr[x] = false;
-                                pDM.data.ChY.arr[x] = true;
+                                pDataMain.data.FinY.arr[x] = false;
+                                pDataMain.data.ChY.arr[x] = true;
                             }
                             for (int y = 1; y <= LenY; y++) {
-                                pDM.data.FinX.arr[y] = false;
-                                pDM.data.ChX.arr[y] = true;
+                                pDataMain.data.FinX.arr[y] = false;
+                                pDataMain.data.ChX.arr[y] = true;
                             }
                             b7 = true; // последний прогон для нормального отображения вероятностей
                         }
@@ -749,24 +764,24 @@ class Unit1 {
         } while (b);
         // очистка массивв флагов заполнености
         for (int x = 1; x <= LenX; x++) {
-            pDM.data.ChY.arr[x] = true;
-            pDM.data.FinY.arr[x] = false;
+            pDataMain.data.ChY.arr[x] = true;
+            pDataMain.data.FinY.arr[x] = false;
         }
         for (int y = 1; y <= LenY; y++) {
-            pDM.data.ChX.arr[y] = true;
-            pDM.data.FinX.arr[y] = false;
+            pDataMain.data.ChX.arr[y] = true;
+            pDataMain.data.FinX.arr[y] = false;
         }
         for (int x = 1; x <= LenX; x++) {
             for (int y = 1; y <= LenY; y++) {
-                switch (pDM.data.Data.arr[x][y]) {
+                switch (pDataMain.data.Data.arr[x][y]) {
                     case 1: {
-                        pDM.data.Ver.arr[x][y][1] = 1;
-                        pDM.data.Ver.arr[x][y][2] = 1;
+                        pDataMain.data.Ver.arr[x][y][1] = 1;
+                        pDataMain.data.Ver.arr[x][y][2] = 1;
                     }
                     break;
                     case 2: {
-                        pDM.data.Ver.arr[x][y][1] = 0;
-                        pDM.data.Ver.arr[x][y][2] = 0;
+                        pDataMain.data.Ver.arr[x][y][1] = 0;
+                        pDataMain.data.Ver.arr[x][y][2] = 0;
                     }
                     break;
                 }
@@ -774,7 +789,7 @@ class Unit1 {
         }
         if (b8) { // если нажали остановить
             if (Predpl.B) {
-                pDM.data.Data.arr[Predpl.SetTo.x][Predpl.SetTo.y] = 0;
+                pDataMain.data.Data.arr[Predpl.SetTo.x][Predpl.SetTo.y] = 0;
             }
             Predpl.B = false;
             RefreshPole(); // прорисовка поля
@@ -796,9 +811,9 @@ class Unit1 {
         TPoint pt;
         PAllData pWork;
         if (bDot) { // что предполагаем?
-            pWork = pDT; // точку
+            pWork = pDataAssumptionBlack; // точку
         } else {
-            pWork = pDP; // путоту
+            pWork = pDataAssumtionWhite; // путоту
         }
         pt = Predpl.SetTo;
         if (bDot) {
@@ -824,13 +839,13 @@ class Unit1 {
     public void ChangeDataArr(boolean bDot) {
         PAllData p;
         if (bDot) {
-            p = pDM;
-            pDM = pDT;
-            pDT = p;
+            p = pDataMain;
+            pDataMain = pDataAssumptionBlack;
+            pDataAssumptionBlack = p;
         } else {
-            p = pDM;
-            pDM = pDP;
-            pDP = p;
+            p = pDataMain;
+            pDataMain = pDataAssumtionWhite;
+            pDataAssumtionWhite = p;
         }
     }
 
@@ -839,16 +854,16 @@ class Unit1 {
         boolean b;
         PAllData pWork;
         if (bDot) { // что предполагаем?
-            pWork = pDT; // точку
+            pWork = pDataAssumptionBlack; // точку
         } else {
-            pWork = pDP; // путоту
+            pWork = pDataAssumtionWhite; // путоту
         }
         for (int x = 1; x <= LenX; x++) { // по всему полю
             for (int y = 1; y <= LenY; y++) {
-                pWork.data.Data.arr[x][y] = pDM.data.Data.arr[x][y];
-                pWork.data.Ver.arr[x][y][1] = pDM.data.Ver.arr[x][y][1];
-                pWork.data.Ver.arr[x][y][2] = pDM.data.Ver.arr[x][y][2];
-                b = (pDM.data.Data.arr[x][y] == 0); // пусто?
+                pWork.data.Data.arr[x][y] = pDataMain.data.Data.arr[x][y];
+                pWork.data.Ver.arr[x][y][1] = pDataMain.data.Ver.arr[x][y][1];
+                pWork.data.Ver.arr[x][y][2] = pDataMain.data.Ver.arr[x][y][2];
+                b = (pDataMain.data.Data.arr[x][y] == 0); // пусто?
                 if (b) {
                     // пусто
                     if (pWork.data.tChY.arr[x] && pWork.data.tChX.arr[y]) { //если производились изменения
@@ -860,13 +875,13 @@ class Unit1 {
             }
         }
         for (int x = 1; x <= LenX; x++) {
-            pWork.data.ChY.arr[x] = pDM.data.ChY.arr[x];
-            pWork.data.FinY.arr[x] = pDM.data.FinY.arr[x];
+            pWork.data.ChY.arr[x] = pDataMain.data.ChY.arr[x];
+            pWork.data.FinY.arr[x] = pDataMain.data.FinY.arr[x];
             pWork.data.tChY.arr[x] = false;
         }
         for (int y = 1; y <= LenY; y++) {
-            pWork.data.ChX.arr[y] = pDM.data.ChX.arr[y];
-            pWork.data.FinX.arr[y] = pDM.data.FinX.arr[y];
+            pWork.data.ChX.arr[y] = pDataMain.data.ChX.arr[y];
+            pWork.data.FinX.arr[y] = pDataMain.data.FinX.arr[y];
             pWork.data.tChX.arr[y] = false;
         }
         Predpl.SetTo = pt;
@@ -903,8 +918,8 @@ class Unit1 {
         }
         boolean Result = c2;
         if (Result) {
-            if (p == pDM) return Result;
-            ChangeDataArr((p == pDT));
+            if (p == pDataMain) return Result;
+            ChangeDataArr((p == pDataAssumptionBlack));
         }
         return Result;
     }
@@ -1117,7 +1132,7 @@ class Unit1 {
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void LoadDataFromFile(String FileName) {
         String tstr;
-        TextFile F = null;
+        TextFile F = new TextFile();
         AssignFile(F, FileName);
         ReSet(F);
         tstr = ReadLn(F);
@@ -1127,7 +1142,7 @@ class Unit1 {
         for (int x = 1; x <= LenX; x++) {
             for (int y = 1; y <= LenY; y++) {
                 tstr = ReadLn(F);
-                pDM.data.Data.arr[x][y] = Integer.valueOf(tstr); // поле
+                pDataMain.data.Data.arr[x][y] = Integer.valueOf(tstr); // поле
             }
         }
         CloseFile(F);
@@ -1142,7 +1157,7 @@ class Unit1 {
         WriteLn(F, Integer.toString(LenY)); // высора
         for (int x = 1; x <= LenX; x++) {
             for (int y = 1; y <= LenY; y++) {
-                WriteLn(F, Integer.toString(pDM.data.Data.arr[x][y])); // поле
+                WriteLn(F, Integer.toString(pDataMain.data.Data.arr[x][y])); // поле
             }
         }
         CloseFile(F);
@@ -1377,7 +1392,7 @@ class Unit1 {
         a = 0;
         for (int x = 1; x <= LenX; x++) {
             for (int y = 1; y <= LenY; y++) {
-                if (pDM.data.Data.arr[x][y] > 0) {
+                if (pDataMain.data.Data.arr[x][y] > 0) {
                     a = a + 1;
                 }
             }
@@ -1385,28 +1400,50 @@ class Unit1 {
         System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (LenX * LenY)) / 10) + "%(" + a + ")");
     }
 
-    static class TXYData {
-        public int[][] arr = new int[MAX + 1][MAX + 1]; // TODO array 1..MaxLen, 1..MaxLen
+    static class TXYData implements BoardReader {
+        public int[][] arr = new int[MAX + 1][MAX + 1];
+
+        @Override
+        public int size() {
+            return Unit1.LenX;
+        }
+
+        @Override
+        public Iterable<? extends Point> elements() {
+            if (LenX != LenY) {
+                throw new RuntimeException("Кроссворд не прямоугольный");
+            }
+            List<Pixel> result = new LinkedList<>();
+            for (int x = 1; x <= LenX; x++) {
+                for (int y = 1; y <= LenY; y++) {
+                    // инвертирование потому что в этом коде черный и белый отличаются от codenjoyного
+                    int inverted = Math.abs(arr[x][y] - 1);
+                    // так же надо отступить, потому что в этом коде индексы начинаются с 0
+                    result.add(new Pixel(pt(x - 1, y - 1), Color.get(inverted)));
+                }
+            }
+            return result;
+        }
     }
 
     static class TXYPustot {
-        public boolean[][] arr = new boolean[MAX + 1][MAX + 1]; // TODO array 1..MaxLen, 1..MaxLen
+        public boolean[][] arr = new boolean[MAX + 1][MAX + 1];
     }
 
     static class TXYRjad {
-        public int[][] arr = new int[MAX + 1][MAX + 1]; // TODO array 1..MaxLen, 1..MaxLen
+        public int[][] arr = new int[MAX + 1][MAX + 1];
     }
 
     static class TFinish {
-        public boolean[] arr = new boolean[MAX + 1]; // TODO  array 1..MaxLen
+        public boolean[] arr = new boolean[MAX + 1];
     }
 
     static class TXYCountRjad {
-        public int[] arr = new int[MAX + 1]; // TODO  array 1..MaxLen
+        public int[] arr = new int[MAX + 1];
     }
 
     static class TXYVer {
-        public double[][][] arr = new double[MAX + 1][MAX + 1][3]; // TODO [1..MaxLen, 1..MaxLen, 1..2] of Real;
+        public double[][][] arr = new double[MAX + 1][MAX + 1][3];
     }
 
     static class TAllData {
