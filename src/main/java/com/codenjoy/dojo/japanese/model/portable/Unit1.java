@@ -35,8 +35,8 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void ClearData(boolean all) {
-        for (int x = 1; x <= MaxLen; x++) {
-            for (int y = 1; y <= MaxLen; y++) {
+        for (int x = 1; x <= MAX; x++) {
+            for (int y = 1; y <= MAX; y++) {
                 pDM.data.Data.arr[x][y] = 0;
                 pDM.data.Ver.arr[x][y][1] = -1;
                 pDM.data.Ver.arr[x][y][2] = -1;
@@ -546,8 +546,8 @@ class Unit1 {
 //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
                     if (pWork.data.FinX.arr[y]) continue;
                     if (!pWork.data.ChX.arr[y]) continue;
-                    Unit2.glCountRjad = PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad); // подготовка строки
-                    Unit2.glLen = LenX; // длинна строки
+                    Unit2.countRjad = PrepRjadX(pWork, y, Unit2.data, Unit2.rjad); // подготовка строки
+                    Unit2.len = LenX; // длинна строки
 //                    if (bPredpl) {
 //                        if (Predpl.SetDot == 1) {
 //                            System.out.println("Ряд: " + Integer.toString(y) + " предп. т");
@@ -568,10 +568,10 @@ class Unit1 {
                         break;
                     }
                     for (int x = 1; x <= LenX; x++) {
-                        pWork.data.Ver.arr[x][y][1] = Unit2.glVer.arr[x];
+                        pWork.data.Ver.arr[x][y][1] = Unit2.probability.arr[x];
 
-                        if (pWork.data.Data.arr[x][y] != Unit2.glData.arr[x]) {
-                            pWork.data.Data.arr[x][y] = Unit2.glData.arr[x];
+                        if (pWork.data.Data.arr[x][y] != Unit2.data.arr[x]) {
+                            pWork.data.Data.arr[x][y] = Unit2.data.arr[x];
                             if (!b) {
                                 b = true; // b = true;
                             }
@@ -598,8 +598,8 @@ class Unit1 {
                     //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
                     if (pWork.data.FinY.arr[x]) continue;
                     if (!pWork.data.ChY.arr[x]) continue;
-                    Unit2.glCountRjad = PrepRjadY(pWork, x, Unit2.glData, Unit2.glRjad);
-                    Unit2.glLen = LenY;
+                    Unit2.countRjad = PrepRjadY(pWork, x, Unit2.data, Unit2.rjad);
+                    Unit2.len = LenY;
 //                    if (bPredpl) {
 //                        if (Predpl.SetDot == 1) {
 //                            System.out.println(("Ст.: " + Integer.toString(x) + " предп. т")
@@ -621,10 +621,10 @@ class Unit1 {
                     }
 
                     for (int y = 1; y <= LenY; y++) {
-                        pWork.data.Ver.arr[x][y][2] = Unit2.glVer.arr[y];
+                        pWork.data.Ver.arr[x][y][2] = Unit2.probability.arr[y];
 
-                        if (pWork.data.Data.arr[x][y] != Unit2.glData.arr[y]) {
-                            pWork.data.Data.arr[x][y] = Unit2.glData.arr[y];
+                        if (pWork.data.Data.arr[x][y] != Unit2.data.arr[y]) {
+                            pWork.data.Data.arr[x][y] = Unit2.data.arr[y];
                             if (!b) {
                                 b = true; // b = true;
                             }
@@ -747,7 +747,7 @@ class Unit1 {
                 }
             }
             if (b9) b = false; // все конец
-        } while (!b);
+        } while (b);
         // очистка массивв флагов заполнености
         for (int x = 1; x <= LenX; x++) {
             pDM.data.ChY.arr[x] = true;
@@ -1239,7 +1239,7 @@ class Unit1 {
                     i++;
                 }
                 a = tstr.length();
-            } while (i > a);
+            } while (i <= a);
             // убираем точку спереди, добавляем в зад
             if (tstr.charAt(tstr.length() - 1) != '.') tstr = tstr + '.';
             if (tstr.charAt(1) == '.') tstr = tstr.substring(2, tstr.length() - 1);
@@ -1389,27 +1389,27 @@ class Unit1 {
     }
 
     static class TXYData {
-        public int[][] arr = new int[MaxLen + 1][MaxLen + 1]; // TODO array 1..MaxLen, 1..MaxLen
+        public int[][] arr = new int[MAX + 1][MAX + 1]; // TODO array 1..MaxLen, 1..MaxLen
     }
 
     static class TXYPustot {
-        public boolean[][] arr = new boolean[MaxLen + 1][MaxLen + 1]; // TODO array 1..MaxLen, 1..MaxLen
+        public boolean[][] arr = new boolean[MAX + 1][MAX + 1]; // TODO array 1..MaxLen, 1..MaxLen
     }
 
     static class TXYRjad {
-        public int[][] arr = new int[MaxLen + 1][MaxLen + 1]; // TODO array 1..MaxLen, 1..MaxLen
+        public int[][] arr = new int[MAX + 1][MAX + 1]; // TODO array 1..MaxLen, 1..MaxLen
     }
 
     static class TFinish {
-        public boolean[] arr = new boolean[MaxLen + 1]; // TODO  array 1..MaxLen
+        public boolean[] arr = new boolean[MAX + 1]; // TODO  array 1..MaxLen
     }
 
     static class TXYCountRjad {
-        public int[] arr = new int[MaxLen + 1]; // TODO  array 1..MaxLen
+        public int[] arr = new int[MAX + 1]; // TODO  array 1..MaxLen
     }
 
     static class TXYVer {
-        public double[][][] arr = new double[MaxLen + 1][MaxLen + 1][3]; // TODO [1..MaxLen, 1..MaxLen, 1..2] of Real;
+        public double[][][] arr = new double[MAX + 1][MAX + 1][3]; // TODO [1..MaxLen, 1..MaxLen, 1..2] of Real;
     }
 
     static class TAllData {
