@@ -13,6 +13,7 @@ type
   end;
   TRjad = array [1..40] of byte;
   TBitArray = array [1..40] of boolean;
+  PBitArray = ^TBitArray;
   TCombine = array [1..1000] of TBitArray;
   TForm1 = class(TForm)
     edCount: TEdit;
@@ -31,7 +32,7 @@ type
     procedure btCalcClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
-    PredCoord:TPoint; PredButt:TShiftState; 
+    PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
     Buf, bmpLeft, bmpPole:TBitMap;
     Data:array [1..40] of TData;
@@ -49,7 +50,9 @@ type
     procedure ClearData;
     procedure GetCombine;
     procedure GetNextCombine;
-    procedure GetCombineFromRjad(r: TRjad; cr:integer; var bits:TBitArray); // тут р¤д включает количества чередующихс¤ пустых и непустых! ¤чеек
+    procedure GetRjadFromCombine(var r: TRjad; var cr:integer; bits:PBitArray); // тут р¤д включает количества чередующихс¤ пустых и непустых! ¤чеек
+    procedure GetCombineFromRjad(var r: TRjad; var cr:integer; bits:PBitArray); // тут р¤д включает количества чередующихс¤ пустых и непустых! ¤чеек
+    procedure ManipuleRjad(var r: TRjad; var cr:integer);
   public
     { Public declarations }
   end;
@@ -273,9 +276,8 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetNextCombine;
-var i, x:integer;
-    bits1, bits2:^TBitArray;
-    b:boolean;
+var i:integer;
+    bits1, bits2:PBitArray;
 
     Rjad10:TRjad;
     cr:integer;
@@ -284,57 +286,46 @@ begin
     inc(NumCombine);
     bits1:=@Combine[CountCombine - 1];
     bits2:=@Combine[CountCombine];
-    
-    {
-    x:=0; cr:=1;
-    for i:=1 to CountRjad do begin
-        Rjad10[cr]:=Rjad[i];
-        x:=x + Rjad10[cr];
-        inc(cr);
-        Rjad10[cr]:=1;
-        x:=x + 1;
-        inc(cr);
-    end;
-    Rjad10[cr]:=CountRjad - x + 1;
-    GetCombineFromRjad(Rjad10, cr, );
-    }
-    inc(CountCombine);
-    inc(NumCombine);
-    bits1:=@Combine[CountCombine - 1];
-    bits2:=@Combine[CountCombine];
-    Exit;
-    x:=udCount.Position;
-    if (bits1^[x]) then
-        for i:=x downto 1 do
-            if (not bits1^[x]) then begin
-                x:=x + 1;
-                break;
-            end;
-    for i:=1 to udCount.Position do bits2^[i]:=bits1^[i];
-    b:=false;
-    for i:=x downto 1 do begin
-        if (bits1^[i])
-            then begin
-                b:=true;
-                bits2^[i + 1]:=true;
-            end
-            else begin
-                if (not b) then continue;
-                bits2^[i + 1]:=false;
-                Break;
-            end;
+
+    GetRjadFromCombine(Rjad10, cr, bits1);
+    ManipuleRjad(Rjad10, cr);
+    GetCombineFromRjad(Rjad10, cr, bits2);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.GetCombineFromRjad(var r: TRjad; var cr:integer; bits:PBitArray);
+var b:boolean;
+    i, j, x:integer;
+begin
+    b:=true; x:=0;
+    for i:=1 to cr do begin
+        for j:=1 to r[i] do
+            bits^[x + j]:=b;
+        x:=x + r[i];
+        b:=not b;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.GetCombineFromRjad(r: TRjad; cr:integer; var bits:TBitArray);
-var b:boolean;
-    i, j:integer;
+procedure TForm1.GetRjadFromCombine(var r: TRjad; var cr: integer; bits: PBitArray);
+var i, j:integer;
+    b:boolean;
 begin
-    b:=true;
-    for i:=1 to cr do begin
-        for j:=1 to r[i] do bits[i + j]:=b;
-        b:=not b; 
+    b:=bits^[1];
+    j:=1; cr:=1;
+    for i:=2 to udCount.Position do begin
+        if (bits[i] xor b) then begin
+            r[cr]:=j;
+            inc(cr);
+            j:=0;
+        end;
+        inc(j);
+        b:=bits^[i];
     end;
+    if (j <> 0) then r[cr]:=j;
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.ManipuleRjad(var r: TRjad; var cr: integer);
+begin
+    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
