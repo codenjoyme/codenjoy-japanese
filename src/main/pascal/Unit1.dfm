@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 192
-  Top = 103
-  Width = 559
-  Height = 424
+  Left = 69
+  Top = 236
+  Width = 876
+  Height = 104
   Caption = 'Form1'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,34 +16,52 @@ object Form1: TForm1
   PixelsPerInch = 96
   TextHeight = 13
   object pb: TPaintBox
-    Left = 0
-    Top = 0
-    Width = 551
-    Height = 397
-    Align = alClient
+    Left = 88
+    Top = 8
+    Width = 377
+    Height = 25
     OnMouseDown = pbMouseDown
+    OnMouseMove = pbMouseMove
+    OnMouseUp = pbMouseUp
     OnPaint = pbPaint
   end
-  object seSizeX: TSpinEdit
-    Left = 448
+  object edCount: TEdit
+    Left = 8
     Top = 8
-    Width = 81
-    Height = 22
-    MaxValue = 100
-    MinValue = 1
+    Width = 57
+    Height = 21
     TabOrder = 0
-    Value = 0
-    OnChange = seSizeYChange
+    Text = '30'
+    OnChange = edCountChange
   end
-  object seSizeY: TSpinEdit
-    Left = 448
-    Top = 32
-    Width = 81
-    Height = 22
-    MaxValue = 100
-    MinValue = 1
+  object udCount: TUpDown
+    Left = 65
+    Top = 8
+    Width = 15
+    Height = 21
+    Associate = edCount
+    Min = 1
+    Max = 40
+    Position = 30
     TabOrder = 1
-    Value = 0
-    OnChange = seSizeYChange
+    Wrap = False
+  end
+  object btClear: TButton
+    Left = 96
+    Top = 40
+    Width = 75
+    Height = 25
+    Caption = 'Сброс'
+    TabOrder = 2
+    OnClick = btClearClick
+  end
+  object btCalc: TButton
+    Left = 176
+    Top = 40
+    Width = 75
+    Height = 25
+    Caption = 'Расчет'
+    TabOrder = 3
+    OnClick = btCalcClick
   end
 end
