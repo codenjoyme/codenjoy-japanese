@@ -115,6 +115,7 @@ begin
             0:;
             1:if (bits[i] <> true) then Result:=false;
             2:if (bits[i] <> false) then Result:=false;
+            3:;
         end;
         if (not Result) then Exit;
     end;
