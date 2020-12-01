@@ -1,421 +1,434 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
 class Unit2 {
-    Const MaxLen = 150;
 
-    type
-      TDataPt = record
-         Pos, Ass:TPoint;
-         Check:byte; // 0 - пусто 1 - чек 2 - нечек
-      end;
-      TData = array [1..MaxLen] of byte;
-      PData = ^TData;
-      TRjad10 = array [1..MaxLen] of record
-        c:byte;
-        b:boolean;
-      end;
-      TRjad = array [1..MaxLen] of byte;
-      PRjad = ^TRjad;
-      TBitArray = array [1..MaxLen] of boolean;
-      TVerArray = array [1..MaxLen] of Real;
+    public static final int MaxLen = 150;
 
-    var
-        glData:TData;
+    public static class TPoint {
+        public int x;
+        public int y;
 
-        glVer:TVerArray;
-        glCurrComb:TBitArray;
-        glCombNum:integer;
-        glLen:integer;
+        public TPoint(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
 
-        glCR:integer;
-        glRjad10:TRjad10;
+    public static class TDataPt {
+        public TPoint Pos, Ass;
+        public byte Check; // 0 - пусто 1 - чек 2 - нечек
+    }
 
-        glRjad:TRjad;
-        glCountRjad:byte;
-        // обрез
-        glCutFrom, glCutTo:Integer;
-        glCutLen:integer;
-        //------
-        function  Cut:boolean;
-        procedure GetRjadFromComb;
-        procedure GetCombFromRjad;
-        function  ManipuleRjad:boolean;
-        function  TestComb:boolean;
-        function  Calculate:boolean;
+    public static class TData {
+        public int[] arr = new int[MaxLen]; // TODO from 1 to MaxLen
+    }
 
-    implementation
+    // TODO PData = ^TData;
+
+    public static class TRjad10Record {
+        public int c;   // TODO был byte
+        public boolean b;
+    }
+
+    public static class TRjad10 {
+        public TRjad10Record[] arr = new TRjad10Record[MaxLen]; // TODO from 1 to MaxLen
+    }
+
+    public static class TRjad {
+        public int[] arr = new int[MaxLen];     // TODO from 1 to MaxLen
+    }
+
+    // TODO PRjad = ^TRjad;
+
+    public static class TBitArray {
+        public boolean[] arr = new boolean[MaxLen];     // TODO from 1 to MaxLen
+    }
+
+    public static class TVerArray {
+        public double[] arr = new double[MaxLen];     // TODO from 1 to MaxLen  TODO of Real
+    }
+
+    public TData glData = new TData();
+
+    public TVerArray glVer = new TVerArray();
+    public  TBitArray glCurrComb = new TBitArray();
+    public int glCombNum;
+    public int glLen;
+
+    public  int glCR;
+    public  TRjad10 glRjad10 = new TRjad10();
+
+    public  TRjad glRjad = new TRjad();
+    int glCountRjad; // byte
+
+    // обрез
+    public  int glCutFrom, glCutTo;
+    public int glCutLen;
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    function Calculate:boolean;
-    var i, j, i0, leni:integer;
-        b1:boolean;
-    begin
-        if (glCountRjad = 0) then begin
-            Result:=true;
-            for i:=1 to glLen do
-                if (glData[i] = 1)
-                    then Result:=false
-                    else glData[i]:=2;
-            Exit;
-        end;
+    public boolean Calculate(){
+        int j, i0, leni;
+        boolean b1;
+        boolean Result;
+        if (glCountRjad == 0) {
+            Result = true;
+            for (int i = 1; i <= glLen; i++) { // TODO i <? glLen проверить все for
+                if (glData.arr[i] == 1) {
+                    Result = false;
+                } else {
+                    glData.arr[i] = 2;
+                }
+            }
+            return Result;
+        }
         //-----------
-    {    b1:=false;
-        for i:=1 to glLen do begin
-            b1:=b1 or (glData[i] <> 0);
-            if (b1) then break;
-        end;
-        if (not b1) then begin
-            j:=0;
-            for i:=1 to glCountRjad do j:=j + glRjad[i];
-            if (j < (glLen div 2)) then begin
-                Result:=true;
-                Exit;
-            end;
-        end; }
+//        b1 = false;
+//        for (int i = 1; i <= glLen; i++) {
+//            b1 = b1 | (glData.arr[i] != 0);
+//            if (b1) break;
+//        }
+//        if (!b1) {
+//            j = 0;
+//            for (int i = 1; i <= glCountRjad; i++) j = j + glRjad.arr[i];
+//            if (j < (glLen / 2)) {
+//                Result = true;
+//                return Result;
+//            }
+//        }
         //-----------
-        for i:=1 to glLen do
-            glVer[i]:=0;
+        for (int i = 1; i <= glLen; i++) {
+            glVer.arr[i] = 0;
+        }
         //-----------
-        Result:=true;
-        if (not Cut) then begin
-            Result:=false;
-            glCR:=1; j:=0;
-            for i:=1 to glCountRjad do begin
-                glRjad10[glCR].b:=true;
-                glRjad10[glCR].c:=glRjad[i];
-                glRjad10[glCR + 1].b:=false;
-                glRjad10[glCR + 1].c:=1;
-                j:=j + glRjad[i] + 1;
-                glCR:=glCR + 2;
-            end;
-            glCR:=glCR - 1;
-            if (j > glCutLen) then glCR:=glCR - 1;
-            if (j < glCutLen) then glRjad10[glCR].c:=glRjad10[glCR].c + glCutLen - j;
+        Result = true;
+        if (!Cut()) { // TODO что за Cut
+            Result = false;
+            glCR = 1; j = 0;
+            for (int i = 1; i <= glCountRjad; i++) {
+                glRjad10.arr[glCR].b = true;
+                glRjad10.arr[glCR].c = glRjad.arr[i];
+                glRjad10.arr[glCR + 1].b = false;
+                glRjad10.arr[glCR + 1].c = 1;
+                j = j + glRjad.arr[i] + 1;
+                glCR = glCR + 2;
+            }
+            glCR = glCR - 1;
+            if (j > glCutLen) glCR = glCR - 1;
+            if (j < glCutLen) glRjad10.arr[glCR].c = glRjad10.arr[glCR].c + glCutLen - j;
             //-------
-            b1:=true;
-            glCombNum:=0;
-            while (b1) do begin
-                GetCombFromRjad;
-                if (TestComb)
-                    then begin
-                        glCombNum:=glCombNum + 1;
+            b1 = true;
+            glCombNum = 0;
+            while (b1) {
+                GetCombFromRjad();
+                if (TestComb())
+                    {
+                        glCombNum = glCombNum + 1;
 
-                        i0:=glCutFrom;
-                        leni:=glCutTo;
-                        for i:=i0 to leni do
-                            if (glCurrComb[i])
-                                then glVer[i]:=glVer[i] + 1;
-                    end;
-                GetRjadFromComb;
-                b1:=ManipuleRjad;
-            end;
+                        i0 = glCutFrom;
+                        leni = glCutTo;
+                        for (int i = i0; i <= leni; i++)
+                            if (glCurrComb.arr[i])
+                                glVer.arr[i] = glVer.arr[i] + 1;
+                    }
+                GetRjadFromComb();
+                b1 = ManipuleRjad();
+            }
 
-            for i:=glCutFrom to glCutTo do begin
-                if (glCombNum <> 0)
-                    then glVer[i]:=glVer[i]/glCombNum
-                    else glVer[i]:=-1;
-            end;
-            if (glCombNum = 0)
-                then Exit
-                else Result:=true;
-        end;
+            for (var i = glCutFrom; i <= glCutTo; i++) {
+                if (glCombNum != 0) {
+                    glVer.arr[i] = glVer.arr[i] / glCombNum;
+                } else {
+                    glVer.arr[i] = -1;
+                }
+            }
+            if (glCombNum == 0) {
+                return Result;
+            } else {
+                Result = true;
+            }
+        }
         //-----------
-        for i:=1 to glLen do begin
-            if (glVer[i] = 1) then glData[i]:=1;
-            if (glVer[i] = 0) then glData[i]:=2;
-        end;
-    end;
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    function TestComb: boolean;
-    var i:integer;
-    begin
-        Result:=true;
-        for i:=glCutFrom to glCutTo do begin
-            case glData[i] of
-                0:;                                         // ничего нет
-                1:if (glCurrComb[i] <> true) then Result:=false;  // точка
-                2:if (glCurrComb[i] <> false) then Result:=false; // пустота
-                3:;                                         // предполагаемая точка
-            end;
-            if (not Result) then Exit;
-        end;
-    end;
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    procedure GetCombFromRjad;
-    var  i, j, x:integer;
-    begin
-        x:=glCutFrom - 1;
-        for i:=1 to glCR do begin
-            for j:=1 to glRjad10[i].c do
-                glCurrComb[x + j]:=glRjad10[i].b;
-            x:=x + glRjad10[i].c;
-        end;
-    end;
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    procedure GetRjadFromComb;
-    var j, cr:integer;
-        i, leni, i0:integer;
-        b:boolean;
-    begin
-        b:=glCurrComb[glCutFrom];
-        j:=1; cr:=1;
+        for (int i = 1; i <= glLen; i++) {
+            if (glVer.arr[i] == 1) glData.arr[i] = 1;
+            if (glVer.arr[i] == 0) glData.arr[i] = 2;
+        }
 
-        i0:=(glCutFrom + 1);
-        leni:=glCutTo;
-        for i:=i0 to leni do begin
-            if (glCurrComb[i] xor b) then begin
-                glRjad10[cr].c:=j;
-                glRjad10[cr].b:=b;
-                inc(cr);
-                j:=0;
-            end;
-            inc(j);
-            b:=glCurrComb[i];
-        end;
-        if (j <> 0) then begin
-            glRjad10[cr].c:=j;
-            glRjad10[cr].b:=b;
-        end;
-        glCR:=cr;
-    end;
+        return Result;
+    }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    function ManipuleRjad:boolean;
-    var i, a, a2:integer;
-        b, b2:boolean;
-    begin
-        a:=glCR;
-        Result:=true;
-        while (true) do begin
-       {|}  if (glRjad10[a].b)
-       {|}      then begin
-       {|}          a:=a - 1;
-       {|}          if (a <= 0) then begin
-       {|}              Result:=false;
-       {|--------------}Break;
-       {|}          end;
-       {|}          b:=true;
-       {|}          while true do begin
-       {|}         {|}  a2:=2;
-       {|}         {|}  if (not b)
-       {|}         {|------}then Continue;
-       {|}         {|}  b:=not b;
-       {|}         {|}
-       {|}         {|}  if ((a + 2) > glCR) then begin
-       {|}         {X------}if ((a + 2) <> (glCR + 1)) then break;
-       {|}         {X------}if (not glRjad10[glCR].b) then break;
-       {|}         {|} {|}
-       {|}         {|} {|}  b2:=false;
-       {|}         {|} {|}  if ((glRjad10[a].c <> 1) and (glCR = 2)) then b2:=true;
-       {|}         {|} {|}  while (glRjad10[a].c = 1) do begin
-       {|}         {|} {|} {|}  a:=a - 2;
-       {|}         {|} {|} {|}  a2:=a2 + 2;
-       {|}         {|} {|} {|}  if ((a <= 0) or (a2 = glCR)) then begin
-       {|}         {|} {|} {|}      b2:=true;
-       {|}         {|} {|} {X-------}break;
-       {|}         {|} {|} {|}  end;
-       {|}         {|} {|}  end;
-       {|}         {X------}if (b2) then Break;
-       {|}         {|} {|}
-       {|}         {|} {|}  inc(glCR);
-       {|}         {|} {|}  glRjad10[glCR].b:=false;
-       {|}         {|} {|}  glRjad10[glCR].c:=0;
-       {|}         {|}  end;
-       {|}         {|}  glRjad10[a + a2].c:=glRjad10[a + a2].c + glRjad10[a].c - 2;
-       {|}         {|}  glRjad10[a].c:=2;
-       {|}         {X--}Break;
-       {|}          end;
-       {|}          if (b2) then begin
-       {|}         {|}  Result:=false;
-       {|--------------}Break;
-       {|}          end;
-       {|}      end
-       {|}      else begin
-       {|}     {|}  if (glCR = 1) then begin
-       {|}     {|} {|}  Result:=false;
-       {X--------------}Break;
-       {|}     {|}  end;
-       {|}     {|}  if ((a - 2) <= 0) then begin
-       {X--------------}if (a < 1) then Break;
-       {|}     {|} {|}  inc(glCR);
-       {|}     {|} {|}  for i:=(glCR - 1) downto 1 do begin
-       {|}     {|} {|} {|}  glRjad10[i + 1].c:=glRjad10[i].c;
-       {|}     {|} {|} {|}  glRjad10[i + 1].b:=glRjad10[i].b;
-       {|}     {|} {|}  end;
-       {|}     {|} {|}  glRjad10[1].c:=1;
-       {|}     {|} {|}  glRjad10[1].b:=false;
-       {|}     {|} {|}  if (glCR > 3) then glRjad10[3].c:=1;
-       {|}     {|} {|}  if (glCR = 3) then glRjad10[3].c:=glRjad10[3].c - 1;
-       {X--------------}Break;
-       {|}     {|}  end;
-       {|}     {|}  glRjad10[a - 2].c:=glRjad10[a - 2].c + 1;
-       {|}     {|}  glRjad10[a].c:=glRjad10[a].c - 1;
-       {|}     {|}  if (glRjad10[a].c = 0)
-       {|}     {|}      then begin
-       {|}     {|}     {|}  if (a = glCR)
-       {|}     {|}     {|}      then begin
-       {|}     {|}     {|}     {|}  dec(glCR);
-       {X---------------------------}Break;
-       {|}     {|}     {|}      end
-       {|}     {|}     {|}      else begin
-       {|}     {|}     {|}     {|}  glRjad10[a - 2].c:=glRjad10[a - 2].c - 1;
-       {|}     {|}     {|}     {|}  glRjad10[a].c:=glRjad10[a].c + 1;
-       {|}     {|}     {|}     {|}  a:=a - 2;
-       {|}     {|}     {|}      end;
-       {|---------------------}continue;
-       {|}     {|}      end
-       {|}     {|}      else begin
-    //   {|}     {|}     {|}   dec(cr);
-       {X---------------------}Break;
-       {|}     {|}      end;
-       {|}      end;
-        end;
-    end;
+    public boolean TestComb(){
+        boolean Result = true;
+        for (int i = glCutFrom; i <= glCutTo; i++) {
+            switch (glData.arr[i]) {
+                case 0 : break;                                         // ничего нет
+                case 1 : if (glCurrComb.arr[i] != true); Result = false; break;  // точка
+                case 2 : if (glCurrComb.arr[i] != false); Result = false; break; // пустота
+                case 3 : break;                                         // предполагаемая точка
+            }
+            if (!Result) return Result;
+        }
+        return Result;
+    }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    function Cut:boolean;
-    var i, dr, cd:byte;
-        b, bDot:boolean;
-        //---------
-        procedure SHLRjad;
-        var j:byte;
-        begin
-            for j:=2 to glCountRjad do
-                glRjad[j - 1]:=glRjad[j];
-            glCountRjad:=glCountRjad - 1;
-        end;
-        //---------
-    begin
-        b:=false; // выход из цикла
-        i:=1; // по ряду
-        bDot:=false; // предидущая - точка, нет
-        dr:=0; // первый ряд точек
-        cd:=0; // количество точек
-        glCutFrom:=i;
-        repeat
-            case (glData[i]) of //
-                0:  begin // ничего
-                        if (bDot) // предидущая точка?
-                            then begin // ничего после точки - надо заканчивать ряд
-                                if (cd < glRjad[dr]) // dr - ый ряд закончили?
-                                    then begin // незакончили
-                                        cd:=cd + 1; // количество точек
-                                        glVer[i]:=1; // потом тут будет точка
-                                        bDot:=true;  // поставили точку
-                                    end
-                                    else begin // закончили ряд
-                                        cd:=0; // новы ряд еще не начали
-                                        glVer[i]:=0; // потом тут будет пустота
-                                        SHLRjad; // сдвигаем ряд (удаляем первый элемент)
-                                        bDot:=false;  // поставили пустоту
-                                        dr:=dr - 1; // из за смещения
-                                    end;
-                            end
-                            else begin // ничего после пустоты - выходим вообшето
-                                if (glCountRjad = 0)
-                                    then begin // в этом ряде ничего больше делать нечего
-                                        glVer[i]:=0; // канчаем его:)
-                                    end
-                                    else begin
-                                        glCutFrom:=i;
-                                        b:=true; // иначе выходим
-                                    end;
-                            end;
-                    end;
-                1:  begin // точка
-                        if (not bDot) then begin
-                            dr:=dr + 1;
-                            cd:=0;
-                            bDot:=true; // точка у нас
-                        end;
-                        glVer[i]:=1; // потом тут будет точка
-                        cd:=cd + 1; // точек стало больше
-                    end;
-                2:  begin // пустота
-                        if (bDot) // предидущая - точка ?
-                            then begin // да
-                                if (cd <> glRjad[dr]) then begin
-                                    Result:=false;
-                                    Exit;
-                                end;
-                                bDot:=false; // теперь точки нет
-                                SHLRjad; // сдвигаем ряд (удаляем первый элемент)
-                                dr:=dr - 1; // из за смещения
-                            end;
-                        glVer[i]:=0; // пустота
-                    end;
-            end;
-            inc(i);
-            if ((not b) and (i > glLen) or (glCountRjad = 0)) then begin // достигли конца
-                Result:=true;
-                Exit;
-            end;
-        until (b);
+    public void GetCombFromRjad(){
+        int x;
+        x = glCutFrom - 1;
+        for (int i = 1; i <= glCR; i++) {
+            for (int j = 1; j <= glRjad10.arr[i].c; j++)
+                glCurrComb.arr[x + j] = glRjad10.arr[i].b;
+            x = x + glRjad10.arr[i].c;
+        }
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public void GetRjadFromComb(){
+        int j, cr;
+        int leni, i0;
+        boolean b = glCurrComb.arr[glCutFrom];
+        j = 1; cr = 1;
 
-        b:=false; // выход из цикла
-        i:=glLen; // по ряду
-        bDot:=false; // предидущая - точка, нет
-        dr:=glCountRjad + 1; // первый ряд точек
-        cd:=0; // количество точек
-        glCutTo:=i;
-        repeat
-            case (glData[i]) of //
-                0:  begin // ничего
-                        if (bDot) // предидущая точка?
-                            then begin // ничего после точки - надо заканчивать ряд
-                                if (cd < glRjad[dr]) // dr - ый ряд закончили?
-                                    then begin // незакончили
-                                        cd:=cd + 1; // количество точек
-                                        glVer[i]:=1; // потом тут будет точка
-                                        bDot:=true;  // поставили точку
-                                    end
-                                    else begin // закончили ряд
-                                        cd:=0; // новы ряд еще не начали
-                                        glVer[i]:=0; // потом тут будет пустота
-                                        glCountRjad:=glCountRjad - 1;
-                                        bDot:=false; // поставили пустоту
-                                    end;
-                            end
-                            else begin // ничего после пустоты - выходим вообшето
-                                if (glCountRjad = 0)
-                                    then begin // в этом ряде ничего больше делать нечего
-                                        glVer[i]:=0; // канчаем его:)
-                                    end
-                                    else begin
-                                        glCutTo:=i;
-                                        b:=true; // иначе выходим
-                                    end;
-                            end;
-                    end;
-                1:  begin // точка
-                        if (not bDot) then begin
-                            dr:=dr - 1;
-                            cd:=0;
-                            bDot:=true; // точка у нас
-                        end;
-                        glVer[i]:=1; // потом тут будет точка
-                        cd:=cd + 1; // точек стало больше
-                    end;
-                2:  begin // пустота
-                        if (bDot) // предидущая - точка ?
-                            then begin // да
-                                if (cd <> glRjad[dr]) then begin
-                                    Result:=false;
-                                    Exit;
-                                end;
-                                bDot:=false; // теперь точки нет
-                                glCountRjad:=glCountRjad - 1;
-                            end;
-                        glVer[i]:=0; // пустота
-                    end;
-            end;
-            dec(i);
-            if ((not b) and (i < 1) or (glCountRjad = 0)) then begin // достигли конца
-                Result:=true;
-                Exit;
-            end;
-        until (b);
+        i0 = (glCutFrom + 1);
+        leni = glCutTo;
+        for (int i = i0; i <= leni; i++) {
+            if (glCurrComb.arr[i] ^ b) {
+                glRjad10.arr[cr].c = j;
+                glRjad10.arr[cr].b = b;
+                cr++; // TODO inc(cr);
+                j = 0;
+            }
+            j++; // TODO inc(j)
+            b = glCurrComb.arr[i];
+        }
+        if (j != 0) {
+            glRjad10.arr[cr].c = j;
+            glRjad10.arr[cr].b = b;
+        }
+        glCR = cr;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public boolean ManipuleRjad(){
+        int a, a2;
+        boolean b, b2 = false; // TODO без инициализации было
+        a = glCR;
+        boolean Result = true;
+        while (true) {
+            if (glRjad10.arr[a].b) {
+                a = a - 1;
+                if (a <= 0) {
+                    Result = false;
+                    break;
+                }
+                b = true;
+                while (true) {
+                    a2 = 2;
+                    if (!b)
+                        continue;
+                    b = !b;
 
-        glCutLen:=glCutTo - glCutFrom + 1;
-        Result:=((glCutFrom > glCutTo) or (glCountRjad = 0));
-    end;
+                    if ((a + 2) > glCR) {
+                        if ((a + 2) != (glCR + 1)) break;
+                        if (!glRjad10.arr[glCR].b) break;
+
+                        b2 = false;
+                        if ((glRjad10.arr[a].c != 1) && (glCR == 2)) b2 = true;
+                        while (glRjad10.arr[a].c == 1) {
+                            a = a - 2;
+                            a2 = a2 + 2;
+                            if ((a <= 0) || (a2 == glCR)) {
+                                b2 = true;
+                                break;
+                            }
+                        }
+
+                        if (b2) break;
+
+                        glCR++; // TODO inc(glCR);
+                        glRjad10.arr[glCR].b = false;
+                        glRjad10.arr[glCR].c = 0;
+                    }
+                    glRjad10.arr[a + a2].c = glRjad10.arr[a + a2].c + glRjad10.arr[a].c - 2;
+                    glRjad10.arr[a].c = 2;
+                    break;
+                }
+                if (b2) {
+                    Result = false;
+                    break;
+                }
+            } else {
+                if (glCR == 1) {
+                    Result = false;
+                    break;
+                }
+                if ((a - 2) <= 0) {
+                    if (a < 1) break;
+                    glCR++; // TODO inc(glCR);
+                    for (int i = (glCR - 1); i >= 1; i++) { // TODO downto
+                        glRjad10.arr[i + 1].c = glRjad10.arr[i].c;
+                        glRjad10.arr[i + 1].b = glRjad10.arr[i].b;
+                    }
+                    glRjad10.arr[1].c = 1;
+                    glRjad10.arr[1].b = false;
+                    if (glCR > 3) glRjad10.arr[3].c = 1;
+                    if (glCR == 3) glRjad10.arr[3].c = glRjad10.arr[3].c - 1;
+                    break;
+                }
+                glRjad10.arr[a - 2].c = glRjad10.arr[a - 2].c + 1;
+                glRjad10.arr[a].c = glRjad10.arr[a].c - 1;
+                if (glRjad10.arr[a].c == 0) {
+                    if (a == glCR) {
+                        glCR--; // TODO dec(glCR);
+                        break;
+                    } else {
+                        glRjad10.arr[a - 2].c = glRjad10.arr[a - 2].c - 1;
+                        glRjad10.arr[a].c = glRjad10.arr[a].c + 1;
+                        a = a - 2;
+                    }
+                    continue;
+                } else {
+//                   cr--; // TODO dec(cr);
+                    break;
+                }
+            }
+        }
+        return Result;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public void SHLRjad(){
+        for (int j = 2; j <= glCountRjad; j++) {
+            glRjad.arr[j - 1] = glRjad.arr[j];
+        } // TODO может нижняя строчка тоже
+        glCountRjad = glCountRjad - 1;
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public boolean Cut(){
+        int i, dr, cd; // TODO byte
+        boolean b, bDot;
+        b = false; // выход из цикла
+        i = 1; // по ряду
+        bDot = false; // предидущая - точка, нет
+        dr = 0; // первый ряд точек
+        cd = 0; // количество точек
+        glCutFrom = i;
+        boolean Result = true;
+        do {
+             switch (glData.arr[i]) { //
+                case 0: { // ничего
+                    if (bDot) { // предидущая точка?
+                        // ничего после точки - надо заканчивать ряд
+                        if (cd < glRjad.arr[dr]) { // dr - ый ряд закончили?
+                            // незакончили
+                            cd = cd + 1; // количество точек
+                            glVer.arr[i] = 1; // потом тут будет точка
+                            bDot = true;  // поставили точку
+                        } else { // закончили ряд
+                            cd = 0; // новы ряд еще не начали
+                            glVer.arr[i] = 0; // потом тут будет пустота
+                            SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
+                            bDot = false;  // поставили пустоту
+                            dr = dr - 1; // из за смещения
+                        }
+                    } else { // ничего после пустоты - выходим вообшето
+                        if (glCountRjad == 0) { // в этом ряде ничего больше делать нечего
+                            glVer.arr[i] = 0; // канчаем его:)
+                        } else {
+                            glCutFrom = i;
+                            b = true; // иначе выходим
+                        }
+                    }
+                } break;
+                case 1:  { // точка
+                    if (!bDot) {
+                        dr = dr + 1;
+                        cd = 0;
+                        bDot = true; // точка у нас
+                    }
+                    glVer.arr[i] = 1; // потом тут будет точка
+                    cd = cd + 1; // точек стало больше
+                } break;
+                case 2:  { // пустота
+                        if (bDot) { // предидущая - точка ?
+                            // да
+                            if (cd != glRjad.arr[dr]) {
+                                Result = false;
+                                return Result;
+                            }
+                            bDot = false; // теперь точки нет
+                            SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
+                            dr = dr - 1; // из за смещения
+                        }
+                        glVer.arr[i] = 0; // пустота
+                } break;
+            }
+            i++; // TODO inc(i);
+            if ((!b) && (i > glLen) || (glCountRjad == 0)) { // достигли конца
+                Result = true;
+                return Result;
+            }
+        } while (b);
+
+        b = false; // выход из цикла
+        i = glLen; // по ряду
+        bDot = false; // предидущая - точка, нет
+        dr = glCountRjad + 1; // первый ряд точек
+        cd = 0; // количество точек
+        glCutTo = i;
+        do {
+            switch (glData.arr[i]) { //
+                case 0: { // ничего
+                    if (bDot) // предидущая точка?
+                        { // ничего после точки - надо заканчивать ряд
+                            if (cd < glRjad.arr[dr]) { // dr - ый ряд закончили?
+                                // незакончили
+                                cd = cd + 1; // количество точек
+                                glVer.arr[i] = 1; // потом тут будет точка
+                                bDot = true;  // поставили точку
+                            } else { // закончили ряд
+                                cd = 0; // новы ряд еще не начали
+                                glVer.arr[i] = 0; // потом тут будет пустота
+                                glCountRjad = glCountRjad - 1;
+                                bDot = false; // поставили пустоту
+                            }
+                        } else { // ничего после пустоты - выходим вообшето
+                            if (glCountRjad == 0) { // в этом ряде ничего больше делать нечего
+                                glVer.arr[i] = 0; // канчаем его:)
+                            }
+                            else {
+                                glCutTo = i;
+                                b = true; // иначе выходим
+                            }
+                        }
+                } break;
+                case 1: { // точка
+                    if (!bDot) {
+                        dr = dr - 1;
+                        cd = 0;
+                        bDot = true; // точка у нас
+                    }
+                    glVer.arr[i] = 1; // потом тут будет точка
+                    cd = cd + 1; // точек стало больше
+                } break;
+                case 2: { // пустота
+                    if (bDot) { // предидущая - точка ?
+                        // да
+                        if (cd != glRjad.arr[dr]) {
+                            Result = false;
+                            return Result;
+                        }
+                        bDot = false; // теперь точки нет
+                        glCountRjad = glCountRjad - 1;
+                    }
+                    glVer.arr[i] = 0; // пустота
+                } break;
+            }
+            i--; // TODO dec(i);
+            if ((!b) && (i < 1) || (glCountRjad == 0)) { // достигли конца
+                Result = true;
+                return Result;
+            }
+        } while (b);
+
+        glCutLen = glCutTo - glCutFrom + 1;
+        Result = ((glCutFrom > glCutTo) || (glCountRjad == 0));
+        return Result;
+    }
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    end.
 }

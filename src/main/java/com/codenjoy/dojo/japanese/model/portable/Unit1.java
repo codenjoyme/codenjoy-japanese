@@ -1,1944 +1,2426 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+
+import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
+
 class Unit1 {
-  type
-    TXYData = array [1..MaxLen, 1..MaxLen] of byte;
-    TXYPustot = array [1..MaxLen, 1..MaxLen] of boolean;
-    TXYRjad = array [1..MaxLen, 1..MaxLen] of byte;
-    TFinish = array [1..MaxLen] of boolean;
-    TXYCountRjad = array [1..MaxLen] of byte;
-    TXYVer = array [1..MaxLen, 1..MaxLen, 1..2] of Real;
-    TAllData = record
-      Ver:TXYVer;
-      FinX, FinY:TFinish;
-      ChX, ChY:TFinish;
-      Data:TXYData;
-      tChX, tChY:TFinish;
-      NoSet:TXYPustot;
-    end;
-    PAllData = ^TAllData;
-    TPredpl = record
-      SetTo:TPoint;
-      SetDot:boolean;
-      B:boolean;
-    end;
-    TCurrPt = record // текущий ряд (для редактирования)
-      pt:TPoint; // координаты
-      xy:boolean; // ряд / столбец
-    end;
-    TForm1 = class(TForm)
-      edCountX: TEdit;
-      udCountX: TUpDown;
-      pb: TPaintBox;
-      btCalc: TButton;
-      cbMode: TCheckBox;
-      edCountY: TEdit;
-      udCountY: TUpDown;
-      btSave: TButton;
-      btLoad: TButton;
-      od: TOpenDialog;
-      sd: TSaveDialog;
-      btClear: TButton;
-      edInput: TEdit;
-      cbRjad: TCheckBox;
-      btSaveBitmap: TButton;
-      spd: TSavePictureDialog;
-      btToWord: TButton;
-      WordApplication1: TWordApplication;
-      WordDocument1: TWordDocument;
-      Panel1: TPanel;
-      Label1: TLabel;
-      cbVerEnable: TCheckBox;
-      cbLoadNaklad: TCheckBox;
-      gbInfo: TGroupBox;
-      Label2: TLabel;
-      Label3: TLabel;
-      Label4: TLabel;
-      Label5: TLabel;
-      Memo1: TMemo;
-      procedure FormCreate(Sender: TObject);
-      procedure FormDestroy(Sender: TObject);
-      procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-      procedure pbPaint(Sender: TObject);
-      procedure edCountXChange(Sender: TObject);
-      procedure pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-      procedure pbMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-      procedure btCalcClick(Sender: TObject);
-      procedure cbModeClick(Sender: TObject);
-      procedure btSaveClick(Sender: TObject);
-      procedure btLoadClick(Sender: TObject);
-      procedure btClearClick(Sender: TObject);
-      procedure edInputKeyPress(Sender: TObject; var Key: Char);
-      procedure cbRjadClick(Sender: TObject);
-      procedure btSaveBitmapClick(Sender: TObject);
-      procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-      procedure btToWordClick(Sender: TObject);
-      procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
-      procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-      procedure CheckBox1Click(Sender: TObject);
-      procedure edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    private
-      t:TdateTime; // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
-      PredCoord:TPoint; PredButt:TShiftState; //
-      bDown:boolean; // непомню
-      Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap; // битмапы для подготовки изображения
-      CurrPt:TCurrPt;
-      bChangeLen, bUpDown:boolean; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
-      AllData1, AllData2, AllData3:TAllData; // масивы данных
-      pDM, pDT, pDP:PAllData; // это указаьели на массивы данных
-      Predpl:TPredpl; //данные предположения
-      LenX, LenY:integer; // длинна и высота кроссворда
-      RjadX, RjadY:TXYRjad; // тут хранятся цифры рядов
-      CountRjadX, CountRjadY:TXYCountRjad; // тут хранятся количества цифер рядов
-      LoadFileName:string;
-      procedure Draw(pt:TPoint); // перерисовка всего кроссворда, строки, столбца или ячейки
-      procedure RefreshPole; // полная перерисовка
-      procedure DrawPole(pt:TPoint); // перерисовка поля
-      procedure DrawSmall; // перерисовка
-      procedure DrawLeft(yy:integer); // перерисовка всех (одной строки) цифер слева
-      procedure DrawTop(xx:integer); // перерисовка всех (одного столбца) цифер сверху
-      procedure GetRjadX; // получение ряда из данных
-      procedure GetRjadY; // получение ряда из данных
-      procedure DataFromRjadX(y:integer); // получение данных из ряда
-      procedure DataFromRjadY(x:integer); // получение данных из ряда
-      procedure ClearData(all:boolean = true); // очистка данных
-      function  GetFin(p:PAllData):boolean; // получение закончености рядов и всего кроссворда
-      function  Check:TPoint; // проверка на правильность
-      function  GetMaxCountRjadX:integer;
-      function  GetMaxCountRjadY:integer;
-      procedure PrepRjadX(p:PAllData; Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:byte);
-      procedure PrepRjadY(p:PAllData; X:integer; var Data:TData; var Rjad:TRjad; var CountRjad:byte);
-      procedure SaveRjadToFile(FileName:string);
-      procedure LoadRjadFromFile(FileName:string);
-      procedure SaveDataToFile(FileName:string);
-      procedure LoadDataFromFile(FileName:string);
-      procedure SavePustot(pt:TPoint; bDot:boolean);
-      procedure ChangeDataArr(bDot:boolean);
-      procedure SetPredplDot(bDot:boolean);
-      procedure SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
-      procedure ChangeActive(pt:TPoint; xy:boolean);
-      procedure ActiveNext(c:integer);
-      procedure SaveTime;
-    public
-      { Public declarations }
-    end;
 
-  var Form1: TForm1;
-  const wid = 10;
-        fs = 5;
-  implementation
+    private int wsMaximized = 0;
+    private int clWhite = 0;
+    private int clBlack = 1;
+    private int clSilver = 2;
+    private int clLtGray = 3;
+    private int clDkGray = 5;
+    private int wdCellAlignVerticalCenter = 6;
+    private int wdBorderRight = 6;
+    private int wdBorderBottom = 6;
+    private int clRed = 4;
+    private int pf4bit = 0;
+    private String fsBold = "bold";
+    private String ssAlt = "alt";
+    private String ssShift = "shift";
+    private String ssCtrl = "control";
+    private String ssLeft = "left";
+    private String ssRight = "right";
+    private String ssMiddle = "middle";
+    private String ssDouble = "double";
+    private TShiftState PredButt;
 
-  {$R *.DFM}
+    static class TApplication {
+        public String Title;
+        public String ExeName;
+
+        public void ProcessMessages() {
+
+        }
+    }
+
+    private TApplication Application = new TApplication();
+
+    static class TXYData {
+        public int[][] arr = new int[MaxLen][MaxLen]; // TODO array 1..MaxLen, 1..MaxLen
+    }
+    static class TXYPustot {
+        public boolean[][] arr = new boolean[MaxLen][MaxLen]; // TODO array 1..MaxLen, 1..MaxLen
+    }
+    static class TXYRjad {
+        public int[][] arr = new int[MaxLen][MaxLen]; // TODO array 1..MaxLen, 1..MaxLen
+    }
+    static class TFinish {
+        public boolean[] arr = new boolean[MaxLen]; // TODO  array 1..MaxLen
+    }
+    static class TXYCountRjad {
+        public int[] arr = new int[MaxLen]; // TODO  array 1..MaxLen
+    }
+    static class TXYVer {
+        public double[][][] arr = new double[MaxLen][MaxLen][2]; // TODO [1..MaxLen, 1..MaxLen, 1..2] of Real;
+    }
+
+    static class TBordersItem {
+
+        public int LineStyle;
+    }
+    static class TItem {
+
+        public int Height;
+        public int Width;
+        public int BordersOutsideLineStyle;
+        public int  CellsVerticalAlignment;
+
+        public TBordersItem BordersItem(int wdBorderRight) {
+            return new TBordersItem();
+        }
+    }
+    enum TUpDownDirection {
+        updUp, updDown;
+    }
+
+    static class TIniFile {
+
+        public TIniFile(String s) {
+        }
+
+        public String ReadString(String tstr, String s, String s1) {
+            return "";
+        }
+
+        public void WriteString(String tstr, String s, String s1) {
+        }
+
+        public void Close() {
+        }
+    }
+    static class TCell {
+
+        public int ShadingBackgroundPatternColor;
+    }
+    static class WordXPRange {
+
+        public int BordersOutsideLineStyle;
+
+        public void ConvertToTable(char c, int i, int i1) {
+        }
+
+        public TItem Item(int x) {
+            return new TItem();
+        }
+
+        public TCell Cell(int y, int x) {
+            return new TCell();
+        }
+    }
+
+    static class WordXPRow {
+
+        public int RangeFontSize;
+        public void RangeInsertParagraphAfter() {
+
+        }
+
+        public void ConvertToText(OleVariant ov1, OleVariant ov11) {
+
+        }
+    }
+
+    static class Variant {
+
+    }
+
+    static class OleVariant {
+
+        public OleVariant(String s) {
+        }
+    }
+
+    static class TAllData {
+        public TXYVer Ver;
+        public TFinish FinX, FinY;
+        public TFinish ChX, ChY;
+        public TXYData Data;
+        public TFinish tChX, tChY;
+        public TXYPustot NoSet;
+    }
+
+    static class PAllData {
+        TAllData data;
+    }
+
+    static class TPredpl {
+        public TPoint SetTo;
+        public boolean SetDot;
+        public boolean B;
+    }
+
+    static class TCurrPt { // текущий ряд (для редактирования)
+        public TPoint pt; // координаты
+        public boolean xy; // ряд / столбец
+    }
+
+    static class TEdit {
+        public boolean Enabled;
+        public String Text;
+
+        public void SetFocus() {
+        }
+
+        public void SelectAll() {
+
+        }
+    }
+
+    static class TUpDown {
+        public int Max;
+        public int Min;
+        public int Position;
+        public boolean Enabled;
+    }
+
+    static class TPaintBox {
+        public int Height;
+        public int Width;
+        public Unit1.Canvas Canvas;
+    }
+
+    static class TButton {
+        public boolean Enabled;
+        public int Tag;
+        public String Caption;
+
+        public void Click() {
+
+        }
+    }
+
+    static class TCheckBox {
+        public boolean Checked;
+        public boolean Enabled;
+        public String Caption;
+    }
+
+    static class TOpenDialog {
+        public String InitialDir;
+        public String FileName;
+        public int FilterIndex;
+
+        public boolean Execute() {
+            return true;
+        }
+    }
+
+    static class TSaveDialog {
+        public String InitialDir;
+        public int FilterIndex;
+        public String FileName;
+
+        public boolean Execute() {
+            return false;
+        }
+    }
+
+    static class TSavePictureDialog {
+        public String InitialDir;
+        public String FileName;
+
+        public boolean Execute() {
+            return false;
+        }
+    }
+
+    static class TWordApplication {
+        public boolean Visible;
+
+        public void Connect() {
+        }
+
+        public void Disconnect() {
+
+        }
+    }
+
+    static class TRange {
+
+        public void InsertParagraphAfter() {
+
+        }
+    }
+    static class TRows {
+
+        public WordXPRange Columns;
+        public WordXPRange Rows;
+        public int RangeParagraphsFormatSpaceBefore;
+        public int RangeParagraphsFormatSpaceAfter;
+        public int RangeParagraphsFormatFirstLineIndent;
+
+        public WordXPRow Rows_Get_First() {
+            return null;
+        }
+    }
+    static class TWordDocument {
+        public TRange Range;
+        public int ParagraphsLastRangeFontSize;
+        public String ParagraphsLastRangeText;
+
+        public WordXPRange Content() {
+            return new WordXPRange();
+        }
+
+        public TRows Tables_Item(int i) {
+            return new TRows();
+        }
+
+        public void Activate() {
+        }
+    }
+
+    static class TPanel {
+        public int Height;
+        public int Width;
+        public int Top;
+        public int Left;
+    }
+
+    static class TLabel {
+        public String Caption;
+    }
+
+    static class TGroupBox {
+        public int Top;
+        public int Height;
+    }
+
+    static class TLines {
+
+    }
+
+    static class TextFile {
+
+    }
+
+    static class TMemo {
+        public TLines Lines;
+
+        public void Clear() {
+        }
+    }
+
+    static class TVertScrollBar {
+        public boolean Visible;
+    }
+
+    static class THorzScrollBar {
+        public boolean Visible;
+    }
+
+    static class Form1 {
+        public Constraints Constraints;
+        public int Width;
+        public int Height;
+        public int WindowState;
+        public TVertScrollBar VertScrollBar;
+        public THorzScrollBar HorzScrollBar;
+        public int Left;
+        public int Top;
+        public String Caption;
+    }
+
+    static class Constraints {
+        public int MinHeight;
+        public int MinWidth;
+    }
+
+    static class Screen {
+        public int Width;
+        public int Height;
+    }
+
+    Screen Screen = new Screen();
+    Form1 Form1 = new Form1();
+    TEdit edCountX = new TEdit();
+    TUpDown udCountX = new TUpDown();
+    TPaintBox pb = new TPaintBox();
+    TButton btCalc = new TButton();
+    TCheckBox cbMode = new TCheckBox();
+    TEdit edCountY = new TEdit();
+    TUpDown udCountY = new TUpDown();
+    TButton btSave = new TButton();
+    TButton btLoad = new TButton();
+    TOpenDialog od = new TOpenDialog();
+    TSaveDialog sd = new TSaveDialog();
+    TButton btClear = new TButton();
+    TEdit edInput = new TEdit();
+    TCheckBox cbRjad = new TCheckBox();
+    TButton btSaveBitmap = new TButton();
+    TSavePictureDialog spd = new TSavePictureDialog();
+    TButton btToWord = new TButton();
+    TWordApplication WordApplication1 = new TWordApplication();
+    TWordDocument WordDocument1 = new TWordDocument();
+    TPanel Panel1 = new TPanel();
+    TLabel Label1 = new TLabel();
+    TCheckBox cbVerEnable = new TCheckBox();
+    TCheckBox cbLoadNaklad = new TCheckBox();
+    TGroupBox gbInfo = new TGroupBox();
+    TLabel Label2 = new TLabel();
+    TLabel Label3 = new TLabel();
+    TLabel Label4 = new TLabel();
+    TLabel Label5 = new TLabel();
+    TMemo Memo1 = new TMemo();
+
+    public static class TShiftState {
+        public void remove(String[] strings) {
+        }
+
+        public void set(String ssLeft) {
+        }
+    }
+
+    public static class TMouseButton {
+    }
+
+    public static class TPen {
+        public int Color;
+    }
+
+    public static class TFont {
+        public String Name;
+        public String[] Style;
+        public int Size;
+    }
+
+    public static class Canvas {
+        public TPen pen;
+        public TPen Brush;
+        public TPen Pen;
+        public TFont Font;
+
+        public void Rectangle(int i, int i1, int width, int height) {
+        }
+
+        public void Draw(int i, int i1, TBitMap bmpSmall) {
+        }
+
+        public int TextWidth(String tstr) {
+            return 1;
+        }
+
+        public int TextHeight(String tstr) {
+            return 1;
+        }
+
+        public void TextOut(int i, int i1, String tstr) {
+        }
+
+        public void Ellipse(int i, int i1, int i2, int i3) {
+        }
+    }
+
+    public static class TBitMap {
+        public int Width;
+        public int Height;
+        public Canvas Canvas;
+        public Object PixelFormat;
+
+        public void SaveToFile(String fileName) {
+        }
+    }
+    public Unit2 Unit2 = new Unit2();
+    public Date t; // TODO TdateTime // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
+    public TPoint PredCoord;
+    public TShiftState redButt;
+    boolean bDown; // непомню
+    TBitMap Buf, bmpTop, bmpLeft, bmpPole, bmpSmall; // битмапы для подготовки изображения
+    TCurrPt CurrPt;
+    boolean bChangeLen, bUpDown; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
+    TAllData AllData1, AllData2, AllData3; // масивы данных
+    PAllData pDM, pDT, pDP; // это указаьели на массивы данных
+    TPredpl Predpl; //данные предположения
+    int LenX, LenY; // длинна и высота кроссворда
+    TXYRjad RjadX, RjadY; // тут хранятся цифры рядов
+    TXYCountRjad CountRjadX, CountRjadY; // тут хранятся количества цифер рядов
+    String LoadFileName;
+
+    public static final int wid = 10;
+    public static final int fs = 5;
+
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void ClearData(boolean all) {
+      for (int x = 1; x <= MaxLen; x++) {
+          for (int y = 1; y <= MaxLen; y++) {
+              pDM.data.Data.arr[x][y] = 0;
+              pDM.data.Ver.arr[x][y][1] = -1;
+              pDM.data.Ver.arr[x][y][2] = -1;
+          }
+          if (all) {
+              CountRjadX.arr[x] = 0;
+              CountRjadY.arr[x] = 0;
+          }
+          pDM.data.FinY.arr[x] = false;
+          pDM.data.FinX.arr[x] = false;
+          pDM.data.ChY.arr[x] = true;
+          pDM.data.ChX.arr[x] = true;
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.ClearData(all:boolean = true);
-  var x, y:integer;
-  begin
-      for x:=1 to MaxLen do begin
-          for y:=1 to MaxLen do begin
-              pDM^.Data[x, y]:=0;
-              pDM^.Ver[x, y, 1]:=-1;
-              pDM^.Ver[x, y, 2]:=-1;
-          end;
-          if (all) then begin
-              CountRjadX[x]:=0;
-              CountRjadY[x]:=0;
-          end;
-          pDM^.FinY[x]:=false;
-          pDM^.FinX[x]:=false;
-          pDM^.ChY[x]:=true;
-          pDM^.ChX[x]:=true;
-      end;
-  end;
+  public void GetRjadX()
+  {
+      int a;
+      for (int y = 1; y <= LenY; y++) {
+          a = 0;
+          CountRjadX.arr[y] = 1;
+          for (int x = 1; x <= LenX; x++) {
+              if (pDM.data.Data.arr[x][y] == 1){
+                  a++;
+              } else{
+                  if (a != 0){
+                      RjadX.arr[CountRjadX.arr[y]][y] = a;
+                      a = 0;
+                      CountRjadX.arr[y] = CountRjadX.arr[y] + 1;
+                  }
+              }
+          }
+          if (a != 0) {
+              RjadX.arr[CountRjadX.arr[y]][y] = a;
+              CountRjadX.arr[y] = CountRjadX.arr[y] + 1;
+          }
+          CountRjadX.arr[y] = CountRjadX.arr[y] - 1;
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.GetRjadX;
-  var x, y, a:integer;
-  begin
-      for y:=1 to {LenY}MaxLen do begin
-          a:=0; CountRjadX[y]:=1;
-          for x:=1 to {LenX}MaxLen do begin
-              if (pDM^.Data[x, y] = 1)
-                  then inc(a)
-                  else
-                      if (a <> 0) then begin
-                          RjadX[CountRjadX[y], y]:=a;
-                          a:=0;
-                          inc(CountRjadX[y]);
-                      end;
-          end;
-          if (a <> 0) then begin
-              RjadX[CountRjadX[y], y]:=a;
-              inc(CountRjadX[y]);
-          end;
-          dec(CountRjadX[y]);
-      end;
-  end;
+  public void GetRjadY(){
+      int a;
+      for (int x = 1; x <= LenX; x++) {
+          a = 0; CountRjadY.arr[x] = 1;
+          for (int y = 1; y <= LenY; y++) {
+              if (pDM.data.Data.arr[x][y] == 1) {
+                  a++;
+              } else {
+                  if (a != 0) {
+                      RjadY.arr[x][CountRjadY.arr[x]] = a;
+                      a = 0;
+                      CountRjadY.arr[x] = CountRjadY.arr[x] + 1;
+                  }
+              }
+          }
+          if (a != 0) {
+              RjadY.arr[x][CountRjadY.arr[x]] = a;
+              CountRjadY.arr[x] = CountRjadY.arr[x] + 1;
+          }
+          CountRjadY.arr[x] = CountRjadY.arr[x] - 1;
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.GetRjadY;
-  var x, y, a:integer;
-  begin
-      for x:=1 to {LenX}MaxLen do begin
-          a:=0; CountRjadY[x]:=1;
-          for y:=1 to {LenY}MaxLen do begin
-              if (pDM^.Data[x, y] = 1)
-                  then inc(a)
-                  else
-                      if (a <> 0) then begin
-                          RjadY[x, CountRjadY[x]]:=a;
-                          a:=0;
-                          inc(CountRjadY[x]);
-                      end;
-          end;
-          if (a <> 0) then begin
-              RjadY[x, CountRjadY[x]]:=a;
-              inc(CountRjadY[x]);
-          end;
-          dec(CountRjadY[x]);
-      end;
-  end;
+  public int GetMaxCountRjadY(){
+      int Result = 0;
+      for (int x = 1; x <= LenX; x++) {
+          if (Result < CountRjadY.arr[x]) {
+              Result = CountRjadY.arr[x];
+          }
+      }
+      return Result;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  function TForm1.GetMaxCountRjadY: integer;
-  var x:integer;
-  begin
-      Result:=0;
-      for x:=1 to LenX do
-          if (Result < CountRjadY[x])
-              then Result:=CountRjadY[x];
-  end;
+  public int GetMaxCountRjadX(){
+      int Result = 0;
+      for (int y = 1; y <= LenY; y++) {
+          if (Result < CountRjadX.arr[y]) {
+              Result = CountRjadX.arr[y];
+          }
+      }
+      return Result;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  function TForm1.GetMaxCountRjadX: integer;
-  var y:integer;
-  begin
-      Result:=0;
-      for y:=1 to LenY do
-          if (Result < CountRjadX[y])
-              then Result:=CountRjadX[y];
-  end;
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.Draw(pt:TPoint);
-  var w, h, a:integer;
-      b:boolean;
-      //----
-      procedure ResPanel;
-      begin
-          h:=pb.Height + 2;
-          w:=pb.Width + 2;
-          if (Panel1.Height <> h) then Panel1.Height:=h;
-          if (Panel1.Width <> w) then Panel1.Width:=w;
-      end;
-      //----
-      procedure ResForm;
-      begin
-          h:=pb.Height + Panel1.Top + 30 + 15;
-          a:=gbInfo.Top + gbInfo.Height + 32;
-          if (h < a) then h:=a;
-          w:=pb.Width + Panel1.Left + 11 + 15;
-          Form1.Constraints.MinHeight:=0;
-          Form1.Constraints.MinWidth:=0;
-          if (w < (Screen.Width - 20)) then begin
-              if (b) then Form1.Width:=w;
-              Form1.Constraints.MinWidth:=w;
-          end;
-          if (h < (Screen.Height - 100)) then begin
-              if (b) then Form1.Height:=h;
-              Form1.Constraints.MinHeight:=h;
-          end;
-      end;
-      //----
-  begin
-      if (not cbRjad.Checked) then DrawSmall;
-      if (pt.x <> -1) then begin
+  public void Draw(TPoint pt){
+      final int[] w = new int[1];
+      final int[] h = new int[1];
+      final int[] a = new int[1];
+      final boolean[] b = new boolean[1];
+
+      class Inner {
+          public void ResPanel(){
+              h[0] = pb.Height + 2;
+              w[0] = pb.Width + 2;
+              if (Panel1.Height != h[0]) {
+                  Panel1.Height = h[0];
+              }
+              if (Panel1.Width != w[0]) {
+                  Panel1.Width = w[0];
+              }
+          }
+
+          public void ResForm(){
+              h[0] = pb.Height + Panel1.Top + 30 + 15;
+              a[0] = gbInfo.Top + gbInfo.Height + 32;
+              if (h[0] < a[0]) h[0] = a[0];
+              w[0] = pb.Width + Panel1.Left + 11 + 15;
+              Form1.Constraints.MinHeight = 0;
+              Form1.Constraints.MinWidth = 0;
+              if (w[0] < (Screen.Width - 20)) {
+                  if (b[0]) Form1.Width = w[0];
+                  Form1.Constraints.MinWidth = w[0];
+              }
+              if (h[0] < (Screen.Height - 100)) {
+                  if (b[0]) {
+                      Form1.Height = h[0];
+                  }
+                  Form1.Constraints.MinHeight = h[0];
+              }
+          }
+      }
+      Inner inner = new Inner();
+
+      if (!cbRjad.Checked) DrawSmall();
+      if (pt.x != -1) {
           DrawPole(pt);
           DrawLeft(pt.y);
           DrawTop(pt.x);
-      end;
-      Buf.Width:=bmpLeft.Width + bmpPole.Width;
-      Buf.Height:=bmpTop.Height + bmpPole.Height;
+      }
+      Buf.Width = bmpLeft.Width + bmpPole.Width;
+      Buf.Height = bmpTop.Height + bmpPole.Height;
       Buf.Canvas.Rectangle(0, 0, Buf.Width, Buf.Height);
       Buf.Canvas.Draw(0,             bmpTop.Height, bmpLeft);
       Buf.Canvas.Draw(bmpLeft.Width, 0,             bmpTop);
       Buf.Canvas.Draw(bmpLeft.Width, bmpTop.Height, bmpPole);
-      if (not cbRjad.Checked)
-          then Buf.Canvas.Draw((bmpLeft.Width - bmpSmall.Width) div 2,
-                               (bmpTop.Height - bmpSmall.Height) div 2, bmpSmall);
-      pb.Height:=Buf.Height;
-      pb.Width:=Buf.Width;
-      pbPaint(Self);
+      if (!cbRjad.Checked)
+          Buf.Canvas.Draw((bmpLeft.Width - bmpSmall.Width) / 2,
+                               (bmpTop.Height - bmpSmall.Height) / 2, bmpSmall);
+      pb.Height = Buf.Height;
+      pb.Width = Buf.Width;
+      pbPaint(this);
 
-      b:=(Form1.WindowState <> wsMaximized);
+      b[0] = (Form1.WindowState != wsMaximized);
 
-  //    if (not bChangeLen) then Exit;
+  //    if (!bChangeLen) return;
 
-      if (bUpDown)
-          then begin
-              ResForm;
-              ResPanel;
-          end
-          else begin
-              ResPanel;
-              ResForm;
-          end;
+      if (bUpDown) {
+          inner.ResForm();
+          inner.ResPanel();
+      } else {
+          inner.ResPanel();
+          inner.ResForm();
+      }
 
-  {    if (Form1.VertScrollBar.Visible) then begin
-          Form1.Width:=Form1.Width + 15;
-          if (not Form1.VertScrollBar.Visible) then Form1.Width:=Form1.Width - 15;
-      end;
-      if (Form1.HorzScrollBar.Visible) then begin
-          Form1.Height:=Form1.Height + 15;
-          if (not Form1.HorzScrollBar.Visible) then Form1.Height:=Form1.Height - 15;
-      end;
+  {    if (Form1.VertScrollBar.Visible) {
+          Form1.Width = Form1.Width + 15;
+          if (!Form1.VertScrollBar.Visible) Form1.Width = Form1.Width - 15;
+      }
+      if (Form1.HorzScrollBar.Visible) {
+          Form1.Height = Form1.Height + 15;
+          if (!Form1.HorzScrollBar.Visible) Form1.Height = Form1.Height - 15;
+      }
   }
-      if (b) then begin
-          Form1.Left:=(Screen.Width - Form1.Width) div 2;
-          Form1.Top:=(Screen.Height - Form1.Height) div 2;
-      end;
-      bChangeLen:=false;
-  end;
+      if (b[0]) {
+          Form1.Left = (Screen.Width - Form1.Width) / 2;
+          Form1.Top = (Screen.Height - Form1.Height) / 2;
+      }
+      bChangeLen = false;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.DrawLeft(yy:integer);
-  var x, y, tx, ty, a, d, px, w, yy1, yy2:integer;
-      tstr:string;
-  begin
-      w:= wid - 1;
+  public void DrawLeft(int yy) {
+      int tx, ty, a, d, px, w, yy1, yy2;
+      String tstr;
+      w =  wid - 1;
       if (cbRjad.Checked)
-          then begin
-              d:=(bmpLeft.Width - 1) div wid;
-              a:=GetMaxCountRjadX;
-              if (a <> d) then yy:=0;
-          end
-          else a:=((LenX + 1) div 2);
-      bmpLeft.Width:=a*wid + 1;
-      bmpLeft.Height:=LenY*wid + 1;
-      if (yy = 0) then begin
-          bmpLeft.Canvas.pen.Color:=clWhite;
+          {
+              d = (bmpLeft.Width - 1) / wid;
+              a = GetMaxCountRjadX();
+              if (a != d) yy = 0;
+          } else {
+              a = ((LenX + 1) / 2);
+          }
+      bmpLeft.Width = a*wid + 1;
+      bmpLeft.Height = LenY*wid + 1;
+      if (yy == 0) {
+          bmpLeft.Canvas.pen.Color = clWhite;
           bmpLeft.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpLeft.Height);
-          bmpLeft.Canvas.pen.Color:=clBlack;
-      end;
-      if (yy = 0)
-          then begin
-              yy1:=1;
-              yy2:=LenY;
-          end
-          else begin
-              yy1:=yy;
-              yy2:=yy;
-          end;
-      for y:=yy1 to yy2 do begin
-          if ((CurrPt.xy) and (CurrPt.pt.x = y))
-              then bmpLeft.Canvas.Brush.Color:=clSilver
-              else bmpLeft.Canvas.Brush.Color:=clWhite;
-          if ((y mod 5) = 0) then d:=0 else d:=1;
-          for x:=1 to a do bmpLeft.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + 1, y*wid + d);
-          for x:=1 to CountRjadX[y] do begin
-              px:=a - CountRjadX[y] + x;
-              tx:=(px - 1)*wid; ty:=(y - 1)*wid;
+          bmpLeft.Canvas.pen.Color = clBlack;
+      }
+      if (yy == 0) {
+          yy1 = 1;
+          yy2 = LenY;
+      } else {
+          yy1 = yy;
+          yy2 = yy;
+      }
+      for (int y = yy1; y <= yy2; y ++) {
+          if ((CurrPt.xy) && (CurrPt.pt.x == y)) {
+              bmpLeft.Canvas.Brush.Color = clSilver;
+          } else {
+              bmpLeft.Canvas.Brush.Color = clWhite;
+          }
+          if ((y % 5) == 0) {
+              d = 0;
+          } else {
+              d = 1;
+          }
+          for (int x = 1; x <= a; x++) {
+              bmpLeft.Canvas.Rectangle((x - 1) * wid, (y - 1) * wid, x * wid + 1, y * wid + d);
+          }
+          for (int x = 1; x <= CountRjadX.arr[y]; x++) {
+              px = a - CountRjadX.arr[y] + x;
+              tx = (px - 1)*wid; ty = (y - 1)*wid;
               bmpLeft.Canvas.Rectangle(tx, ty, px*wid + 1, y*wid + d);
-              tstr:=IntToStr(RjadX[x, y]);
-              bmpLeft.Canvas.TextOut(tx + (wid - bmpLeft.Canvas.TextWidth(tstr) + 1) div 2,
-                                     ty + (wid - bmpLeft.Canvas.TextHeight(tstr)) div 2, tstr);
-          end;
-      end;
-  end;
+              tstr = Integer.toString(RjadX.arr[x][y]);
+              bmpLeft.Canvas.TextOut(tx + (wid - bmpLeft.Canvas.TextWidth(tstr) + 1) / 2,
+                                     ty + (wid - bmpLeft.Canvas.TextHeight(tstr)) / 2, tstr);
+          }
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.DrawTop(xx:integer);
-  var x, y, tx, ty, a, d, py, xx1, xx2:integer;
-      tstr:string;
-  begin
-      if (cbRjad.Checked)
-          then begin
-              d:=(bmpTop.Height - 1) div wid;
-              a:=GetMaxCountRjadY;
-              if (a <> d) then xx:=0;
-          end
-          else a:=((LenY + 1) div 2);
-      bmpTop.Width:=LenX*wid + 1;
-      bmpTop.Height:=a*wid + 1;
-      if (xx = 0) then begin
-          bmpTop.Canvas.pen.Color:=clWhite;
+  public void DrawTop(int xx) {
+      int tx, ty, a, d, py, xx1, xx2;
+      String tstr;
+      if (cbRjad.Checked) {
+          d = (bmpTop.Height - 1) / wid;
+          a = GetMaxCountRjadY();
+          if (a != d) xx = 0;
+      } else {
+          a = ((LenY + 1) / 2);
+      }
+      bmpTop.Width = LenX*wid + 1;
+      bmpTop.Height = a*wid + 1;
+      if (xx == 0) {
+          bmpTop.Canvas.pen.Color = clWhite;
           bmpTop.Canvas.Rectangle(0, 0, bmpTop.Width, bmpTop.Height);
-          bmpTop.Canvas.pen.Color:=clBlack;
-      end;
-      if (xx = 0)
-          then begin
-              xx1:=1;
-              xx2:=LenX;
-          end
-          else begin
-              xx1:=xx;
-              xx2:=xx;
-          end;
-      for x:=xx1 to xx2 do begin
-          if ((not CurrPt.xy) and (CurrPt.pt.x = x))
-              then bmpTop.Canvas.Brush.Color:=clSilver
-              else bmpTop.Canvas.Brush.Color:=clWhite;
-          if ((x mod 5) = 0) then d:=0 else d:=1;
-          for y:=1 to a do bmpTop.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + d, y*wid + 1);
-          for y:=1 to CountRjadY[x] do begin
-              py:=a - CountRjadY[x] + y;
-              tx:=(x - 1)*wid; ty:=(py - 1)*wid;
+          bmpTop.Canvas.pen.Color = clBlack;
+      }
+      if (xx == 0) {
+          xx1 = 1;
+          xx2 = LenX;
+      } else {
+          xx1 = xx;
+          xx2 = xx;
+      }
+      for (int x = xx1; x <=xx2; x++) {
+          if ((!CurrPt.xy) && (CurrPt.pt.x == x)) {
+              bmpTop.Canvas.Brush.Color = clSilver;
+          } else {
+              bmpTop.Canvas.Brush.Color = clWhite;
+          }
+          if ((x % 5) == 0) {
+              d = 0;
+          } else {
+              d = 1;
+          }
+          for (int y = 1; y <= a; y++) {
+              bmpTop.Canvas.Rectangle((x - 1) * wid, (y - 1) * wid, x * wid + d, y * wid + 1);
+          }
+          for (int y = 1; y <= CountRjadY.arr[x]; y++) {
+              py = a - CountRjadY.arr[x] + y;
+              tx = (x - 1)*wid; ty = (py - 1)*wid;
               bmpTop.Canvas.Rectangle(tx, ty, x*wid + d, py*wid + 1);
-              tstr:=IntToStr(RjadY[x, y]);
-              bmpTop.Canvas.TextOut(tx + (wid - bmpTop.Canvas.TextWidth(tstr) + 1) div 2,
-                                    ty + (wid - bmpTop.Canvas.TextHeight(tstr)) div 2, tstr);
-          end;
-      end;
-  end;
+              tstr = Integer.toString(RjadY.arr[x][y]);
+              bmpTop.Canvas.TextOut(tx + (wid - bmpTop.Canvas.TextWidth(tstr) + 1) / 2,
+                                    ty + (wid - bmpTop.Canvas.TextHeight(tstr)) / 2, tstr);
+          }
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.RefreshPole;
-  begin
-      DrawPole(Point(0, 0));
-      if (not cbRjad.Checked) then DrawSmall;
+  public void RefreshPole(){
+      DrawPole(new TPoint(0, 0));
+      if (!cbRjad.Checked) {
+          DrawSmall();
+      }
       Buf.Canvas.Draw(bmpLeft.Width, bmpTop.Height, bmpPole);
-      if (not cbRjad.Checked)
-          then Buf.Canvas.Draw((bmpLeft.Width - bmpSmall.Width) div 2,
-                               (bmpTop.Height - bmpSmall.Height) div 2, bmpSmall);
-      pbPaint(Self);
-  end;
+      if (!cbRjad.Checked) {
+          Buf.Canvas.Draw((bmpLeft.Width - bmpSmall.Width) / 2,
+                  (bmpTop.Height - bmpSmall.Height) / 2, bmpSmall);
+      }
+      pbPaint(this);
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.DrawPole(pt:TPoint);
-  var x, y, d1, d2, tx1, ty1, tx2, ty2:integer;
-      pt1, pt2:TPoint;
-  begin
-      bmpPole.Width:=LenX*wid + 1;
-      bmpPole.Height:=LenY*wid + 1;
+  public void DrawPole(TPoint pt) {
+      int d1, d2, tx1, ty1, tx2, ty2;
+      TPoint pt1 = new TPoint(0, 0);
+      TPoint pt2 = new TPoint(0, 0);
+      bmpPole.Width = LenX*wid + 1;
+      bmpPole.Height = LenY*wid + 1;
 
-      if ((pt.x = 0) and (pt.y = 0)) then begin
-          bmpPole.Canvas.Pen.Color:=clWhite;
+      if ((pt.x == 0) && (pt.y == 0)) {
+          bmpPole.Canvas.Pen.Color = clWhite;
           bmpPole.Canvas.Rectangle(0, 0, bmpPole.Width, bmpPole.Height);
-          bmpPole.Canvas.Pen.Color:=clBlack;
-      end;
-      if (pt.x = 0)
-          then begin
-              pt1.x:=1;
-              pt2.x:=LenX;
-          end
-          else begin
-              pt1.x:=pt.x;
-              pt2.x:=pt.x;
-          end;
-      if (pt.y = 0)
-          then begin
-              pt1.y:=1;
-              pt2.y:=LenY;
-          end
-          else begin
-              pt1.y:=pt.y;
-              pt2.y:=pt.y;
-          end;
-      for x:=pt1.x to pt2.x do
-          for y:=pt1.y to pt2.y do begin
-              if ((x mod 5) = 0) then d1:=0 else d1:=1;
-              if ((y mod 5) = 0) then d2:=0 else d2:=1;
-              tx1:=(x - 1)*wid;
-              ty1:=(y - 1)*wid;
-              tx2:=x*wid;
-              ty2:=y*wid;
-              case (pDM^.Data[x, y]) of
-                  0:  begin
-                          bmpPole.Canvas.Brush.Color:=clWhite;
-                          bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
-                      end;
-                  1:  begin
-                          bmpPole.Canvas.Brush.Color:=clLtGray;
-                          bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
-                          bmpPole.Canvas.Brush.Color:=clBlack;
-                          bmpPole.Canvas.Ellipse(tx1 + 2, ty1 + 2, tx2 - 2, ty2 - 2);
-                      end;
-                  2:  begin
-                          bmpPole.Canvas.Brush.Color:=clLtGray;
-                          bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
-                      end;
-                  3:  begin
-                          bmpPole.Canvas.Brush.Color:=clRed;
-                          bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
-                      end;
-              end;
-          end;
-  end;
+          bmpPole.Canvas.Pen.Color = clBlack;
+      }
+      if (pt.x == 0) {
+          pt1.x = 1;
+          pt2.x = LenX;
+      } else {
+          pt1.x = pt.x;
+          pt2.x = pt.x;
+      }
+      if (pt.y == 0) {
+          pt1.y = 1;
+          pt2.y = LenY;
+      } else {
+          pt1.y = pt.y;
+          pt2.y = pt.y;
+      }
+      for (int x = pt1.x; x <= pt2.x; x++) {
+          for (int y = pt1.y; x <= pt2.y; x++) {
+              if ((x % 5) == 0) {
+                  d1 = 0;
+              } else {
+                  d1 = 1;
+              }
+              if ((y % 5) == 0) {
+                  d2 = 0;
+              } else {
+                  d2 = 1;
+              }
+              tx1 = (x - 1) * wid;
+              ty1 = (y - 1) * wid;
+              tx2 = x * wid;
+              ty2 = y * wid;
+              switch (pDM.data.Data.arr[x][y]){
+                  case 0: {
+                      bmpPole.Canvas.Brush.Color = clWhite;
+                      bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
+                  } break;
+                  case 1: {
+                      bmpPole.Canvas.Brush.Color = clLtGray;
+                      bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
+                      bmpPole.Canvas.Brush.Color = clBlack;
+                      bmpPole.Canvas.Ellipse(tx1 + 2, ty1 + 2, tx2 - 2, ty2 - 2);
+                  } break;
+                  case 2: {
+                      bmpPole.Canvas.Brush.Color = clLtGray;
+                      bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
+                  } break;
+                  case 3: {
+                      bmpPole.Canvas.Brush.Color = clRed;
+                      bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
+                  } break;
+              }
+          }
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.DrawSmall;
-  var x, y, w:integer;
-  begin
-      w:= wid div 3;
-      bmpSmall.Width:=LenX*w;
-      bmpSmall.Height:=LenY*w;
+  public void DrawSmall(){
+      int w;
+      w =  wid / 3;
+      bmpSmall.Width = LenX*w;
+      bmpSmall.Height = LenY*w;
       bmpSmall.Canvas.Rectangle(0, 0, bmpSmall.Width, bmpSmall.Height);
-      for x:=1 to LenX do
-          for y:=1 to LenY do begin
-              case (pDM^.Data[x, y]) of
-                  0, 2: begin
-                            bmpSmall.Canvas.Pen.Color:=clWhite;
-                            bmpSmall.Canvas.Brush.Color:=clWhite;
-                        end;
-                  1:    begin
-                            bmpSmall.Canvas.Pen.Color:=clBlack;
-                            bmpSmall.Canvas.Brush.Color:=clBlack;
-                        end;
-              end;
-              bmpSmall.Canvas.Rectangle((x - 1)*w, (y - 1)*w, x*w + 1, y*w + 1);
-          end;
-  end;
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= LenY; y++) {
+              switch (pDM.data.Data.arr[x][y]) {
+                  case 0:
+                  case 2: {
+                      bmpSmall.Canvas.Pen.Color = clWhite;
+                      bmpSmall.Canvas.Brush.Color = clWhite;
+                  }
+                  break;
+                  case 1: {
+                      bmpSmall.Canvas.Pen.Color = clBlack;
+                      bmpSmall.Canvas.Brush.Color = clBlack;
+                  }
+                  break;
+              }
+              bmpSmall.Canvas.Rectangle((x - 1) * w, (y - 1) * w, x * w + 1, y * w + 1);
+          }
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.FormCreate(Sender: TObject);
-  begin
-      pDM:=@AllData1;
-      pDT:=@AllData2;
-      pDP:=@AllData3;
-      Application.Title:=Form1.Caption;
-      udCountX.Max:=MaxLen;
-      udCountY.Max:=MaxLen;
-      PredCoord:=Point(-1, -1);
-      PredButt:=[ssLeft];
-      CurrPt.xy:=true;
-      CurrPt.pt:=Point(1, 1);
+  public String ExtractFileDir(String s) {
+    return s;
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void FormCreate(Object Sender) {
+      pDM.data = AllData1;
+      pDT.data = AllData2;
+      pDP.data = AllData3;
+      Application.Title = Form1.Caption;
+      udCountX.Max = MaxLen;
+      udCountY.Max = MaxLen;
+      PredCoord = new TPoint(-1, -1);
+      PredButt.set(ssLeft);
+      CurrPt.xy = true;
+      CurrPt.pt = new TPoint(1, 1);
   //    edInput.SetFocus;
-      bChangeLen:=true;
-      bUpDown:=false;
-      LenX:=udCountX.Position;
-      LenY:=udCountY.Position;
-      bDown:=false;
-      Predpl.SetDot:=false;
-      Predpl.B:=false;
+      bChangeLen = true;
+      bUpDown = false;
+      LenX = udCountX.Position;
+      LenY = udCountY.Position;
+      bDown = false;
+      Predpl.SetDot = false;
+      Predpl.B = false;
 
-      ClearData;
+      ClearData(true);
 
       SetInfo(0, true, false, true, 0);
 
-      od.InitialDir:=ExtractFileDir(Application.ExeName);
-      sd.InitialDir:=od.InitialDir;
-      spd.InitialDir:=od.InitialDir;
+      od.InitialDir = ExtractFileDir(Application.ExeName);
+      sd.InitialDir = od.InitialDir;
+      spd.InitialDir = od.InitialDir;
 
-      Buf:=TBitMap.Create;
-      Buf.PixelFormat:=pf4bit;
-      Buf.Width:=10;
-      Buf.Height:=10;
+      Buf = new TBitMap();
+      Buf.PixelFormat = pf4bit;
+      Buf.Width = 10;
+      Buf.Height = 10;
 
-      bmpLeft:=TBitMap.Create;
-      bmpLeft.PixelFormat:=pf4bit;
-      bmpLeft.Width:=10;
-      bmpLeft.Height:=10;
-      bmpLeft.Canvas.Pen.Color:=clBlack;
-      bmpLeft.Canvas.Brush.Color:=clWhite;
-      bmpLeft.Canvas.Font.Name:='Times New Roman';
-      bmpLeft.Canvas.Font.Style:=[fsBold];
-      bmpLeft.Canvas.Font.Size:=fs;
+      bmpLeft = new TBitMap();
+      bmpLeft.PixelFormat = pf4bit;
+      bmpLeft.Width = 10;
+      bmpLeft.Height = 10;
+      bmpLeft.Canvas.Pen.Color = clBlack;
+      bmpLeft.Canvas.Brush.Color = clWhite;
+      bmpLeft.Canvas.Font.Name = "Times New Roman";
+      bmpLeft.Canvas.Font.Style = new String[]{fsBold};
+      bmpLeft.Canvas.Font.Size = fs;
 
-      bmpTop:=TBitMap.Create;
-      bmpTop.PixelFormat:=pf4bit;
-      bmpTop.Width:=10;
-      bmpTop.Height:=10;
-      bmpTop.Canvas.Pen.Color:=bmpLeft.Canvas.Pen.Color;
-      bmpTop.Canvas.Brush.Color:=bmpLeft.Canvas.Brush.Color;
-      bmpTop.Canvas.Font.Name:=bmpLeft.Canvas.Font.Name;
-      bmpTop.Canvas.Font.Style:=bmpLeft.Canvas.Font.Style;
-      bmpTop.Canvas.Font.Size:=bmpLeft.Canvas.Font.Size;
+      bmpTop = new TBitMap();
+      bmpTop.PixelFormat = pf4bit;
+      bmpTop.Width = 10;
+      bmpTop.Height = 10;
+      bmpTop.Canvas.Pen.Color = bmpLeft.Canvas.Pen.Color;
+      bmpTop.Canvas.Brush.Color = bmpLeft.Canvas.Brush.Color;
+      bmpTop.Canvas.Font.Name = bmpLeft.Canvas.Font.Name;
+      bmpTop.Canvas.Font.Style = bmpLeft.Canvas.Font.Style;
+      bmpTop.Canvas.Font.Size = bmpLeft.Canvas.Font.Size;
 
-      bmpPole:=TBitMap.Create;
-      bmpPole.PixelFormat:=pf4bit;
-      bmpPole.Width:=10;
-      bmpPole.Height:=10;
-      bmpPole.Canvas.Pen.Color:=clBlack;
-      bmpPole.Canvas.Brush.Color:=clWhite;
+      bmpPole = new TBitMap();
+      bmpPole.PixelFormat = pf4bit;
+      bmpPole.Width = 10;
+      bmpPole.Height = 10;
+      bmpPole.Canvas.Pen.Color = clBlack;
+      bmpPole.Canvas.Brush.Color = clWhite;
 
-      bmpSmall:=TBitMap.Create;
-      bmpSmall.PixelFormat:=pf4bit;
-      bmpSmall.Width:=10;
-      bmpSmall.Height:=10;
-      bmpSmall.Canvas.Pen.Color:=clBlack;
-      bmpSmall.Canvas.Brush.Color:=clWhite;
-  end;
+      bmpSmall = new TBitMap();
+      bmpSmall.PixelFormat = pf4bit;
+      bmpSmall.Width = 10;
+      bmpSmall.Height = 10;
+      bmpSmall.Canvas.Pen.Color = clBlack;
+      bmpSmall.Canvas.Brush.Color = clWhite;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.FormDestroy(Sender: TObject);
-  begin
-      Buf.Free;
-      bmpLeft.Free;
-      bmpTop.Free;
-      bmpPole.Free;
-      bmpSmall.Free;
-  end;
+  public void FormDestroy() {
+//      Buf.Free;
+//      bmpLeft.Free;
+//      bmpTop.Free;
+//      bmpPole.Free;
+//      bmpSmall.Free;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-  var j, k, tx, ty:integer;
-  begin
-      Shift:=Shift - [ssDouble]; // когда 2 раза нажимаеш возникает и это сообщение, а оно портачит
-      if (edInput.Enabled) then edInput.SetFocus; // фокус едиту! :)
-      if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit; // если кликаем в области SmallBmp то выходим
-      if (X < bmpLeft.Width) then begin // тут находится bmpLeft
-  //        if (cbRjad.Checked) then Exit; // это пока не проработал...
-          Y:=Y - bmpTop.Height; // получаем координаты начала bmpLeft
-          X:=X;
-          Y:=(Y div wid) + 1; // теперь номер ячейки
-          X:=(X div wid);
+  public void ShowMessage(String message) {
 
-          ChangeActive(Point(Y, 0), true); // записываем номер ячейки
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void pbMouseDown(TMouseButton Button, TShiftState Shift, int X, int Y){
+      int j, k;
+      Shift.remove(new String[]{ ssDouble }); // когда 2 раза нажимаеш возникает и это сообщение, а оно портачит
+      if (edInput.Enabled) edInput.SetFocus(); // фокус едиту! :)
+      if ((X < bmpLeft.Width) && (Y < bmpTop.Height)) return; // если кликаем в области SmallBmp то выходим
+      if (X < bmpLeft.Width) { // тут находится bmpLeft
+  //        if (cbRjad.Checked) return; // это пока не проработал...
+          Y = Y - bmpTop.Height; // получаем координаты начала bmpLeft
+          X = X;
+          Y = (Y / wid) + 1; // теперь номер ячейки
+          X = (X / wid);
 
-          if (Shift = [ssAlt, ssLeft]) then begin // если нужно расчитать этот ряд
+          ChangeActive(new TPoint(Y, 0), true); // записываем номер ячейки
+
+          if (Shift.equals(new String[]{ssAlt, ssLeft})) { // если нужно расчитать этот ряд
               PrepRjadX(pDM, Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка ряда
-              Unit2.glLen:=LenX; // длинна
-              if (not Unit2.Calculate) then begin // расчет - если не получился ...
-                  ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
-                  RefreshPole; // обновляем поле
-                  Exit; // выходим
-              end;
-              for x:=1 to LenX do begin// тут обновляем ряд
-                  Form1.pDM^.Data[x, y]:=Unit2.glData[x];
-                  pDM^.Ver[x, y, 1]:=Unit2.glVer[x];
-              end;
+              Unit2.glLen = LenX; // длинна
+              if (!Unit2.Calculate()) { // расчет - если не получился ...
+                  ShowMessage("Ошибка в кроссворде (строка " + Integer.toString(Y) + ").");
+                  RefreshPole(); // обновляем поле
+                  return; // выходим
+              }
+              for (int x = 1; x <= LenX; x++) {// тут обновляем ряд
+                  pDM.data.Data.arr[x][Y] = Unit2.glData.arr[x];
+                  pDM.data.Ver.arr[x][Y][1] = Unit2.glVer.arr[x];
+              }
   //            GetFin;
-              RefreshPole; // и выводим его на екран
-              Exit; // выходим
-          end;
-          {пересчет для координат для рядов}
-          if (cbRjad.Checked)
-              then X:=X + 1 - (GetMaxCountRjadX - CountRjadX[Y])
-              else X:=X - (((LenX + 1) div 2) - CountRjadX[Y]) + 1;
+              RefreshPole(); // и выводим его на екран
+              return; // выходим
+          }
+          // пересчет для координат для рядов
+          if (cbRjad.Checked) {
+              X = X + 1 - (GetMaxCountRjadX() - CountRjadX.arr[Y]);
+          } else {
+              X = X - (((LenX + 1) / 2) - CountRjadX.arr[Y]) + 1;
+          }
 
-          if (Shift = [ssCtrl, ssLeft]) then begin // сдвиг рядов чисел
-              for ty:=(Y + 1) to LenY do begin
-                  CountRjadX[ty - 1]:=CountRjadX[ty];
-                  for tx:=1 to CountRjadX[ty] do RjadX[tx, ty - 1]:=RjadX[tx, ty];
-              end;
-              CountRjadX[LenY]:=0;
-          end;
-          if (Shift = [ssCtrl, ssRight]) then begin // то же но в другую сторону
-              for ty:=(LenY) downto Y do begin    // а возможен глюк
-                  CountRjadX[ty]:=CountRjadX[ty - 1];
-                  for tx:=1 to CountRjadX[ty] do RjadX[tx, ty]:=RjadX[tx, ty - 1];
-              end;
-              CountRjadX[Y]:=0;
-          end;
-          if (Shift = [ssLeft]) then begin // добавляем еще одну точку
-              {получаем сумму всех точек, включая пустые промежутки из длинной в 1}
-              j:=0;
-              for tx:=1 to CountRjadX[Y] do
-                  j:=j + RjadX[tx, Y];
-              if (X <= 0) then begin // добавление новой
-                  if ((j + CountRjadX[Y]) > (LenX - 1)) then Exit; // если выходим при добавлении за граници, то выходим
-                  for tx:=CountRjadX[Y] downto 1 do RjadX[tx + 1, Y]:=RjadX[tx, Y]; // смещаем все цифры ряда для добавления 1
-                  X:=1; // позиция добавления
-                  inc(CountRjadX[Y]); // длинна ряда увеличилась
-                  RjadX[X, Y]:=0; // пока ноль...
-              end;
-              if ((j + CountRjadX[Y]) > LenX) then Exit; // если превышаем длинну - то выходим
-              RjadX[X, Y]:=RjadX[X, Y] + 1; // увеличиваем на 1
-          end;
-          {тут уменьшаем на 1}
-          if (Shift = [ssRight]) then begin
-              if (CountRjadX[Y] = 0) then Exit; // если ряд пуст то выходим
-              if (X <= 0) then X:=1; // если нажали на пустую ячейку, то удалять будем первый
-              RjadX[X, Y]:=RjadX[X, Y] - 1; // удаляем
-              if (RjadX[X, Y] = 0) then begin // если там ноль получился
-                  if (X <> CountRjadX[Y]) then // и этот ноль не в конце
-                      for tx:=X to CountRjadX[Y] do // то сдвигаем
-                          RjadX[tx, Y]:=RjadX[tx + 1, Y];
-                  dec(CountRjadX[Y]); // уменьшаем на 1 количество
-              end;
-          end;
-          {тут прорисовка}
-          if (cbMode.Checked) then begin
+          if (Shift.equals(new String[]{ssCtrl, ssLeft})) { // сдвиг рядов чисел
+              for (int ty = (Y + 1); ty <= LenY; ty++) {
+                  CountRjadX.arr[ty - 1] = CountRjadX.arr[ty];
+                  for (int tx = 1; tx <= CountRjadX.arr[ty]; tx++) {
+                      RjadX.arr[tx][ty - 1] = RjadX.arr[tx][ty];
+                  }
+              }
+              CountRjadX.arr[LenY] = 0;
+          }
+          if (Shift.equals(new String[]{ssCtrl, ssRight})) { // то же но в другую сторону
+              for (int ty = LenY; ty >= Y; ty --) {    // а возможен глюк
+                  CountRjadX.arr[ty] = CountRjadX.arr[ty - 1];
+                  for (int tx = 1; tx <= CountRjadX.arr[ty]; tx++) {
+                      RjadX.arr[tx][ty] = RjadX.arr[tx][ty - 1];
+                  }
+              }
+              CountRjadX.arr[Y] = 0;
+          }
+          if (Shift.equals(new String[]{ssLeft})) { // добавляем еще одну точку
+              // получаем сумму всех точек, включая пустые промежутки из длинной в 1
+              j = 0;
+              for (int tx = 1; tx <= CountRjadX.arr[Y]; tx++) {
+                  j = j + RjadX.arr[tx][Y];
+              }
+              if (X <= 0) { // добавление новой
+                  if ((j + CountRjadX.arr[Y]) > (LenX - 1)) return; // если выходим при добавлении за граници, то выходим
+                  for ( int tx = CountRjadX.arr[Y]; tx >= 1; tx --) {
+                      // смещаем все цифры ряда для добавления 1
+                      RjadX.arr[tx + 1][Y] =RjadX.arr[tx][Y];
+                  }
+                  X = 1; // позиция добавления
+                  CountRjadX.arr[Y] = CountRjadX.arr[Y] + 1; // длинна ряда увеличилась
+                  RjadX.arr[X][Y] = 0; // пока ноль...
+              }
+              if ((j + CountRjadX.arr[Y]) > LenX) return; // если превышаем длинну - то выходим
+              RjadX.arr[X][Y] = RjadX.arr[X][Y] + 1; // увеличиваем на 1
+          }
+          // тут уменьшаем на 1
+          if (Shift.equals(new String[]{ssRight})) {
+              if (CountRjadX.arr[Y] == 0) return; // если ряд пуст то выходим
+              if (X <= 0) X = 1; // если нажали на пустую ячейку, то удалять будем первый
+              RjadX.arr[X][Y] = RjadX.arr[X][Y] - 1; // удаляем
+              if (RjadX.arr[X][Y] == 0) { // если там ноль получился
+                  if (X != CountRjadX.arr[Y]) { // и этот ноль не в конце
+                      for (int tx = X; tx <= CountRjadX.arr[Y]; tx++) { // то сдвигаем
+                          RjadX.arr[tx][Y] = RjadX.arr[tx + 1][Y];
+                      }
+                  }
+                  CountRjadX.arr[Y] = CountRjadX.arr[Y] - 1; // уменьшаем на 1 количество
+              }
+          }
+          // тут прорисовка
+          if (cbMode.Checked) {
               DataFromRjadX(Y);
-              DrawPole(Point(0, Y));
+              DrawPole(new TPoint(0, Y));
               DrawTop(0);
-          end;
-          if ((Shift = [ssCtrl, ssLeft]) or (Shift = [ssCtrl, ssRight]))
-              then DrawLeft(0)
-              else DrawLeft(Y);
-          Draw(Point(-1, -1));
-          Exit;
-      end;
-      // далее то же, но только с рядами в bmpTop
-      if (Y < bmpTop.Height) then begin
-          Y:=Y;
-          X:=X - bmpLeft.Width;
-          Y:=(Y div wid);
-          X:=(X div wid) + 1;
-
-          ChangeActive(Point(X, 0), false); // записываем номер ячейки
-
-          if (Shift = [ssAlt, ssLeft]) then begin
-              PrepRjadY(pDM, X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
-              Unit2.glLen:=LenY;
-              if (not Unit2.Calculate) then begin
-                  ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(X) + ').');
-                  RefreshPole;
-                  Exit;
-              end;
-              for y:=1 to LenY do begin
-                  Form1.pDM^.Data[x, y]:=Unit2.glData[y];
-                  pDM^.Ver[x, y, 2]:=Unit2.glVer[y];
-              end;
-  //            GetFin;
-              RefreshPole;
-              Exit;
-          end;
-
-          if (cbRjad.Checked)
-              then Y:=Y + 1 - (GetMaxCountRjadY - CountRjadY[X])
-              else Y:=Y - (((LenY + 1) div 2) - CountRjadY[X]) + 1;
-          if (Shift = [ssCtrl, ssLeft]) then begin
-              for tx:=(X + 1) to LenX do begin
-                  CountRjadY[tx - 1]:=CountRjadY[tx];
-                  for ty:=1 to CountRjadY[tx] do RjadY[tx - 1, ty]:=RjadY[tx, ty];
-              end;
-              CountRjadY[LenX]:=0;
-          end;
-          if (Shift = [ssCtrl, ssRight]) then begin
-              for tx:=(LenX) downto X do begin    // аозможен глюк
-                  CountRjadY[tx]:=CountRjadY[tx - 1];
-                  for ty:=1 to CountRjadY[tx] do RjadY[tx, ty]:=RjadY[tx - 1, ty];
-              end;
-              CountRjadY[X]:=0;
-          end;
-          if (Shift = [ssLeft]) then begin
-              j:=0;
-              for ty:=1 to CountRjadY[X] do
-                  j:=j + RjadY[X, ty];
-              if (Y <= 0) then begin
-                  if ((j + CountRjadY[X]) > (LenY - 1)) then Exit;
-                  for ty:=CountRjadY[X] downto 1 do RjadY[X, ty + 1]:=RjadY[X, ty];
-                  Y:=1;
-                  inc(CountRjadY[X]);
-                  RjadY[X, Y]:=0;
-              end;
-              if ((j + CountRjadY[X]) > LenY) then Exit;
-              RjadY[X, Y]:=RjadY[X, Y] + 1;
-          end;
-          if (Shift = [ssRight]) then begin
-              if (CountRjadY[X] = 0) then Exit;
-              if (Y <= 0) then Y:=1;
-              RjadY[X, Y]:=RjadY[X, Y] - 1;
-              if (RjadY[X, Y] = 0) then begin
-                  if (Y <> CountRjadY[X]) then
-                      for ty:=Y to CountRjadY[X] do
-                          RjadY[X, ty]:=RjadY[X, ty + 1];
-                  dec(CountRjadY[X]);
-              end;
-          end;
-
-          if (cbMode.Checked) then begin
-              DataFromRjadY(X);
-              DrawPole(Point(X, 0));
+          }
+          if ((Shift.equals(new String[]{ssCtrl, ssLeft}))
+                  || (Shift.equals(new String[]{ssCtrl, ssRight}))) {
               DrawLeft(0);
-          end;
-          if ((Shift = [ssCtrl, ssLeft]) or (Shift = [ssCtrl, ssRight]))
-              then DrawTop(0)
-              else DrawTop(X);
-          Draw(Point(-1, -1));
+          } else {
+              DrawLeft(Y);
+          }
+          Draw(new TPoint(-1, -1));
+          return;
+      }
+      // далее то же, но только с рядами в bmpTop
+      if (Y < bmpTop.Height) {
+          Y = Y;
+          X = X - bmpLeft.Width;
+          Y = (Y / wid);
+          X = (X / wid) + 1;
 
-          Exit;
-      end;
-      bDown:=true;
-      pbMouseMove(Sender, Shift, X, Y); // а тут если на поле попали
-  end;
+          ChangeActive(new TPoint(X, 0), false); // записываем номер ячейки
+
+          if (Shift.equals(new String[]{ssAlt, ssLeft})) {
+              PrepRjadY(pDM, X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
+              Unit2.glLen = LenY;
+              if (!Unit2.Calculate()) {
+                  ShowMessage("Ошибка в кроссворде (столбец " + Integer.toString(X) + ").");
+                  RefreshPole();
+                  return;
+              }
+              for (int y = 1; y <= LenY; y++) {
+                  pDM.data.Data.arr[X][y] = Unit2.glData.arr[y];
+                  pDM.data.Ver.arr[X][y][2] = Unit2.glVer.arr[y];
+              }
+  //            GetFin();
+              RefreshPole();
+              return;
+          }
+
+          if (cbRjad.Checked) {
+              Y = Y + 1 - (GetMaxCountRjadY() - CountRjadY.arr[X]);
+          } else {
+              Y = Y - (((LenY + 1) / 2) - CountRjadY.arr[X]) + 1;
+          }
+          if (Shift.equals(new String[]{ssCtrl, ssLeft})) {
+              for (int tx = (X + 1); tx <= LenX; tx++) {
+                  CountRjadY.arr[tx - 1] = CountRjadY.arr[tx];
+                  for ( int ty = 1; ty <= CountRjadY.arr[tx]; ty++) {
+                      RjadY.arr[tx - 1][ty] = RjadY.arr[tx][ty];
+                  }
+              }
+              CountRjadY.arr[LenX] = 0;
+          }
+          if (Shift.equals(new String[]{ssCtrl, ssRight})) {
+              for (int tx = LenX; tx >= X; tx--) {    // аозможен глюк
+                  CountRjadY.arr[tx] = CountRjadY.arr[tx - 1];
+                  for (int ty = 1; ty <= CountRjadY.arr[tx]; ty++) {
+                      RjadY.arr[tx][ty] = RjadY.arr[tx - 1][ty];
+                  }
+              }
+              CountRjadY.arr[X] = 0;
+          }
+          if (Shift.equals(new String[]{ssLeft})) {
+              j = 0;
+              for (int ty = 1; ty <= CountRjadY.arr[X]; ty++) {
+                  j = j + RjadY.arr[X][ty];
+              }
+              if (Y <= 0) {
+                  if ((j + CountRjadY.arr[X]) > (LenY - 1)) return;
+                  for (int ty = CountRjadY.arr[X]; ty >= 1; ty--) {
+                      RjadY.arr[X][ty + 1] = RjadY.arr[X][ty];
+                  }
+                  Y = 1;
+                  CountRjadY.arr[X] = CountRjadY.arr[X] + 1;
+                  RjadY.arr[X][Y] = 0;
+              }
+              if ((j + CountRjadY.arr[X]) > LenY) return;
+              RjadY.arr[X][Y] = RjadY.arr[X][Y] + 1;
+          }
+          if (Shift.equals(new String[]{ssRight})) {
+              if (CountRjadY.arr[X] == 0) return;
+              if (Y <= 0) Y = 1;
+              RjadY.arr[X][Y] = RjadY.arr[X][Y] - 1;
+              if (RjadY.arr[X][Y] == 0) {
+                  if (Y != CountRjadY.arr[X]) {
+                      for (int ty = Y; ty <= CountRjadY.arr[X]; ty++) {
+                          RjadY.arr[X][ty] =RjadY.arr[X][ty + 1];
+                      }
+                  }
+                  CountRjadY.arr[X] = CountRjadY.arr[X] - 1;
+              }
+          }
+
+          if (cbMode.Checked) {
+              DataFromRjadY(X);
+              DrawPole(new TPoint(X, 0));
+              DrawLeft(0);
+          }
+          if ((Shift.equals(new String[]{ssCtrl, ssLeft}))
+                  || (Shift.equals(new String[]{ssCtrl, ssRight}))) {
+              DrawTop(0);
+          } else {
+              DrawTop(X);
+          }
+          Draw(new TPoint(-1, -1));
+
+          return;
+      }
+      bDown = true;
+      pbMouseMove(Shift, X, Y); // а тут если на поле попали
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.DataFromRjadX(y: integer);
-  var k, j, tx:integer;
-  begin
-      for tx:=1 to LenX do pDM^.Data[tx, Y]:=0;
-      k:=1; tx:=1;
-      while (tx <= CountRjadX[Y]) do begin
-          for j:=1 to RjadX[tx, y] do
-              pDM^.Data[k + j - 1, y]:=1;
-          pDM^.Data[k + j, y]:=0;
-          k:=k + j;
-          inc(tx);
-      end;
-      GetRjadY;
-  end;
+  public void DataFromRjadX(int y){
+      int k, tx, j;
+      for (tx = 1; tx <= LenX; tx ++) {
+          pDM.data.Data.arr[tx][y] = 0;
+      }
+      k = 1;
+      tx = 1;
+      while (tx <= CountRjadX.arr[y]) {
+          for (j = 1; j <= RjadX.arr[tx][y]; j++) {
+              pDM.data.Data.arr[k + j - 1][y] = 1;
+          }
+          pDM.data.Data.arr[k + j][y] = 0; // TODO тут непонятно с операторными скобками
+          k = k + j;
+          tx++;
+      }
+      GetRjadY();
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.DataFromRjadY(x: integer);
-  var k, j, ty:integer;
-  begin
-      for ty:=1 to LenY do pDM^.Data[x, ty]:=0;
-      k:=1; ty:=1;
-      while (ty <= CountRjadY[x]) do begin
-          for j:=1 to RjadY[x, ty] do
-              pDM^.Data[x, k + j - 1]:=1;
-          pDM^.Data[x, k + j]:=0;
-          k:=k + j;
-          inc(ty);
-      end;
-      GetRjadX;
-  end;
+  public void DataFromRjadY(int x) {
+      int k, j, ty;
+      for (ty = 1; ty <= LenY; ty++) {
+          pDM.data.Data.arr[x][ty] = 0;
+      }
+      k = 1;
+      ty = 1;
+      while (ty <= CountRjadY.arr[x]) {
+          for (j = 1; j <= RjadY.arr[x][ty]; j++) {
+              pDM.data.Data.arr[x][k + j - 1] =1;
+          }
+          pDM.data.Data.arr[x][k + j] = 0;
+          k = k + j;
+          ty++;
+      }
+      GetRjadX();
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.pbPaint(Sender: TObject);
-  begin
+  public void pbPaint(Object Sender) {
       pb.Canvas.Draw(0, 0, Buf);
-  end;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.edCountXChange(Sender: TObject);
-  var a:integer;
-  begin
-      bChangeLen:=true;
-      ChangeActive(Point(1, 1), true); // записываем номер ячейки
-      LenX:=udCountX.Position;
-      LenY:=udCountY.Position;
-      Draw(Point(0, 0));
-      Exit;
-  end;
+  public void edCountXChange() {
+      int a;
+      bChangeLen = true;
+      ChangeActive(new TPoint(1, 1), true); // записываем номер ячейки
+      LenX = udCountX.Position;
+      LenY = udCountY.Position;
+      Draw(new TPoint(0, 0));
+      return;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-  var bDraw:boolean;
-  begin
-      Y:=Y - bmpTop.Height;
-      X:=X - bmpLeft.Width;
-      if ((X < 0) or (Y < 0)) then begin
-          Label1.Caption:='';
-          Exit;
-      end;
-      Y:=(Y div wid) + 1;
-      X:=(X div wid) + 1;
-      if ((Y <= 0) or (Y > LenY) or (X <= 0) or (X > LenX)) then begin
-          Label1.Caption:='';
-          Exit;
-      end;
-      Label1.Caption:=FloatToStr(Round(pDM^.Ver[x, y, 1]*100)/100) + '     ' + FloatToStr(Round(pDM^.Ver[x, y, 2]*100)/100);
-      if (not bDown) then Exit;
-      bDraw:=false;
-      if (ssLeft in Shift) then begin
-          bDraw:=(pDM^.Data[X, Y] <> 1);
-          pDM^.Data[X, Y]:=1
-      end;
-      if (ssRight in Shift) then begin
-          bDraw:=(pDM^.Data[X, Y] <> 0);
-          pDM^.Data[X, Y]:=0;
-      end;
-      if (ssMiddle in Shift) then begin
-          bDraw:=(pDM^.Data[X, Y] <> 2);
-          pDM^.Data[X, Y]:=2;
-      end;
-      PredCoord:=Point(X, Y);
-      PredButt:=Shift;
-      if (bDraw) then begin
-          if (cbMode.Checked) then begin
-              GetRjadX;
-              GetRjadY;
+  public void pbMouseMove(TShiftState Shift, int X, int Y) {
+      boolean bDraw;
+      Y = Y - bmpTop.Height;
+      X = X - bmpLeft.Width;
+      if ((X < 0) ||  (Y < 0)) {
+          Label1.Caption = "";
+          return;
+      }
+      Y = (Y / wid) + 1;
+      X = (X / wid) + 1;
+      if ((Y <= 0) ||  (Y > LenY) ||  (X <= 0) ||  (X > LenX)) {
+          Label1.Caption = "";
+          return;
+      }
+      Label1.Caption = Double.toString(Math.round(pDM.data.Ver.arr[X][Y][1]*100)/100) + "     " + Double.toString(Math.round(pDM.data.Ver.arr[X][Y][2]*100)/100);
+      if (!bDown) return;
+      bDraw = false;
+      if (Shift.equals(new String[]{ssLeft})) {
+          bDraw = (pDM.data.Data.arr[X][Y] != 1);
+          pDM.data.Data.arr[X][Y] = 1;
+      }
+      if (Shift.equals(new String[]{ssRight})) {
+          bDraw = (pDM.data.Data.arr[X][Y] != 0);
+          pDM.data.Data.arr[X][Y] = 0;
+      }
+      if (Shift.equals(new String[]{ssMiddle})) {
+          bDraw = (pDM.data.Data.arr[X][Y] != 2);
+          pDM.data.Data.arr[X][Y] = 2;
+      }
+      PredCoord = new TPoint(X, Y);
+      PredButt = Shift;
+      if (bDraw) {
+          if (cbMode.Checked) {
+              GetRjadX();
+              GetRjadY();
               DrawLeft(Y);
               DrawTop(X);
-          end;
-          DrawPole(Point(X, Y));
-          Draw(Point(-1, -1));
-      end;
-  end;
+          }
+          DrawPole(new TPoint(X, Y));
+          Draw(new TPoint(-1, -1));
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.pbMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-  begin
-      bDown:=false;
-  end;
+  public void pbMouseUp(TMouseButton Button, TShiftState Shift, int X, int Y) {
+      bDown = false;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.cbModeClick(Sender: TObject);
-  begin
-      btCalc.Enabled:=not cbMode.Checked;
-      cbVerEnable.Enabled:=btCalc.Enabled;
-      if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
-      if (cbMode.Checked) then begin
-          GetRjadX;
-          GetRjadY;
-      end;
+  public void cbModeClick() {
+      btCalc.Enabled = !cbMode.Checked;
+      cbVerEnable.Enabled = btCalc.Enabled;
+      if (cbMode.Checked) {
+          cbMode.Caption = "Редактор";
+      } else {
+          cbMode.Caption = "Расш.";
+      }
+      if (cbMode.Checked) {
+          GetRjadX();
+          GetRjadY();
+      }
       DrawLeft(0);
       DrawTop(0);
-      Draw(Point(-1, -1));
-  end;
+      Draw(new TPoint(-1, -1));
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  function TForm1.Check:TPoint;
-  var x, y, a1, a2:integer;
-  begin
-      a1:=0;
-      for x:=1 to LenX do
-          for y:=1 to CountRjadY[x] do a1:=a1 + RjadY[x, y];
-      a2:=0;
-      for y:=1 to LenY do
-          for x:=1 to CountRjadX[y] do a2:=a2 + RjadX[x, y];
-      Result:=Point(a1, a2);  // разница рядов
-  end;
+  public TPoint Check()
+  {
+      int a1, a2;
+      a1 = 0;
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= CountRjadY.arr[x]; y++) {
+              a1 = a1 + RjadY.arr[x][y];
+          }
+      }
+      a2 = 0;
+      for (int x = 1; x <= LenY; x++) {
+          for (int y = 1; y <= CountRjadX.arr[y]; y++) {
+              a2 = a2 + RjadX.arr[x][y];
+          }
+      }
+      return new TPoint(a1, a2);  // разница рядов
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.btCalcClick(Sender: TObject);
-  var x, y:integer;
-      b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
-      h, m, s, ms:word;
-      MaxVer1, MaxVer2:Real;
-      a1, a2:real;
-      pt:TPoint;
-      pWork:PAllData;
-      bErrT, bErrP:boolean;
-      p:^byte;
-  begin
-      if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
-          then begin
-              btCalc.Caption:='&Стоп      ';
-              btCalc.Tag:=1;
-              udCountX.Enabled:=false;
-              udCountY.Enabled:=false;
-              cbMode.Enabled:=false;
-              btSave.Enabled:=false;
-              btLoad.Enabled:=false;
-              cbLoadNaklad.Enabled:=true;
-              cbVerEnable.Enabled:=false;
-              btClear.Enabled:=false;
-              btToWord.Enabled:=false;
-              btSaveBitmap.Enabled:=false;
-              edInput.Enabled:=false;
-              edCountX.Enabled:=false;
-              edCountY.Enabled:=false;
-          end
-          else begin
-              btCalc.Caption:='&Расчет    ';
-              btCalc.Tag:=0;
-              udCountX.Enabled:=true;
-              udCountY.Enabled:=true;
-              cbMode.Enabled:=true;
-              btSave.Enabled:=true;
-              btLoad.Enabled:=true;
-              cbLoadNaklad.Enabled:=true;
-              cbVerEnable.Enabled:=true;
-              btClear.Enabled:=true;
-              btToWord.Enabled:=true;
-              btSaveBitmap.Enabled:=true;
-              edCountX.Enabled:=true;
-              edCountY.Enabled:=true;
-              edInput.Enabled:=true;
-              edInput.SetFocus;
-              RefreshPole; // прорисовка поля
-              SetInfo(0, true, false, false, 0);
-              Exit; // сразу выходим
-          end;
+  public void btCalcClick() {
+      boolean b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
+      int h, m, s, ms; // word
+      double MaxVer1, MaxVer2; // real
+      double a1, a2; // real
+      TPoint pt;
+      PAllData pWork;
+      boolean bErrT, bErrP;
+      int p; // p:^byte;
 
-      t:=Now; //
+      if (btCalc.Tag == 0) { // интерфейсные изменение Остановить-Расчет
+          btCalc.Caption = "&Стоп      ";
+          btCalc.Tag = 1;
+          udCountX.Enabled = false;
+          udCountY.Enabled = false;
+          cbMode.Enabled = false;
+          btSave.Enabled = false;
+          btLoad.Enabled = false;
+          cbLoadNaklad.Enabled = true;
+          cbVerEnable.Enabled = false;
+          btClear.Enabled = false;
+          btToWord.Enabled = false;
+          btSaveBitmap.Enabled = false;
+          edInput.Enabled = false;
+          edCountX.Enabled = false;
+          edCountY.Enabled = false;
+      } else {
+          btCalc.Caption = "&Расчет    ";
+          btCalc.Tag = 0;
+          udCountX.Enabled = true;
+          udCountY.Enabled = true;
+          cbMode.Enabled = true;
+          btSave.Enabled = true;
+          btLoad.Enabled = true;
+          cbLoadNaklad.Enabled = true;
+          cbVerEnable.Enabled = true;
+          btClear.Enabled = true;
+          btToWord.Enabled = true;
+          btSaveBitmap.Enabled = true;
+          edCountX.Enabled = true;
+          edCountY.Enabled = true;
+          edInput.Enabled = true;
+          edInput.SetFocus();
+          RefreshPole(); // прорисовка поля
+          SetInfo(0, true, false, false, 0);
+          return; // сразу выходим
+      }
+
+      t = Calendar.getInstance().getTime(); //
 
       // проверка на совпадение рядов
-      pt:=Check;
-      x:=abs(pt.x - pt.y);
-      if (x > 0) then begin
-          ShowMessage('Ошибка! Несовпадение на ' + IntToStr(x));
-          btCalc.Click; // остановка
-          Exit;
-      end;
+      pt = Check();
+      int x0 = Math.abs(pt.x - pt.y);
+      if (x0 > 0) {
+          ShowMessage("Ошибка! Несовпадение на " + Integer.toString(x0));
+          btCalc.Click(); // остановка
+          return;
+      }
       //-----------------------------
       // сам рачсет
-  {    for x:=1 to LenX do begin
-          h:=0;
-          for y:=1 to CountRjadX[x] do h:=h + RjadX[x, y];
-          if (h < (LenX div 2)) then pDM^.ChY[x]:=false;
-      end;
-      for y:=1 to LenY do begin
-          h:=0;
-          for x:=1 to CountRjadY[y] do h:=h + RjadY[x, y];
-          if (h < (LenY div 2)) then pDM^.ChX[y]:=false;
-      end; }
+      for (int x = 1; x <= LenX; x++) {
+          h = 0;
+          for (int y = 1; y <= CountRjadX.arr[x]; y++) {
+              h = h + RjadX.arr[x][y];
+          }
+          if (h < (LenX / 2)) {
+              pDM.data.ChY.arr[x] = false;
+          }
+      }
+      for (int y = 1; y <= LenY; y++) {
+          h = 0;
+          for (int x = 1; x < CountRjadY.arr[y]; x++) {
+            h = h + RjadY.arr[x][y];
+
+          }
+          if (h < (LenY / 2)) {
+              pDM.data.ChX.arr[y] = false;
+          }
+      }
       //----------
-      for x:=1 to LenX do begin
-          pDM^.tChY[x]:=true;
-          pDT^.tChY[x]:=true;
-          pDP^.tChY[x]:=true;
-      end;
-      for y:=1 to LenY do begin
-          pDM^.tChX[y]:=true;
-          pDT^.tChX[y]:=true;
-          pDP^.tChX[y]:=true;
-      end;
-      for x:=1 to LenX do
-          for y:=1 to LenY do begin
-              pDM^.NoSet[x, y]:=false;
-              pDT^.NoSet[x, y]:=false;
-              pDP^.NoSet[x, y]:=false;
-          end;
-      b5:=false;
-      b7:=false;
-      b8:=false;
-      b9:=false;
+      for (int x = 1; x <= LenX; x++) {
+          pDM.data.tChY.arr[x] = true;
+          pDT.data.tChY.arr[x] = true;
+          pDP.data.tChY.arr[x] = true;
+      }
+      for (int y = 1; y <= LenY; y++) {
+          pDM.data.tChX.arr[y] = true;
+          pDT.data.tChX.arr[y] = true;
+          pDP.data.tChX.arr[y] = true;
+      }
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= LenY; y++) {
+              pDM.data.NoSet.arr[x][y] = false;
+              pDT.data.NoSet.arr[x][y] = false;
+              pDP.data.NoSet.arr[x][y] = false;
+          }
+      }
+      b5 = false;
+      b7 = false;
+      b8 = false;
+      b9 = false;
       // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
-      b11:=(LenX > LenY); // нужно для пропуска прогона
-      a1:=0;
-      for x:=1 to LenX do
-          a1:=a1 + CountRjadY[x];
-      a2:=0;
-      for y:=1 to LenY do
-          a2:=a2 + CountRjadX[y];
-      b11:=(a1/LenY > a2/LenX);
+      b11 = (LenX > LenY); // нужно для пропуска прогона
+      a1 = 0;
+      for (int x = 1; x <= LenX; x++) {
+          a1 = a1 + CountRjadY.arr[x];
+      }
+      a2 = 0;
+      for (int y = 1; y <= LenY; y++) {
+          a2 = a2 + CountRjadX.arr[y];
+      }
+      b11 = (a1/LenY > a2/LenX);
       //----------------------------------------------------------
-      Predpl.B:=false;
-      b:=false; // для b11
-      bErrT:=false;
-      bErrP:=false;
-      Memo1.Clear;
-      repeat
-          if (b and b11) then b11:=false;
-          b:=false;
-          b2:=false;
+      Predpl.B = false;
+      b = false; // для b11
+      bErrT = false;
+      bErrP = false;
+      Memo1.Clear();
+      do {
+          if (b && b11) b11 = false;
+          b = false;
+          b2 = false;
           // с каким указателем работаем
-          if (Predpl.B)
-              then begin
-                  if (Predpl.SetDot)
-                      then pWork:=pDT
-                      else pWork:=pDP;
-              end
-              else pWork:=pDM;
+          if (Predpl.B) {
+              if (Predpl.SetDot) {
+                  pWork = pDT;
+              } else {
+                  pWork = pDP;
+              }
+          } else {
+              pWork = pDM;
+          }
 
-          if (not (b5  or b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
-              for y:=1 to LenY do begin
-  //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
-                  Application.ProcessMessages;  // передышка
-                  b8:=(btCalc.Tag = 0); // остановка
-                  if (b8) then break;
-                  if (pWork^.FinX[y]) then Continue;
-                  if (not pWork^.ChX[y]) then Continue;
+          if (!(b5 || b11)) { // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
+              for (int y = 1; y <= LenY; y++) {
+//                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
+                  Application.ProcessMessages();  // передышка
+                  b8 = (btCalc.Tag == 0); // остановка
+                  if (b8) break;
+                  if (pWork.data.FinX.arr[y]) continue;
+                  if (!pWork.data.ChX.arr[y]) continue;
                   PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
-                  Unit2.glLen:=LenX; // длинна строки
-  //if (bPredpl)
-  //then begin
-  //    if (Predpl.SetDot = 1)
-  //        then Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' предп. т')
-  //        else Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' предп. п');
-  //end
-  //else Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' точно');
-                  if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
-                      if (not cbVerEnable.Checked) then begin
-                          ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
-                          b9:=true;
+                  Unit2.glLen = LenX; // длинна строки
+//  if (bPredpl) {
+//      if (Predpl.SetDot == 1) {
+//          Memo1.Lines.Add("Ряд: " + Integer.toString(y) + " предп. т");
+//      } else {
+//          Memo1.Lines.Add("Ряд: " + Integer.toString(y) + " предп. п");
+//      }
+//  } else {
+//      Memo1.Lines.Add("Ряд: " + Integer.toString(y) + " точно");
+//  }
+                  if (!Unit2.Calculate()) { // расчет ... если нет ни одной комбины - ошибка
+                      if (!cbVerEnable.Checked) {
+                          ShowMessage("Ошибка в кроссворде (строка " + Integer.toString(y) + ").");
+                          b9 = true;
                           break;
-                      end;
-                      b:=false; // изменений нету
-                      b2:=true; // ошибка была
+                      }
+                      b = false; // изменений нету
+                      b2 = true; // ошибка была
                       break;
-                  end;
-                  for x:=1 to LenX do begin
-                       pWork^.Ver[x, y, 1]:=Unit2.glVer[x];
+                  }
+                  for (int x = 1; x < LenX; x++) {
+                       pWork.data.Ver.arr[x][y][1] = Unit2.glVer.arr[x];
 
-                       p:=@pWork^.Data[x, y];
-                       if (p^ <> Unit2.glData[x]) then begin
-                          p^:=Unit2.glData[x];
-                          if (not b)
-                              then b:=true; // b:=true;
-                          if (not pWork^.ChY[x])
-                              then pWork^.ChY[x]:=true; // pWork^.ChY[x]:=true;
-                          if (Predpl.B)
-                              then
-                                  if (not pWork^.tChY[x])
-                                      then pWork^.tChY[x]:=true; // pWork^.tChY[x]:=true;
-                      end;
-                  end;
-                  pWork^.ChX[y]:=false;
-              end;
-              if (not Predpl.B) then RefreshPole; // прорисовка поля только в случае точного расчета
-          end;
-          if (not b9)
-              then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
+                       if (pWork.data.Data.arr[x][y] != Unit2.glData.arr[x]) {
+                           pWork.data.Data.arr[x][y] = Unit2.glData.arr[x];
+                          if (!b) {
+                              b = true; // b = true;
+                          }
+                          if (!pWork.data.ChY.arr[x]) {
+                              pWork.data.ChY.arr[x] = true; // pWork.data.ChY.arr[x] = true;
+                          }
+                          if (Predpl.B) {
+                              if (!pWork.data.tChY.arr[x]) {
+                                  pWork.data.tChY.arr[x] = true; // pWork.data.tChY.arr[x] = true;
+                              }
+                          }
+                      }
+                  }
+                  pWork.data.ChX.arr[y] = false;
+              }
+              if (!Predpl.B) RefreshPole(); // прорисовка поля только в случае точного расчета
+          }
+          if (!b9) {
+              b9 = GetFin(pWork); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
+          }
 
-          if ((not b2) and (not b5) and (not b8) and (not b9)) then begin // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
-              for x:=1 to LenX do begin // дальше то же только для столбцов
+          if ((!b2) && (!b5) && (!b8) && (!b9)) { // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
+              for (int x = 1; x < LenX; x++) { // дальше то же только для столбцов
   //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
-                  Application.ProcessMessages;
-                  b8:=(btCalc.Tag = 0); // остановка
-                  if (b8) then break;
-                  if (pWork^.FinY[x]) then Continue;
-                  if (not pWork^.ChY[x]) then Continue;
+                  Application.ProcessMessages();
+                  b8 = (btCalc.Tag == 0); // остановка
+                  if (b8) break;
+                  if (pWork.data.FinY.arr[x]) continue;
+                  if (!pWork.data.ChY.arr[x]) continue;
                   PrepRjadY(pWork, x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
-                  Unit2.glLen:=LenY;
-  //if (bPredpl)
-  //then begin
-  //    if (Predpl.SetDot = 1)
-  //        then Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' предп. т')
-  //        else Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' предп. п');
-  //end
-  //else Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' точно');
-                  if (not Unit2.Calculate) then begin
-                      if (not cbVerEnable.Checked) then begin
-                          ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
-                          b9:=true;
+                  Unit2.glLen = LenY;
+  //if (bPredpl) {
+  //    if (Predpl.SetDot == 1) {
+  //        Memo1.Lines.Add("Ст.: " + Integer.toString(x) + " предп. т")
+  //    } else {
+  //        Memo1.Lines.Add("Ст.: " + Integer.toString(x) + " предп. п");
+  //    }
+  //} else {
+  //    Memo1.Lines.Add("Ст.: " + Integer.toString(x) + " точно");
+  //}
+                  if (!Unit2.Calculate()) {
+                      if (!cbVerEnable.Checked) {
+                          ShowMessage("Ошибка в кроссворде (столбец " + Integer.toString(x) + ").");
+                          b9 = true;
                           break;
-                      end;
-                      b:=false; // изменений нету
-                      b2:=true; // ошибка была
+                      }
+                      b = false; // изменений нету
+                      b2 = true; // ошибка была
                       break;
-                  end;
-                  c:=false;
-                  for y:=1 to LenY do begin
-                      pWork^.Ver[x, y, 2]:=Unit2.glVer[y];
+                  }
+                  c = false;
+                  for (int y = 1; y <= LenY; y++) {
+                      pWork.data.Ver.arr[x][y][2] = Unit2.glVer.arr[y];
 
-                      p:=@pWork^.Data[x, y];
-                      if (p^ <> Unit2.glData[y]) then begin
-                          p^:=Unit2.glData[y];
-                          if (not b)
-                              then b:=true; // b:=true;
-                          if (not pWork^.ChX[y])
-                              then pWork^.ChX[y]:=true; // pWork^.ChX[y]:=true;
-                          if (Predpl.B)
-                              then
-                                  if (not pWork^.tChY[x])
-                                      then pWork^.tChY[x]:=true; // pWork^.tChY[x]:=true;
-                      end;
-                  end;
-                  pWork^.ChY[x]:=false
-              end;
-              if (not Predpl.B) then RefreshPole;// прорисовка поля
-              if (b11) then b:=true; // чтобы после прогона по х пошел прогон по у
-          end;
-          if (not b9)
-              then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
+                      if (pWork.data.Data.arr[x][y] != Unit2.glData.arr[y]) {
+                          pWork.data.Data.arr[x][y] = Unit2.glData.arr[y];
+                          if (!b) {
+                              b = true; // b = true;
+                          }
+                          if (!pWork.data.ChX.arr[y]) {
+                              pWork.data.ChX.arr[y] = true; // pWork.data.ChX.arr[y] = true;
+                          }
+                          if (Predpl.B) {
+                              if (!pWork.data.tChY.arr[x]) {
+                                  pWork.data.tChY.arr[x] = true; // pWork.data.tChY.arr[x] = true;
+                              }
+                          }
+                      }
+                  }
+                  pWork.data.ChY.arr[x] = false;
+              }
+              if (!Predpl.B) RefreshPole();// прорисовка поля
+              if (b11) b = true; // чтобы после прогона по х пошел прогон по у
+          }
+          if (!b9)
+              b9 = GetFin(pWork); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
 
-          if (b7 or b8) then b:=false; // все конец
-          if ((cbVerEnable.Checked) and (not b) and (not b7) and (not b8) and (not b9)) then begin // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
-              if (b11) then b11:=false;
+          if (b7 || b8) b = false; // все конец
+          if ((cbVerEnable.Checked) && (!b) && (!b7) && (!b8) && (!b9)) { // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
+              if (b11) b11 = false;
 
-              if (Predpl.B) // предполагали?
-                  then begin // да
-                      if (Predpl.SetDot) // запоминаем ошибки
-                          then bErrT:=b2
-                          else bErrP:=b2;
-                      if (b2) then b2:=false; // была
-                      if (Predpl.SetDot) // что было
-                          then begin
-                              SavePustot(Predpl.SetTo, false); //была точка, теперь пустота
-                              b:=true; // произошли изменения
-                          end
-                          else begin // путота, значит будем определять что нам записывать
-                              if (bErrT)
-                                  then begin // ошибка на точке
-                                      if (bErrP)
-                                          then begin // ошибка на точке и на пустоте - ошибка в кроссворде
-                                              ShowMessage('Ошибка в кроссворде.');
-                                              b9:=true;
-                                          end
-                                          else begin // ошибка на точке и нет ее на пустоте - значит пустота
-                                              ChangeDataArr(false);
-                                              RefreshPole;
-                                              b5:=true; // дальше предполагаем
-                                              b:=true; // продолжаем дальше
-                                          end;
-                                  end
-                                  else begin  // нет ошибки на точке
-                                      if (bErrP)
-                                          then begin // нету на точке и есть на пустоте - значит точка
-                                              ChangeDataArr(true);
-                                              RefreshPole;
-                                              b5:=true; // дальше предполагаем
-                                              b:=true; // продолжаем дальше
-                                          end
-                                          else begin // нет ни там ни там - значит неизвестно, это потом сохранять будем
-                                              pt:=Predpl.SetTo;
-                                              pDM^.NoSet[pt.x, pt.y]:=true;
-                                              pDM^.Data[pt.x, pt.y]:=0;
-                                              Draw(pt);
-                                              b5:=true; // дальше предполагаем
-                                              b:=true; // продолжаем дальше
-                                          end;
-                                  end;
-                              Predpl.B:=false;
-                          end;
-                  end
-                  else begin
-                      if (b2) // ошибка была?
-                          then begin // если была ошибка без предположений то в кросворде ошибка
-                              ShowMessage('Ошибка в кроссворде.');
-                              b9:=true;
-                          end
-                          else begin // еще не предполагали
-                              MaxVer1:=0; // пока вероятности такие
-                              MaxVer2:=0;
-                              b6:=false;
-                              for x:=1 to LenX do  // по всему полю
-                                  for y:=1 to LenY do begin
-                                      if ((MaxVer1 <= pDM^.Ver[x, y, 1]) and (MaxVer2 <= pDM^.Ver[x, y, 2]) and (pDM^.Ver[x, y, 1] < 1) and (pDM^.Ver[x, y, 2] < 1)) then begin // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
-                                          if (pDM^.NoSet[x, y]) then continue;
-                                          MaxVer1:=pDM^.Ver[x, y, 1];
-                                          MaxVer2:=pDM^.Ver[x, y, 2];
-                                          pt:=Point(x, y);
-                                          b6:=true;
-                                      end;
-                                  end;
+              if (Predpl.B) { // предполагали?
+                  // да
+                  if (Predpl.SetDot) { // запоминаем ошибки
+                      bErrT = b2;
+                  } else {
+                      bErrP = b2;
+                  }
+                  if (b2) b2 = false; // была
+                  if (Predpl.SetDot) { // что было
+                      SavePustot(Predpl.SetTo, false); //была точка, теперь пустота
+                      b = true; // произошли изменения
+                  } else { // путота, значит будем определять что нам записывать
+                      if (bErrT) {
+                          // ошибка на точке
+                          if (bErrP) {
+                              // ошибка на точке и на пустоте - ошибка в кроссворде
+                              ShowMessage("Ошибка в кроссворде.");
+                              b9 = true;
+                          } else { // ошибка на точке и нет ее на пустоте - значит пустота
+                              ChangeDataArr(false);
+                              RefreshPole();
+                              b5 = true; // дальше предполагаем
+                              b = true; // продолжаем дальше
+                          }
+                      } else {  // нет ошибки на точке
+                          if (bErrP) { // нету на точке и есть на пустоте - значит точка
+                              ChangeDataArr(true);
+                              RefreshPole();
+                              b5 = true; // дальше предполагаем
+                              b = true; // продолжаем дальше
+                          } else { // нет ни там ни там - значит неизвестно, это потом сохранять будем
+                              pt = Predpl.SetTo;
+                              pDM.data.NoSet.arr[pt.x][pt.y] = true;
+                              pDM.data.Data.arr[pt.x][pt.y] = 0;
+                              Draw(pt);
+                              b5 = true; // дальше предполагаем
+                              b = true; // продолжаем дальше
+                          }
+                      }
+                      Predpl.B = false;
+                  }
+              } else {
+                  if (b2) { // ошибка была?
+                      // если была ошибка без предположений то в кросворде ошибка
+                      ShowMessage("Ошибка в кроссворде.");
+                      b9 = true;
+                  } else { // еще не предполагали
+                          MaxVer1 = 0; // пока вероятности такие
+                          MaxVer2 = 0;
+                          b6 = false;
+                          for (int x = 1; x <= LenX; x++) {  // по всему полю
+                              for (int y = 1; y <= LenY; y++) {
+                                  if ((MaxVer1 <= pDM.data.Ver.arr[x][y][1])
+                                          && (MaxVer2 <= pDM.data.Ver.arr[x][y][2])
+                                          && (pDM.data.Ver.arr[x][y][1] < 1)
+                                          && (pDM.data.Ver.arr[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                      if (pDM.data.NoSet.arr[x][y]) continue;
+                                      MaxVer1 = pDM.data.Ver.arr[x][y][1];
+                                      MaxVer2 = pDM.data.Ver.arr[x][y][2];
+                                      pt = new TPoint(x, y);
+                                      b6 = true;
+                                  }
+                              }
+                          }
 
-                              b6:=b6 and ((MaxVer1 > 0) or (MaxVer2 > 0)); // критерий отбора
-                              if (b6) // нашли точку?
-                                  then begin // да
-                                      if (not b5) then begin
-                                          Predpl.B:=true;
-                                          SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
-                                      end;
-                                      pDM^.Data[pt.x, pt.y]:=3;
-                                      Draw(pt);
-  //Memo1.Lines.Add('Предп. в ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
-                                      b:=true; // произошли изменения
-                                  end
-                                  else begin // нет
-                                      if (b5) then begin
-                                          Predpl.B:=false;
-                                          RefreshPole; //
-                                      end;
-                                      b:=true; // изменений нету
-                                      for x:=1 to LenX do begin
-                                          pDM^.FinY[x]:=false;
-                                          pDM^.ChY[x]:=true;
-                                      end;
-                                      for y:=1 to LenY do begin
-                                          pDM^.FinX[y]:=false;
-                                          pDM^.ChX[y]:=true;
-                                      end;
-                                      b7:=true; // последний прогон для нормального отображения вероятностей
-                                  end;
-                              b5:=false;
-                          end;
-                  end;
-          end;
-          if (b9) then b:=false; // все конец
-      until (not b);
+                          b6 = b6 && ((MaxVer1 > 0) ||  (MaxVer2 > 0)); // критерий отбора
+                          if (b6) { // нашли точку?
+                              // да
+                              if (!b5) {
+                                  Predpl.B = true;
+                                  SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
+                              }
+                              pDM.data.Data.arr[pt.x][pt.y] = 3;
+                              Draw(pt);
+//Memo1.Lines.Add("Предп. в " + Integer.toString(pt.y) + ", " + Integer.toString(pt.x));
+                              b = true; // произошли изменения
+                          } else { // нет
+                              if (b5) {
+                                  Predpl.B = false;
+                                  RefreshPole(); //
+                              }
+                              b = true; // изменений нету
+                              for (int x = 1; x <= LenX; x++) {
+                                  pDM.data.FinY.arr[x] = false;
+                                  pDM.data.ChY.arr[x] = true;
+                              }
+                              for (int y = 1; y <= LenY; y++) {
+                                  pDM.data.FinX.arr[y] = false;
+                                  pDM.data.ChX.arr[y] = true;
+                              }
+                              b7 = true; // последний прогон для нормального отображения вероятностей
+                          }
+                          b5 = false;
+                      }
+                  }
+          }
+          if (b9) b = false; // все конец
+      } while (!b);
       // очистка массивв флагов заполнености
-      for x:=1 to LenX do begin
-          pDM^.ChY[x]:=true;
-          pDM^.FinY[x]:=false;
-      end;
-      for y:=1 to LenY do begin
-          pDM^.ChX[y]:=true;
-          pDM^.FinX[y]:=false;
-      end;
-      for x:=1 to LenX do
-          for y:=1 to LenY do begin
-              case (pDM^.Data[x, y]) of
-                  1:  begin
-                          pDM^.Ver[x, y, 1]:=1;
-                          pDM^.Ver[x, y, 2]:=1;
-                      end;
-                  2: begin
-                          pDM^.Ver[x, y, 1]:=0;
-                          pDM^.Ver[x, y, 2]:=0;
-                      end;
-              end;
-          end;
-      if (b8)
-          then begin// если нажали остановить
-              if (Predpl.B) then pDM^.Data[Predpl.SetTo.x, Predpl.SetTo.y]:=0;
-              Predpl.B:=false;
-              RefreshPole; // прорисовка поля
-              SetInfo(0, true, false, false, 0);
-          end
-          else begin
-              btCalc.Click; // иначе нажимем на кнопку
-              SaveTime; // сохраняем время, за которое решили кроссворд
-          end;
-  end;
+      for (int x = 1; x <= LenX; x++) {
+          pDM.data.ChY.arr[x] = true;
+          pDM.data.FinY.arr[x] = false;
+      }
+      for (int y = 1; y <= LenY; y++) {
+          pDM.data.ChX.arr[y] = true;
+          pDM.data.FinX.arr[y] = false;
+      }
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= LenY; y++) {
+              switch (pDM.data.Data.arr[x][y]) {
+                  case 1: {
+                      pDM.data.Ver.arr[x][y][1] = 1;
+                      pDM.data.Ver.arr[x][y][2] = 1;
+                  }
+                  break;
+                  case 2: {
+                      pDM.data.Ver.arr[x][y][1] = 0;
+                      pDM.data.Ver.arr[x][y][2] = 0;
+                  }
+                  break;
+              }
+          }
+      }
+      if (b8) { // если нажали остановить
+          if (Predpl.B) {
+              pDM.data.Data.arr[Predpl.SetTo.x][Predpl.SetTo.y] = 0;
+          }
+          Predpl.B = false;
+          RefreshPole(); // прорисовка поля
+          SetInfo(0, true, false, false, 0);
+      } else {
+          btCalc.Click(); // иначе нажимем на кнопку
+          SaveTime(); // сохраняем время, за которое решили кроссворд
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.SetPredplDot(bDot: boolean);
-  var pt:TPoint;
-      pWork:PAllData;
-  begin
-      if (bDot) // что предполагаем?
-          then pWork:=pDT // точку
-          else pWork:=pDP; // путоту
-      pt:=Predpl.SetTo;
-      if (bDot)
-          then begin
-              pWork.Data[pt.x, pt.y]:=1;
-              // меняем вероятности
-              pWork.Ver[pt.x, pt.y, 1]:=1;
-              pWork.Ver[pt.x, pt.y, 2]:=1;
-          end
-          else begin
-              pWork.Data[pt.x, pt.y]:=2;
-              // меняем вероятности
-              pWork.Ver[pt.x, pt.y, 1]:=0;
-              pWork.Ver[pt.x, pt.y, 2]:=0;
-          end;
+  public void SetPredplDot(boolean bDot){
+      TPoint pt;
+      PAllData pWork;
+      if (bDot) { // что предполагаем?
+          pWork = pDT; // точку
+      } else {
+          pWork = pDP; // путоту
+      }
+      pt = Predpl.SetTo;
+      if (bDot) {
+          pWork.data.Data.arr[pt.x][pt.y] = 1;
+          // меняем вероятности
+          pWork.data.Ver.arr[pt.x][pt.y][1] = 1;
+          pWork.data.Ver.arr[pt.x][pt.y][2] = 1;
+      } else {
+          pWork.data.Data.arr[pt.x][pt.y] = 2;
+          // меняем вероятности
+          pWork.data.Ver.arr[pt.x][pt.y][1] = 0;
+          pWork.data.Ver.arr[pt.x][pt.y][2] = 0;
+      }
       // строка и солбец, содержащие эту точку пересчитать
-      pWork.ChX[pt.y]:=true;
-      pWork.ChY[pt.x]:=true;
-      pWork.FinX[pt.y]:=false;
-      pWork.FinY[pt.x]:=false;
+      pWork.data.ChX.arr[pt.y] = true;
+      pWork.data.ChY.arr[pt.x] = true;
+      pWork.data.FinX.arr[pt.y] = false;
+      pWork.data.FinY.arr[pt.x] = false;
       Draw(pt);
-  end;
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.ChangeDataArr(bDot:boolean);
-  var p:PAllData;
-  begin
-      if (bDot)
-          then begin
-              p:=pDM;
-              pDM:=pDT;
-              pDT:=p;
-          end
-          else begin
-              p:=pDM;
-              pDM:=pDP;
-              pDP:=p;
-          end;
-  end;
+  public void ChangeDataArr(boolean bDot)
+  {
+      PAllData p;
+      if (bDot) {
+          p = pDM;
+          pDM = pDT;
+          pDT = p;
+      } else {
+          p = pDM;
+          pDM = pDP;
+          pDP = p;
+      }
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.SavePustot(pt:TPoint; bDot:boolean);
-  var x, y:integer;
-      b, b2:boolean;
-      pWork:PAllData;
-  begin
-      if (bDot) // что предполагаем?
-          then pWork:=pDT // точку
-          else pWork:=pDP; // путоту
-      for x:=1 to LenX do // по всему полю
-          for y:=1 to LenY do begin
-              pWork^.Data[x, y]:=pDM^.Data[x, y];
-              pWork^.Ver[x, y, 1]:=pDM^.Ver[x, y, 1];
-              pWork^.Ver[x, y, 2]:=pDM^.Ver[x, y, 2];
-              b:=(pDM^.Data[x, y] = 0); // пусто?
-              if (b)
-                  then begin // пусто
-                      if (pWork.tChY[x] and pWork.tChX[y]) //если производились изменения
-                          then pWork.NoSet[x, y]:=false; // ставить можна
-                  end
-                  else pWork.NoSet[x, y]:=true; // непусто - сюда ставить нельзя
-          end;
-      for x:=1 to LenX do begin
-          pWork.ChY[x]:=pDM^.ChY[x];
-          pWork.FinY[x]:=pDM^.FinY[x];
-          pWork.tChY[x]:=false;
-      end;
-      for y:=1 to LenY do begin
-          pWork.ChX[y]:=pDM^.ChX[y];
-          pWork.FinX[y]:=pDM^.FinX[y];
-          pWork.tChX[y]:=false;
-      end;
-      Predpl.SetTo:=pt;
-      Predpl.SetDot:=bDot;
+  public void SavePustot(TPoint pt, boolean bDot) {
+      boolean b, b2;
+      PAllData pWork;
+      if (bDot) { // что предполагаем?
+          pWork = pDT; // точку
+      } else {
+          pWork = pDP; // путоту
+      }
+      for (int x = 1; x <= LenX; x++) { // по всему полю
+          for (int y = 1; y <= LenY; y++) {
+              pWork.data.Data.arr[x][y] = pDM.data.Data.arr[x][y];
+              pWork.data.Ver.arr[x][y][1] = pDM.data.Ver.arr[x][y][1];
+              pWork.data.Ver.arr[x][y][2] = pDM.data.Ver.arr[x][y][2];
+              b = (pDM.data.Data.arr[x][y] == 0); // пусто?
+              if (b) {
+                  // пусто
+                  if (pWork.data.tChY.arr[x] && pWork.data.tChX.arr[y]) { //если производились изменения
+                      pWork.data.NoSet.arr[x][y] = false; // ставить можна
+                  }
+              } else {
+                  pWork.data.NoSet.arr[x][y] = true; // непусто - сюда ставить нельзя
+              }
+          }
+      }
+      for (int x = 1; x <= LenX; x++) {
+          pWork.data.ChY.arr[x] = pDM.data.ChY.arr[x];
+          pWork.data.FinY.arr[x] = pDM.data.FinY.arr[x];
+          pWork.data.tChY.arr[x] = false;
+      }
+      for (int y = 1; y <= LenY; y++) {
+          pWork.data.ChX.arr[y] = pDM.data.ChX.arr[y];
+          pWork.data.FinX.arr[y] = pDM.data.FinX.arr[y];
+          pWork.data.tChX.arr[y] = false;
+      }
+      Predpl.SetTo = pt;
+      Predpl.SetDot = bDot;
       SetPredplDot(bDot);
-  end;
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  function TForm1.GetFin(p:PAllData):boolean;
-  var c, c2:boolean;
-      x, y:integer;
-  begin
+  public boolean GetFin(PAllData p)
+  {
+      boolean c, c2;
       // заполнение поля
-      c2:=true;
-      for y:=1 to LenY do begin
-          c:=false; // флаг закончености строки
-          for x:=1 to LenX do  // по строке
-              c:=c or (p^.Data[x, y] = 0); // если заполнено
-          c2:=c2 and (not c);
-          p^.FinX[y]:=not c
+      c2 = true;
+      for (int y = 1; y <= LenY; y++) {
+          c = false; // флаг закончености строки
+          for (int x = 1; x <= LenX; x++) {  // по строке
+              c = c || (p.data.Data.arr[x][y] == 0); // если заполнено
+          }
+          c2 = c2 && (!c);
+          p.data.FinX.arr[y] = !c;
   //        if (Predpl.B)  // массив флагов заполнености
-  //            then pDT^.FinX[y]:=not c
-  //            else pDM^.FinX[y]:=not c;
-      end;
-      for x:=1 to LenX do begin
-          c:=false; // флаг закончености строки
-          for y:=1 to LenY do  // по строке
-              c:=c or (p^.Data[x, y] = 0); // если заполнено
-          c2:=c2 and (not c);
-          p^.FinY[x]:=not c
+  //            pDT.data.FinX.arr[y] = !c
+  //            else pDM.data.FinX.arr[y] = !c;
+      }
+      for (int x = 1; x <= LenX; x++) {
+          c = false; // флаг закончености строки
+          for (int y = 1; y <= LenY; y++) {  // по строке
+              c = c || (p.data.Data.arr[x][y] == 0); // если заполнено
+          }
+          c2 = c2 && (!c);
+          p.data.FinY.arr[x] = !c;
   //        if (Predpl.B) // массив флагов заполнености
-  //            then pDT^.FinY[x]:=not c
-  //            else pDM^.FinY[x]:=not c;
-      end;
-      Result:=c2;
-      if (Result) then begin
-          if (p = pDM) then Exit;
-          ChangeDataArr((p = pDT));
-      end;
-  end;
+  //            pDT.data.FinY.arr[x] = !c
+  //            else pDM.data.FinY.arr[x] = !c;
+      }
+      boolean Result = c2;
+      if (Result) {
+          if (p == pDM) return Result;
+          ChangeDataArr((p == pDT));
+      }
+      return Result;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.PrepRjadX(p:PAllData; Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
-  var x:integer;
-  begin
+  public void PrepRjadX(PAllData p, int Y, TData Data, TRjad Rjad, int CountRjad){
       // подготовка строки
-      for x:=1 to LenX do Data[x]:=p^.Data[x, Y]; // данные
-      CountRjad:=CountRjadX[Y]; // длинна ряда
-      for x:=1 to CountRjadX[Y] do Rjad[x]:=Form1.RjadX[x, Y];  // сам ряд
-  end;
+      for (int x = 1; x <= LenX; x++) {
+          Data.arr[x] = p.data.Data.arr[x][Y]; // данные
+      }
+      CountRjad = CountRjadX.arr[Y]; // длинна ряда
+      for (int x = 1; x <= CountRjadX.arr[Y]; x++) {
+          Rjad.arr[x] = RjadX.arr[x][Y];  // сам ряд
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.PrepRjadY(p:PAllData; X: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
-  var y:integer;
-  begin
+  public void PrepRjadY(PAllData p, int X, TData Data, TRjad Rjad, int CountRjad){
       // подготовка столбца
-      for y:=1 to LenY do Data[y]:=p^.Data[X, y];  // данные
-      CountRjad:=CountRjadY[X]; // длинна ряда
-      for y:=1 to CountRjadY[X] do Rjad[y]:=Form1.RjadY[X, y]; // сам ряд
-  end;
+      for (int y = 1; y <= LenY; y++) {
+          Data.arr[y] = p.data.Data.arr[X][y];  // данные
+      }
+      CountRjad = CountRjadY.arr[X]; // длинна ряда
+      for (int y = 1; y <= CountRjadY.arr[X]; y++) {
+          Rjad.arr[y] = RjadY.arr[X][y]; // сам ряд
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.LoadRjadFromFile(FileName: string);
-  var x, y:integer;
-      F:TextFile;
-      tstr:string;
-  begin
-      LoadFileName:=FileName;
+  public void AssignFile(TextFile f, String fileName) {
+
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public String ReadLn(TextFile f) {
+      return "";
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void WriteLn(TextFile f, String text) {
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void ReSet(TextFile f) {
+
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void CloseFile(TextFile f) {
+
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void ReWrite(TextFile f) {
+
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void LoadRjadFromFile(String FileName) {
+      TextFile F = new TextFile();
+      String tstr;
+      LoadFileName = FileName;
       AssignFile(F, FileName);
       ReSet(F);
-      ReadLn(F, tstr);
-      udCountX.Position:=StrToInt(tstr); // ширина
-      ReadLn(F, tstr);
-      udCountY.Position:=StrToInt(tstr); // высота
-      for y:=1 to LenY do begin
-          ReadLn(F, tstr);
-          CountRjadX[y]:=StrToInt(tstr); // длинна y строки
-          for x:=1 to CountRjadX[y] do begin
-              ReadLn(F, tstr);
-              RjadX[x, y]:=StrToInt(tstr); // числа y строки
-          end;
-      end;
+      tstr = ReadLn(F);
+      udCountX.Position = Integer.valueOf(tstr); // ширина
+      tstr = ReadLn(F);
+      udCountY.Position = Integer.valueOf(tstr); // высота
+      for (int y = 1; y <= LenY; y++) {
+          tstr = ReadLn(F);
+          CountRjadX.arr[y] = Integer.valueOf(tstr); // длинна y строки
+          for (int x = 1; x <= CountRjadX.arr[y]; x++) {
+              tstr = ReadLn(F);
+              RjadX.arr[x][y] = Integer.valueOf(tstr); // числа y строки
+          }
+      }
 
-      for x:=1 to LenX do begin
-          ReadLn(F, tstr);
-          CountRjadY[x]:=StrToInt(tstr);       // длинна х столбца
-          for y:=1 to CountRjadY[x] do begin
-              ReadLn(F, tstr);
-              RjadY[x, y]:=StrToInt(tstr);   // числа х столбца
-          end;
-      end;
+      for (int x = 1; x <= LenX; x++) {
+          tstr = ReadLn(F);
+          CountRjadY.arr[x] = Integer.valueOf(tstr);       // длинна х столбца
+          for (int y = 1; y <= CountRjadY.arr[x]; y++) {
+              tstr = ReadLn(F);
+              RjadY.arr[x][y] = Integer.valueOf(tstr);   // числа х столбца
+          }
+      }
       CloseFile(F);
-  end;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.SaveRjadToFile(FileName: string);
-  var x, y:integer;
-      F:TextFile;
-  begin
-      LoadFileName:=FileName;
+  public void SaveRjadToFile(String FileName){
+      TextFile F = new TextFile();
+      LoadFileName = FileName;
       AssignFile(F, FileName);
       ReWrite(F);
-      WriteLn(F, IntToStr(LenX));  // ширина
-      WriteLn(F, IntToStr(LenY));  // высота
-      for y:=1 to LenY do begin
-          WriteLn(F, IntToStr(CountRjadX[y])); // длинна y строки
-          for x:=1 to CountRjadX[y] do
-              WriteLn(F, IntToStr(RjadX[x, y])); // числа y строки
-      end;
+      WriteLn(F, Integer.toString(LenX));  // ширина
+      WriteLn(F, Integer.toString(LenY));  // высота
+      for (int y = 1; y <= LenY; y++) {
+          WriteLn(F, Integer.toString(CountRjadX.arr[y])); // длинна y строки
+          for (int x = 1; x <= CountRjadX.arr[y]; x++) {
+              WriteLn(F, Integer.toString(RjadX.arr[x][y])); // числа y строки
+          }
+      }
 
-      for x:=1 to LenX do begin
-          WriteLn(F, IntToStr(CountRjadY[x]));  // длинна х столбца
-          for y:=1 to CountRjadY[x] do
-              WriteLn(F, IntToStr(RjadY[x, y]));  // числа х столбца
-      end;
+      for (int x = 1; x <= LenX; x++) {
+          WriteLn(F, Integer.toString(CountRjadY.arr[x]));  // длинна х столбца
+          for (int y = 1; y <= CountRjadY.arr[x]; y++) {
+              WriteLn(F, Integer.toString(RjadY.arr[x][y]));  // числа х столбца
+          }
+      }
       CloseFile(F);
-  end;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.btSaveClick(Sender: TObject);
-  var tstr, ext:string;
-  begin
-      if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
-          then sd.FilterIndex:=2
-          else sd.FilterIndex:=1;
-      case (sd.FilterIndex) of
-          1:ext:='.jap';
-          2:ext:='.jdt';
-      end;
-      if (sd.FileName <> '') then sd.FileName:=ChangeFileExt(sd.FileName, ext);
-      if (not sd.Execute) then begin
-          edInput.SetFocus;
-          Exit; // запуск диалога
-      end;
-      tstr:=ExtractFileExt(sd.FileName); // расширение
-      case (sd.FilterIndex) of
-          1:ext:='.jap';
-          2:ext:='.jdt';
-      end;
-      if (tstr <> ext) // если не те расширения ...
-          then sd.FileName:=ChangeFileExt(sd.FileName, ext); //... то по умолчанию
+  private String ChangeFileExt(String fileName, String ext) {
+      return "";
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  private String ExtractFileExt(String fileName) {
+      return "";
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  private String ExtractFileName(String fileName) {
+      return "";
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  private boolean FileExists(String fileName) {
+      return true;
+  }
+  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void btSaveClick() {
+      String tstr;
+      String ext = "";
+      if (cbMode.Checked) { // расширение по умолчанию (2 - файло редактора)
+          sd.FilterIndex = 2;
+      } else {
+          sd.FilterIndex = 1;
+      }
+      switch (sd.FilterIndex) {
+          case 1 : ext = ".jap"; break;
+          case 2 : ext = ".jdt"; break;
+      }
+      if (sd.FileName != "") sd.FileName = ChangeFileExt(sd.FileName, ext);
+      if (!sd.Execute()) {
+          edInput.SetFocus();
+          return; // запуск диалога
+      }
+      tstr = ExtractFileExt(sd.FileName); // расширение
+      switch (sd.FilterIndex) {
+          case 1 : ext = ".jap"; break;
+          case 2 : ext = ".jdt"; break;
+      }
+
+      if (tstr != ext) { // если не те расширения ...
+          sd.FileName = ChangeFileExt(sd.FileName, ext); //... то по умолчанию
+      }
       // грузим файл
-      od.FileName:=sd.FileName;
-      case (sd.FilterIndex) of
-          1: SaveRjadToFile(sd.FileName);
-          2: SaveDataToFile(sd.FileName);
-      end;
-      Form1.Caption:='Японские головоломки - ' + ExtractFileName(sd.FileName);
-      edInput.SetFocus;
-  end;
+      od.FileName = sd.FileName;
+      switch (sd.FilterIndex) {
+          case 1 : SaveRjadToFile(sd.FileName);
+          case 2 : SaveDataToFile(sd.FileName);
+      }
+      Form1.Caption = "Японские головоломки - " + ExtractFileName(sd.FileName);
+      edInput.SetFocus();
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.btLoadClick(Sender: TObject);
-  var tstr, tstr2, ext:string;
-      b:boolean; // флаг накладывания
-  begin
-      if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
-          then od.FilterIndex:=2
-          else od.FilterIndex:=1;
-      case (od.FilterIndex) of
-          1:ext:='.jap';
-          2:ext:='.jdt';
-      end;
-      if (od.FileName <> '') then od.FileName:=ChangeFileExt(od.FileName, ext);
-      if (not od.Execute) then begin
-          edInput.SetFocus;
-          Exit; // запуск диалога
-      end;
-      tstr:=ExtractFileExt(od.FileName); // имя файла
-      case (od.FilterIndex) of
-          1:ext:='.jap';
-          2:ext:='.jdt';
-      end;
-      if (tstr <> ext) // если не те расширения ...
-          then od.FileName:=ChangeFileExt(od.FileName, ext); //... то по умолчанию
-      if (not FileExists(od.FileName)) then begin
-          edInput.SetFocus;
-          Exit;
-      end;
-      sd.FileName:=od.FileName;
-      cbRjad.Checked:=true;
-      if (cbLoadNaklad.Checked) then begin
-          tstr:=ChangeFileExt(od.FileName, '.jap');
-          tstr2:=ChangeFileExt(od.FileName, '.jdt');
-          if (FileExists(tstr) and FileExists(tstr2)) then begin
-              cbMode.Checked:=false;
-              cbMode.Caption:='Расш.';
+  public void btLoadClick()
+  {
+      String tstr, tstr2;
+      String ext = "";
+      boolean b; // флаг накладывания
+      if (cbMode.Checked) { // расширение по умолчанию (2 - файло редактора)
+          od.FilterIndex = 2;
+      } else {
+          od.FilterIndex = 1;
+      }
+      switch (od.FilterIndex) {
+          case 1 : ext = ".jap"; break;
+          case 2 : ext = ".jdt"; break;
+      }
+      if (od.FileName != "") od.FileName = ChangeFileExt(od.FileName, ext);
+      if (!od.Execute()) {
+          edInput.SetFocus();
+          return; // запуск диалога
+      }
+      tstr = ExtractFileExt(od.FileName); // имя файла
+      switch (od.FilterIndex) {
+          case 1 : ext = ".jap"; break;
+          case 2 : ext = ".jdt"; break;
+      }
+      if (tstr != ext) { // если не те расширения ...
+          od.FileName = ChangeFileExt(od.FileName, ext); //... то по умолчанию
+      }
+      if (!FileExists(od.FileName)) {
+          edInput.SetFocus();
+          return;
+      }
+      sd.FileName = od.FileName;
+      cbRjad.Checked = true;
+      if (cbLoadNaklad.Checked) {
+          tstr = ChangeFileExt(od.FileName, ".jap");
+          tstr2 = ChangeFileExt(od.FileName, ".jdt");
+          if (FileExists(tstr) && FileExists(tstr2)) {
+              cbMode.Checked = false;
+              cbMode.Caption = "Расш.";
               LoadRjadFromFile(tstr); // грузим файл
               LoadDataFromFile(tstr2);  // грузим файл
-              bChangeLen:=true;
-              bUpDown:=true;
-              Draw(Point(0, 0));
-              Form1.Caption:='Японские головоломки - ' + ExtractFileName(tstr) + ', ' + ExtractFileName(tstr2);
+              bChangeLen = true;
+              bUpDown = true;
+              Draw(new TPoint(0, 0));
+              Form1.Caption = "Японские головоломки - " + ExtractFileName(tstr) + ", " + ExtractFileName(tstr2);
               SetInfo(0, true, false, true, 0);
-              Exit;
-          end;
-      end;
-      b:=(cbLoadNaklad.Checked and (cbMode.Checked xor (od.FilterIndex = 2)));
-      case (od.FilterIndex) of
-          1: begin // файл расшифровщика
-              if (not b) then begin
+              return;
+          }
+      }
+      b = (cbLoadNaklad.Checked && (cbMode.Checked ^ (od.FilterIndex == 2)));
+      switch (od.FilterIndex) {
+          case 1 : { // файл расшифровщика
+              if (!b) {
                   // перекл режим
-                  cbMode.Checked:=false;
-                  if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
-                  ClearData; // очищаем поле
-              end;
+                  cbMode.Checked = false;
+                  if (cbMode.Checked) {
+                      cbMode.Caption = "Редактор";
+                  } else {
+                      cbMode.Caption = "Расш.";
+                  }
+                  ClearData(true); // очищаем поле
+              }
               LoadRjadFromFile(od.FileName); // грузим файл
-              bChangeLen:=true;
-              bUpDown:=true;
-              Draw(Point(0, 0));
-              Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+              bChangeLen = true;
+              bUpDown = true;
+              Draw(new TPoint(0, 0));
+              Form1.Caption = "Японские головоломки - " + ExtractFileName(od.FileName);
               SetInfo(0, true, false, false, 0);
-              if (not b) then btCalc.Click;
-          end;
-          2: begin // файл редактора
-              if (not b) then begin
+              if (!b) btCalc.Click();
+          } break;
+          case 2: { // файл редактора
+              if (!b) {
                   // перекл режим
-                  cbMode.Checked:=true;
-                  if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
-              end;
+                  cbMode.Checked = true;
+                  if (cbMode.Checked) {
+                      cbMode.Caption = "Редактор";
+                  } else {
+                      cbMode.Caption = "Расш.";
+                  }
+              }
               LoadDataFromFile(od.FileName);  // грузим файл
-              if (not b) then begin
-                  GetRjadX; // получаем ряды
-                  GetRjady;
-              end;
-              bChangeLen:=true;
-              bUpDown:=true;
-              Draw(Point(0, 0));
-              Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+              if (!b) {
+                  GetRjadX(); // получаем ряды
+                  GetRjadY();
+              }
+              bChangeLen = true;
+              bUpDown = true;
+              Draw(new TPoint(0, 0));
+              Form1.Caption = "Японские головоломки - " + ExtractFileName(od.FileName);
               SetInfo(0, true, false, true, 0);
-          end;
-      end;
-      edInput.SetFocus;
-  end;
+          } break;
+      }
+      edInput.SetFocus();
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.LoadDataFromFile(FileName: string);
-  var x, y:integer;
-      F:TextFile;
-      tstr:string;
-  begin
-      LoadFileName:=FileName;
+  public void LoadDataFromFile(String FileName) {
+      String tstr;
+      TextFile F = null;
+      LoadFileName = FileName;
       AssignFile(F, FileName);
       ReSet(F);
-      ReadLn(F, tstr);
-      udCountX.Position:=StrToInt(tstr); // ширина
-      ReadLn(F, tstr);
-      udCountY.Position:=StrToInt(tstr); // высота
-      for x:=1 to LenX do
-          for y:=1 to LenY do begin
-              ReadLn(F, tstr);
-              pDM^.Data[x ,y]:=StrToInt(tstr); // поле
-          end;
+      tstr = ReadLn(F);
+      udCountX.Position = Integer.valueOf(tstr); // ширина
+      tstr = ReadLn(F);
+      udCountY.Position = Integer.valueOf(tstr); // высота
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= LenY; y++) {
+              tstr = ReadLn(F);
+              pDM.data.Data.arr[x][y] = Integer.valueOf(tstr); // поле
+          }
+      }
       CloseFile(F);
-  end;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.SaveDataToFile(FileName: string);
-  var x, y:integer;
-      F:TextFile;
-  begin
-      LoadFileName:=FileName;
+  public void SaveDataToFile(String FileName) {
+      TextFile F = null;
+      LoadFileName = FileName;
       AssignFile(F, FileName);
       ReWrite(F);
-      WriteLn(F, IntToStr(LenX)); // ширина
-      WriteLn(F, IntToStr(LenY)); // высора
-      for x:=1 to LenX do
-          for y:=1 to LenY do
-              WriteLn(F, IntToStr(pDM^.Data[x, y])); // поле
+      WriteLn(F, Integer.toString(LenX)); // ширина
+      WriteLn(F, Integer.toString(LenY)); // высора
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= LenY; y++){
+              WriteLn(F,Integer.toString(pDM.data.Data.arr[x][y])); // поле
+          }
+      }
       CloseFile(F);
-  end;
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.btClearClick(Sender: TObject);
-  begin
+  public void btClearClick() {
       ClearData(cbMode.Checked); // очищаем поле
-      ChangeActive(Point(1, 1), true); // записываем номер ячейки
-      Draw(Point(0, 0)); // прорисовка
+      ChangeActive(new TPoint(1, 1), true); // записываем номер ячейки
+      Draw(new TPoint(0, 0)); // прорисовка
       SetInfo(0, true, false, true, 0);
-      edInput.SetFocus;
-  end;
+      edInput.SetFocus();
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.ActiveNext(c:integer);
-  begin
-      if (CurrPt.xy)
-          then begin
-              if (c < 0)
-                  then begin
-                      if ((CurrPt.pt.x + c) <= 0)
-                          then ChangeActive(Point(LenX, 1), false) // записываем номер ячейки
-                          else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                  end
-                  else begin
-                      if ((CurrPt.pt.x + c) > LenY)
-                          then ChangeActive(Point(1, 1), false) // записываем номер ячейки
-                          else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                  end;
-          end
-          else begin
-              if (c < 0)
-                  then begin
-                      if ((CurrPt.pt.x + c) <= 0)
-                          then ChangeActive(Point(LenY, 1), true) // записываем номер ячейки
-                          else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                  end
-                  else begin
-                      if ((CurrPt.pt.x + c) > LenX)
-                          then ChangeActive(Point(1, 1), true) // записываем номер ячейки
-                          else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                  end;
-          end;
+  public void ActiveNext(int c){
+      if (CurrPt.xy) {
+          if (c < 0) {
+              if ((CurrPt.pt.x + c) <= 0) {
+                  ChangeActive(new TPoint(LenX, 1), false); // записываем номер ячейки
+              } else {
+                  ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+              }
+          } else {
+              if ((CurrPt.pt.x + c) > LenY) {
+                  ChangeActive(new TPoint(1, 1), false); // записываем номер ячейки
+              } else {
+                  ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+              }
+          }
+      } else {
+          if (c < 0) {
+              if ((CurrPt.pt.x + c) <= 0){
+                  ChangeActive(new TPoint(LenY, 1), true); // записываем номер ячейки
+          } else {
+                  ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+              }
+          } else {
+              if ((CurrPt.pt.x + c) > LenX) {
+                  ChangeActive(new TPoint(1, 1), true); // записываем номер ячейки
+              } else {
+                  ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+              }
+          }
+      }
       // делаем текст в едите выделенным
-      edInput.SelectAll;
-  //    edInput.Text:=''; // очищаем едит
-  end;
+      edInput.SelectAll();
+  //    edInput.Text = ""; // очищаем едит
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-  begin
-      case (Key) of
-          38:begin // вверх
+  public void edInputKeyDown(int Key, TShiftState Shift) {
+      switch (Key) {
+          case 38: { // вверх
               ActiveNext(-1);
-              Key:=0;
-          end;
-          39:;
-          40:begin // вниз
+              Key = 0;
+          }
+          break;
+          case 39:
+              break;
+          case 40: { // вниз
               ActiveNext(1);
-              Key:=0;
-          end;
-          41:;
-      end;
-  end;
+              Key = 0;
+          }
+          break;
+          case 41:
+              break;
+      }
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.edInputKeyPress(Sender: TObject; var Key: Char);
-  var i, j, a:integer;
-      tstr:string;
-  begin
-      if (not (Key in [',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', #13, #8])) then begin
-          Key:=#0;
-          Exit;
-      end;
-      if (Key = ',') then Key:='.';
-      if (Key = #13) then begin
-          Key:=#0;
-          tstr:=edInput.Text;
-          if (tstr = '') then Exit;
+  public int DecodeInteger(String str, char ch, int i) {
+    return 0; // TODO надо реализовать
+  }
+  //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void edInputKeyPress(char Key) {
+      int a;
+      String tstr = "";
+      if (!(Arrays.asList(',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\u0013', '\u0008').contains(Key))) {
+          Key = '\u0000';
+          return;
+      }
+      if (Key == ',') Key = '.';
+      if (Key == '\u0013') {
+          Key = '\u0000';
+          tstr = edInput.Text;
+          if (tstr.equals("")) return;
           // убираем дубл. точки
-          i:=2;
-          repeat
-              if ((tstr[i - 1] = '.') and (tstr[i] = '.'))
-                  then tstr:=copy(tstr, 1, i - 1) + copy(tstr, i + 1, Length(tstr) - i)
-                  else inc(i);
-              a:=Length(tstr);
-          until (i > a);
+          int i = 2;
+          do {
+              if ((tstr.charAt(i - 1) == '.') && (tstr.charAt(i) == '.')) {
+                  tstr = tstr.substring(1, i - 1) + tstr.substring(i + 1, tstr.length() - i);
+              } else {
+                  i++;
+              }
+              a = tstr.length();
+          } while (i > a);
           // убираем точку спереди, добавляем в зад
-          if (tstr[Length(tstr)] <> '.') then tstr:=tstr + '.';
-          if (tstr[1] = '.') then tstr:=copy(tstr, 2, Length(tstr) - 1);
-          if (tstr = '') then Exit; // выходим если пусто
-          a:=DecodeStrToInt(tstr, '.', 0); // количество цифер
-          if (not CurrPt.xy)
-              then begin // столбцы
-                  {заполнение}
-                  CountRjadY[CurrPt.pt.x]:=a;
-                  for i:=1 to a do
-                      RjadY[CurrPt.pt.x, i]:=DecodeStrToInt(tstr, '.', i);
-                  {проверка на ввод нулей - они не нужны}
-                  i:=1;
-                  while (i <= a) do
-                      if (RjadY[CurrPt.pt.x, i] = 0)
-                          then begin
-                              if (i <> a) then begin
-                                  for j:=(i + 1) to a do begin
-                                      RjadY[CurrPt.pt.x, j - 1]:=RjadY[CurrPt.pt.x, j];
-                                  end;
-                              end;
-                             Dec(CountRjadY[CurrPt.pt.x]);
-                             Dec(a);
-                          end
-                          else inc(i);
-                  if (CountRjadY[CurrPt.pt.x] = 0) then Exit;
-                  {проверка на ввод чила большего чем ширина}
-                  j:=0;
-                  for i:=1 to a do
-                      j:=j + RjadY[CurrPt.pt.x, i];
-                  if ((j + a - 1) > LenY) then begin
-                      CountRjadY[CurrPt.pt.x]:=0;
-                      Beep;
-                      edInput.SelectAll;
-                      Exit;
-                  end;
-                  {прорисовать на поле если надо}
-                  if (cbMode.Checked) then DataFromRjadY(CurrPt.pt.x);
-              end
-              else begin // строки
-                  {заполнение}
-                  CountRjadX[CurrPt.pt.x]:=a;
-                  for i:=1 to a do
-                      RjadX[i, CurrPt.pt.x]:=DecodeStrToInt(tstr, '.', i);
-                  {проверка на ввод нулей - они не нужны}
-                  i:=1;
-                  while (i <= a) do
-                      if (RjadX[i, CurrPt.pt.x] = 0)
-                          then begin
-                              if (i <> a) then begin
-                                  for j:=(i + 1) to a do begin
-                                      RjadX[j - 1, CurrPt.pt.x]:=RjadX[j, CurrPt.pt.x];
-                                  end;
-                              end;
-                             Dec(CountRjadX[CurrPt.pt.x]);
-                             Dec(a);
-                          end
-                          else inc(i);
-                  if (CountRjadX[CurrPt.pt.x] = 0) then Exit;
-                  {проверка на ввод чила большего чем ширина}
-                  j:=0;
-                  for i:=1 to a do
-                      j:=j + RjadX[i, CurrPt.pt.x];
-                  if ((j + a - 1) > LenX) then begin
-                      CountRjadY[CurrPt.pt.x]:=0;
-                      Beep;
-                      Exit;
-                  end;
-                  {прорисовать на поле если надо}
-                  if (cbMode.Checked) then DataFromRjadX(CurrPt.pt.x);
-              end;
+          if (tstr.charAt(tstr.length() - 1) != '.') tstr = tstr + '.';
+          if (tstr.charAt(1) == '.') tstr = tstr.substring(2, tstr.length() - 1);
+          if (tstr.equals("")) return; // выходим если пусто
+          a = DecodeInteger(tstr, '.', 0); // количество цифер
+          if (!CurrPt.xy) { // столбцы
+              // заполнение
+              CountRjadY.arr[CurrPt.pt.x] = a;
+              for (int j = 1; j <= a; j++) {
+                  RjadY.arr[CurrPt.pt.x][j] = DecodeInteger(tstr, '.', j);
+              }
+              // проверка на ввод нулей - они не нужны
+              i = 1;
+              while (i <= a) {
+                  if (RjadY.arr[CurrPt.pt.x][i] == 0) {
+                      if (i != a) {
+                          for (int j = i + 1; j <= a; j++) {
+                              RjadY.arr[CurrPt.pt.x][j - 1] = RjadY.arr[CurrPt.pt.x][j];
+                          }
+                      }
+                      CountRjadY.arr[CurrPt.pt.x] = CountRjadY.arr[CurrPt.pt.x] - 1;
+                      a--;
 
-          if (CurrPt.xy)
-              then begin
-                  if (cbMode.Checked)
-                      then Draw(Point(0, CurrPt.pt.x))
-                      else begin
-                          DrawLeft(CurrPt.pt.x);
-                          Draw(Point(-1, -1));
-                      end;
-              end
-              else begin
-                  if (cbMode.Checked)
-                      then Draw(Point(CurrPt.pt.x, 0))
-                      else begin
-                          DrawTop(CurrPt.pt.x);
-                          Draw(Point(-1, -1));
-                      end;
-              end;
+                  } else {
+                      i++;
+                  }
+              }
+              if (CountRjadY.arr[CurrPt.pt.x] == 0) return;
+              // проверка на ввод чила большего чем ширина
+              int j = 0;
+              for (i = 1; i <= a; i++) {
+                  j = j + RjadY.arr[CurrPt.pt.x][i];
+              }
+              if ((j + a - 1) > LenY) {
+                  CountRjadY.arr[CurrPt.pt.x] = 0;
+                  Beep();
+                  edInput.SelectAll();
+                  return;
+              }
+              // прорисовать на поле если надо
+              if (cbMode.Checked) DataFromRjadY(CurrPt.pt.x);
+          } else { // строки
+                  // заполнение
+                  CountRjadX.arr[CurrPt.pt.x] = a;
+                  for (i = 1; i <= a; i++) {
+                      RjadX.arr[i][CurrPt.pt.x] = DecodeInteger(tstr, '.', i);
+                  }
+                  // проверка на ввод нулей - они не нужны
+                  i = 1;
+                  while (i <= a) {
+                      if (RjadX.arr[i][CurrPt.pt.x] == 0) {
+                          if (i != a) {
+                              for (int j = i + 1; j <= a; j++) {
+                                  RjadX.arr[j - 1][CurrPt.pt.x] = RjadX.arr[j][CurrPt.pt.x];
+                              }
+                          }
+                          CountRjadX.arr[CurrPt.pt.x] = CountRjadX.arr[CurrPt.pt.x] - 1;
+                          a--;
+                      } else {
+                          i++;
+                      }
+                  }
+                  if (CountRjadX.arr[CurrPt.pt.x] == 0) return;
+                  // проверка на ввод чила большего чем ширина
+                  int j = 0;
+                  for (i = 1; i <= a; i++) {
+                      j = j + RjadX.arr[i][CurrPt.pt.x];
+                  }
+                  if ((j + a - 1) > LenX) {
+                      CountRjadY.arr[CurrPt.pt.x] = 0;
+                      Beep();
+                      return;
+                  }
+                  // прорисовать на поле если надо
+                  if (cbMode.Checked) DataFromRjadX(CurrPt.pt.x);
+              }
+
+          if (CurrPt.xy) {
+              if (cbMode.Checked) {
+                  Draw(new TPoint(0, CurrPt.pt.x));
+              } else {
+                  DrawLeft(CurrPt.pt.x);
+                  Draw(new TPoint(-1, -1));
+              }
+          } else {
+              if (cbMode.Checked) {
+                  Draw(new TPoint(CurrPt.pt.x, 0));
+              } else {
+                  DrawTop(CurrPt.pt.x);
+                  Draw(new TPoint(-1, -1));
+              }
+          }
           ActiveNext(1);
-      end;
-  end;
-  //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.ChangeActive(pt: TPoint; xy: boolean);
-  var c:TCurrPt;
-  begin
-      c:=CurrPt;
-      CurrPt.pt:=pt;
-      CurrPt.xy:=xy;
-      if (CurrPt.xy)
-          then Draw(Point(CurrPt.pt.x, 0))
-          else Draw(Point(0, CurrPt.pt.x));
-      if (c.xy)
-          then Draw(Point(c.pt.x, 0))
-          else Draw(Point(0, c.pt.x));
-  end;
+      }
+  }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    private void Beep() {
+
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  public void ChangeActive(TPoint pt, boolean xy) {
+      TCurrPt c = CurrPt;
+      CurrPt.pt = pt;
+      CurrPt.xy = xy;
+      if (CurrPt.xy) {
+          Draw(new TPoint(CurrPt.pt.x, 0));
+      } else {
+          Draw(new TPoint(0, CurrPt.pt.x));
+      }
+      if (c.xy) {
+          Draw(new TPoint(c.pt.x, 0));
+      } else {
+          Draw(new TPoint(0, c.pt.x));
+      }
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.cbRjadClick(Sender: TObject);
-  begin
-      Draw(Point(0, 0));
-      edCountXChange(Self);
-  end;
+  public void cbRjadClick() {
+      Draw(new TPoint(0, 0));
+      edCountXChange();
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.btSaveBitmapClick(Sender: TObject);
-  var tstr:string;
-  begin
-      if (not spd.Execute) then begin
-          edInput.SetFocus;
-          Exit;
-      end;
-      cbRjad.Checked:=true;
-      tstr:=ExtractFileExt(spd.FileName); // расширение
-      if (tstr = '') then spd.FileName:=spd.FileName + '.bmp'; // если нет разрешения то разрешение по умолчанию
-      if (tstr <> '.bmp') then spd.FileName:=ChangeFileExt(spd.FileName, '.bmp'); //если не те расширения то по умолчанию
+  public void btSaveBitmapClick() {
+      String tstr;
+      if (!spd.Execute()) {
+          edInput.SetFocus();
+          return;
+      }
+      cbRjad.Checked = true;
+      tstr = ExtractFileExt(spd.FileName); // расширение
+      if (tstr.equals("")) spd.FileName = spd.FileName + ".bmp"; // если нет разрешения то разрешение по умолчанию
+      if (!tstr.equals(".bmp")) spd.FileName = ChangeFileExt(spd.FileName, ".bmp"); //если не те расширения то по умолчанию
       Buf.SaveToFile(spd.FileName);
-      cbRjad.Checked:=false;
-      edInput.SetFocus;
-  end;
+      cbRjad.Checked = false;
+      edInput.SetFocus();
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-  begin
-      if (Shift <> [ssLeft, ssAlt, ssCtrl, ssShift]) then Exit;
-  //    PlaySound(PChar('BUNGA'), Hinstance, SND_RESOURCE or SND_ASYNC or SND_LOOP);
-      ShowMessage('Эту программу создал СанЁк (Gerda).' + #$0D + #$0A +
-                  'Ксюша, если ты сейчас читаешь это сообщение, знай - я Тебя очень сильно люблю, жить без Тебя не могу, Ты у меня самая-самая.' + #$0D + #$0A +
-                  'Твой на веки.' + #$0D + #$0A + 'Саша.' + #$0D + #$0A + '24 января 2005 года.' + #$0D + #$0A +
-                  'З.Ы. Хочу, воспользовавшись моментом, передать привет, конечно же, моей женушке Ксюне, мамам, ксюшиному папе, хочу вспомнить своего папу,' + #$0D + #$0A +
-                  'без которого небыло бы меня, со всеми вытекающими последствиями, сестре Ире и Дане, друзьям Илюхе (Raze), Сопе, Ваську,' + #$0D + #$0A +
-                  'Вадиму, Олегу, Игорю, Димку, Андрюхе (Хмелу), Ваську (Гуз), Саше,' + #$0D + #$0A + 'пол-групе нормальных человек: Игорю (Юк), Коле, Серому (Толстый),' + #$0D + #$0A +
-                  'Дене (ЛСД), Веталю, коллективу Укртелеком: Леше, Диме, Лиле, Саше, Шурику, Юле, Ире, однокласникам: Жене, Серому (Попеску), Серому (Шляпе),' + #$0D + #$0A +
-                  'Оле, Наде, Наташе, Саше (Буля), компьютерке "Компьютер+": Руслану, Вове и Толику, которые собираль мой комп, 5 и 9 школе где я долго зависал в компьютерных классах,' + #$0D + #$0A +
-                  'и всем всем, кто меня знает и уважает, но кого я не смог вспомнить... Пользуйтесь программой на здоровье, я буду только рад...');
-  //    PlaySound(nil, 0, 0);
-  end;
-  //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.btToWordClick(Sender: TObject);
-  var RangeW:WordXP.Range;
-      v1, v2, v3:Variant;
-      ov1, ov2:OleVariant;
-      Row1:WordXP.Row;
-      i, y, x, k, ax, ay:integer;
-      tstr:string;
-  begin
-      WordApplication1.Connect; // запускаем ворд
-      WordApplication1.Visible:=true; // невидимый
-      WordDocument1.Activate;  // новый документ
+  public void btToWordClick() {
+      WordXPRange RangeW;
+      WordXPRange v1;
+      WordXPRange v2;
+      WordXPRange v3;
+      TRows v4;
+      OleVariant ov1, ov2;
+      WordXPRow Row1;
+      int i, k, ax, ay;
+      String tstr;
+      WordApplication1.Connect(); // запускаем ворд
+      WordApplication1.Visible = true; // невидимый
+      WordDocument1.Activate();  // новый документ
 
-      ay:=((LenY + 1) div 2);
-      ax:=((LenX + 1) div 2);
-      for y:=1 to (LenY + ay) do begin // по всем строкам
-          tstr:='';
-          if (y <= ay)
-              then begin // ряды bmpTop
-                  for x:=1 to ax do tstr:=tstr + ' ' + #9;
-                  for x:=1 to LenX do begin
-                      k:=y - ay + CountRjadY[x];
-                      if (k > 0)
-                          then tstr:=tstr + IntToStr(RjadY[x, k]) + #9
-                          else tstr:=tstr + ' ' + #9;
-                  end;
-              end
-              else begin // ряды bmpLeft и само поле
-                  for x:=1 to (LenX + ax) do begin // по всей строке
-                      if (x <= ax)
-                          then begin // ряды bmpLeft
-                              if (x <= (ax - CountRjadX[y - ay]))
-                                  then tstr:=tstr + ' ' + #9
-                                  else tstr:=tstr + IntToStr(RjadX[x - (ax - CountRjadX[y - ay]), y - ay]) + #9;
-                          end
-                          else begin // поле
-                              tstr:=tstr + ' ' + #9;
-                          end;
-                  end;
-              end;
-          tstr:=copy(tstr, 1, Length(tstr) - 1);
-          WordDocument1.Range.InsertParagraphAfter;
-          WordDocument1.Paragraphs.Last.Range.Font.Size:=6;
-          WordDocument1.Paragraphs.Last.Range.Text:=tstr;
-      end;
+      ay = ((LenY + 1) / 2);
+      ax = ((LenX + 1) / 2);
+      for (int y = 1; y <= (LenY + ay); y++) { // по всем строкам
+          tstr = "";
+          if (y <= ay) { // ряды bmpTop
+              for (int x = 1; x <= ax; x++) {
+                  tstr = tstr + " " + '\u0009';
+              }
+              for (int x = 1; x <= LenX; x++) {
+                  k = y - ay + CountRjadY.arr[x];
+                  if (k > 0) {
+                      tstr = tstr + Integer.toString(RjadY.arr[x][k]) + '\u0009';
+                  } else {
+                      tstr = tstr + " " + '\u0009';
+                  }
+              }
+          } else { // ряды bmpLeft и само поле
+              for (int x = 1; x <= (LenX + ax); x++) { // по всей строке
+                  if (x <= ax) { // ряды bmpLeft
+                      if (x <= (ax - CountRjadX.arr[y - ay])) {
+                          tstr = tstr + " " + '\u0009';
+                      } else {
+                          tstr = tstr + Integer.toString(RjadX.arr[x - (ax - CountRjadX.arr[y - ay])][y - ay]) + '\u0009';
+                      }
+                  } else { // поле
+                      tstr = tstr + " " + '\u0009';
+                  }
+              }
+          }
+          tstr = tstr.substring(1, tstr.length() - 1);
+          WordDocument1.Range.InsertParagraphAfter();
+          WordDocument1.ParagraphsLastRangeFontSize = 6;
+          WordDocument1.ParagraphsLastRangeText = tstr;
+      }
 
-      RangeW:=WordDocument1.Content;
-      v1:=RangeW;
-      v1.ConvertToTable(#9, 19, LenX + (LenX + 1) div 2);
-      Row1:=WordDocument1.Tables.Item(1).Rows.Get_First;
-      Row1.Range.Font.Size:=1;
-      Row1.Range.InsertParagraphAfter;
-      ov1:=' ';
+      RangeW = WordDocument1.Content();
+      v1 = RangeW;
+      v1.ConvertToTable('\u0009', 19, LenX + (LenX + 1) / 2);
+      Row1 = WordDocument1.Tables_Item(1).Rows_Get_First();
+      Row1.RangeFontSize = 1;
+      Row1.RangeInsertParagraphAfter();
+      ov1 = new OleVariant(" ");
       Row1.ConvertToText(ov1, ov1);
 
-      v1:=WordDocument1.Tables.Item(1).Columns;
-      for x:=1 to (ax + LenX) do
-          v1.Item(x).Width:=11;
+      v2 = WordDocument1.Tables_Item(1).Columns;
+      for (int x = 1; x <= (ax + LenX); x++) {
+          v2.Item(x).Width = 11;
+      }
 
-      v1:=WordDocument1.Tables.Item(1).Rows;
-      for y:=1 to (ay + LenY) do
-          v1.Item(y).Height:=11;
+      v3 = WordDocument1.Tables_Item(1).Rows;
+      for (int y = 1; y <= (ay + LenY); y++) {
+          v3.Item(y).Height = 11;
+      }
 
-      v1:=WordDocument1.Tables.Item(1);
-      for x:=(ax + 1) to (ax + LenX) do
-          for y:=(ay + 1) to (ay + LenY) do
-              if (pDM^.Data[x - ax, y - ay] = 1)
-                  then v1.Cell(y, x).Shading.BackgroundPatternColor:=clDkGray;
+      v4 = WordDocument1.Tables_Item(1);
+      for (int x = (ax + 1); x <= (ax + LenX); x++) {
+          for (int y = (ay + 1); y <= (ay + LenY); y++) {
+              if (pDM.data.Data.arr[x - ax][y - ay] == 1){
+                  v1.Cell(y, x).ShadingBackgroundPatternColor = clDkGray;
+              }
+          }
+      }
 
-      WordDocument1.Tables.Item(1).Range.Paragraphs.Format.SpaceBefore:=0;
-      WordDocument1.Tables.Item(1).Range.Paragraphs.Format.SpaceAfter:=0;
-      WordDocument1.Tables.Item(1).Range.Paragraphs.Format.FirstLineIndent:=0;
+      WordDocument1.Tables_Item(1).RangeParagraphsFormatSpaceBefore = 0;
+      WordDocument1.Tables_Item(1).RangeParagraphsFormatSpaceAfter = 0;
+      WordDocument1.Tables_Item(1).RangeParagraphsFormatFirstLineIndent = 0;
 
-      v1:=WordDocument1.Tables.Item(1).Columns;
-      for x:=(ax + 1) to (ax + LenX) do begin
-          v1.Item(x).Borders.OutsideLineStyle:=1;
+      v1 = WordDocument1.Tables_Item(1).Columns;
+      for (int x = (ax + 1); x <= (ax + LenX); x++) {
+          v1.Item(x).BordersOutsideLineStyle = 1;
 
-          v1.Item(x).Cells.VerticalAlignment:=wdCellAlignVerticalCenter;
-      end;
+          v1.Item(x).CellsVerticalAlignment = wdCellAlignVerticalCenter;
+      }
 
-      v1:=WordDocument1.Tables.Item(1).Rows;
-      for y:=(ay + 1) to (ay + LenY) do begin
-          v1.Item(y).Borders.OutsideLineStyle:=1;
-          v1.Item(y).Cells.VerticalAlignment:=wdCellAlignVerticalCenter;
-      end;
+      v1 = WordDocument1.Tables_Item(1).Rows;
+      for (int y = (ay + 1); y <= (ay + LenY); y++) {
+          v1.Item(y).BordersOutsideLineStyle = 1;
+          v1.Item(y).CellsVerticalAlignment = wdCellAlignVerticalCenter;
+      }
 
-      v1:=WordDocument1.Tables.Item(1).Columns;
-      for x:=ax to (ax + LenX) do
-          if (((x - ax) mod 5) = 0)
-              then v1.Item(x).Borders.Item(wdBorderRight).LineStyle:=7;
+      v1 = WordDocument1.Tables_Item(1).Columns;
+      for (int x = ax; x <= (ax + LenX); x++) {
+          if (((x - ax) % 5) == 0) {
+              v1.Item(x).BordersItem(wdBorderRight).LineStyle = 7;
+          }
+      }
 
-      v1:=WordDocument1.Tables.Item(1).Rows;
-      for y:=ay to (ay + LenY) do
-          if (((y - ay) mod 5) = 0)
-              then v1.Item(y).Borders.Item(wdBorderBottom).LineStyle:=7;
+      v1 = WordDocument1.Tables_Item(1).Rows;
+      for (int y = ay; y <= (ay + LenY); y++) {
+          if (((y - ay) % 5) == 0) {
+              v1.Item(y).BordersItem(wdBorderBottom).LineStyle = 7;
+          }
+      }
 
-      WordDocument1.Tables.Item(1).Columns.Borders.OutsideLineStyle:=7;
+      WordDocument1.Tables_Item(1).Columns.BordersOutsideLineStyle = 7;
 
-      WordApplication1.Visible:=true; // видимый
-      WordApplication1.Disconnect; // отсоеденячемся от ворда
-  end;
+      WordApplication1.Visible = true; // видимый
+      WordApplication1.Disconnect(); // отсоеденячемся от ворда
+  }
   //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
-  begin
-      case Direction of
-          updUp:bUpDown:=true;
-          updDown:bUpDown:=false;
-      end;
-  end;
+  public void udCountXChangingEx(boolean AllowChange, int NewValue, TUpDownDirection Direction) {
+      switch (Direction) {
+          case updUp : bUpDown = true; break;
+          case updDown : bUpDown = false; break;
+      }
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-  begin
-      Label1.Caption:='';
-  end;
+  public void FormMouseMove(TShiftState Shift, int X, int Y){
+      Label1.Caption = "";
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.CheckBox1Click(Sender: TObject);
-  begin
-      btClear.Click;
-      btCalc.Click;
-  end;
+  public void CheckBox1Click() {
+      btClear.Click();
+      btCalc.Click();
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
-  var x, y, a:integer;
-      h, m, s, ms:word;
-  begin
-      if (bTimeNow) then t:=Now;
-      if (bPredpl)
-          then begin
-              if (bWhoPredpl = 1)
-                  then Label2.Caption:='Расчет: предп. т.'
-                  else Label2.Caption:='Расчет: предп. п.';
-          end
-          else Label2.Caption:='Расчет: точно';
-      if (bRjadStolb)
-          then Label4.Caption:=Format('Ряд: %d', [Rjad])
-          else Label4.Caption:=Format('Столбец: %d', [Rjad]);
-      DecodeTime(Now - t, h, m, s, ms);  //
-      Label5.Caption:=Format('Время: %d-%d-%d', [(h*60) + m, s, ms]);
-      if (bPredpl) then Exit;
-      a:=0;
-      for x:=1 to LenX do
-          for y:=1 to LenY do
-              if (pDM^.Data[x, y] > 0) then a:=a + 1;
-      Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
-  end;
+  public void SetInfo(int Rjad, boolean bRjadStolb, boolean bPredpl, boolean bTimeNow, int bWhoPredpl) {
+      int a;
+      if (bTimeNow) t = Calendar.getInstance().getTime();
+      if (bPredpl) {
+          if (bWhoPredpl == 1) {
+              Label2.Caption = "Расчет: предп. т.";
+          } else {
+              Label2.Caption = "Расчет: предп. п.";
+          }
+      } else {
+          Label2.Caption = "Расчет: точно";
+      }
+      if (bRjadStolb) {
+          Label4.Caption = String.format("Ряд: %s", Rjad);
+      } else {
+          Label4.Caption = String.format("Столбец: %s", Rjad);
+      }
+      Label5.Caption = Calendar.getInstance().getTime().toString();
+      if (bPredpl) return;
+      a = 0;
+      for (int x = 1; x <= LenX; x++) {
+          for (int y = 1; y <= LenY; y++) {
+              if (pDM.data.Data.arr[x][y] > 0) {
+                  a = a + 1;
+              }
+          }
+      }
+      Label3.Caption = "Открыто: " + Double.toString(Math.round(1000*a/(LenX*LenY))/10) + "%(" + Integer.toString(a) + ")";
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  procedure TForm1.SaveTime;
-  var ini:TIniFile;
-      tstr, tstr2:string;
-  begin
-      if (LoadFileName = '') then begin
-          ShowMessage('Сохраните файл!');
-          Exit;
-      end;
-      ini:=TIniFile.Create(ExtractFileDir(LoadFileName) + '\Time.txt');
-      try
-          tstr:=ExtractFileName(LoadFileName);
-          tstr2:=ini.ReadString(tstr, '_', '');
-          ini.WriteString(tstr, '_', tstr2 + Copy(Label5.Caption, 7, MaxInt) + ', ');
-      finally
-          ini.Free;
-      end;
-  end;
+  public void SaveTime() {
+      TIniFile ini;
+      String tstr, tstr2;
+      if (LoadFileName.equals("")) {
+          ShowMessage("Сохраните файл!");
+          return;
+      }
+      ini = new TIniFile(ExtractFileDir(LoadFileName) + "Time.txt");
+      try {
+          tstr = ExtractFileName(LoadFileName);
+          tstr2 = ini.ReadString(tstr, "_", "");
+          ini.WriteString(tstr, "_", tstr2 + Label5.Caption.substring(7) + ", ");
+      } finally {
+          ini.Close();
+      }
+  }
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  end.
+
 }
