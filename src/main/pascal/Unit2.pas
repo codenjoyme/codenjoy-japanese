@@ -21,49 +21,26 @@ type
   TRjad = array [1..MaxLen] of byte;
   PRjad = ^TRjad;
   TBitArray = array [1..MaxLen] of boolean;
-  TComb = array [1..1000000] of TBitArray;
+  TComb = array [1..10000000] of TBitArray;
 
 var
     glData:TData;
 
-    glComb:TComb;
-    glCountComb:integer;
+    glComb1, glComb2:TBitArray;
     glCurrComb:TBitArray;
     glLen:integer;
 
+
     glRjad:TRjad;
     glCountRjad:integer;
-    Max:integer;
 
     procedure GetRjadFromComb(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
     procedure GetCombFromRjad(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
     function  ManipuleRjad(var r: TRjad10; var cr:integer):boolean;
     function  TestComb(var dt:TData; l:integer; var bits:TBitArray):boolean;
     function  Calculate:boolean;
-    procedure GetRjad;
-            
+
 implementation
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure GetRjad;
-var i, a:integer;
-begin
-    a:=0; glCountRjad:=1;
-    for i:=1 to glLen do begin
-        if (glData[i] = 1)
-            then inc(a)
-            else
-                if (a <> 0) then begin
-                    glRjad[glCountRjad]:=a;
-                    a:=0;
-                    inc(glCountRjad);
-                end;
-    end;
-    if (a <> 0) then begin
-        glRjad[glCountRjad]:=a;
-        inc(glCountRjad);
-    end;
-    dec(glCountRjad);
-end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function Calculate:boolean;
 var i, j:integer;
@@ -73,7 +50,6 @@ var i, j:integer;
 begin
     Result:=false;
     if (glCountRjad = 0) then begin
-        glCountRjad:=-1;
         Result:=true;
         for i:=1 to glLen do
             if (glData[i] = 1)
@@ -81,9 +57,12 @@ begin
                 else glData[i]:=2;
         Exit;
     end;
-
-    glCountComb:=1;
-
+    //-----------
+    for i:=1 to glLen do begin
+        glComb1[i]:=true;
+        glComb2[i]:=false;
+    end;
+    //-----------
     cr:=1; j:=0;
     for i:=1 to glCountRjad do begin
         Rjad10[cr].b:=true;
@@ -96,38 +75,29 @@ begin
     cr:=cr - 1;
     if (j > glLen) then cr:=cr - 1;
     if (j < glLen) then Rjad10[cr].c:=Rjad10[cr].c + glLen - j;
-
-
-    GetCombFromRjad(Rjad10, cr, glCurrComb);
-    if (TestComb(glData, glLen, glCurrComb))
-        then glComb[glCountComb]:=glCurrComb
-        else Dec(glCountComb);
     //-------
     b1:=true;
+    b2:=false;
     while (b1) do begin
-        inc(glCountComb);
-        GetRjadFromComb(Rjad10, cr, glCurrComb);
-        b1:=ManipuleRjad(Rjad10, cr);
         GetCombFromRjad(Rjad10, cr, glCurrComb);
         if (TestComb(glData, glLen, glCurrComb))
-            then glComb[glCountComb]:=glCurrComb
-            else Dec(glCountComb);
+            then begin
+                b2:=true;
+                for i:=1 to glLen do begin
+                    glComb1[i]:=glComb1[i] and glCurrComb[i];
+                    glComb2[i]:=glComb2[i] or  glCurrComb[i];
+                end;
+            end;
+        GetRjadFromComb(Rjad10, cr, glCurrComb);
+        b1:=ManipuleRjad(Rjad10, cr);
     end;
-    if (glCountComb = 0)
+    if (not b2)
         then Exit
         else Result:=true;
-    if (Max < glCountComb) then Max:=glCountComb;
     //-----------
     for i:=1 to glLen do begin
-        glData[i]:=0;
-        b1:=true;
-        b2:=false;
-        for j:=1 to glCountComb do begin
-            b1:=b1 and glComb[j, i];
-            b2:=b2 or glComb[j, i];
-        end;
-        if (b1) then glData[i]:=1;
-        if (not b2) then glData[i]:=2;
+        if (glComb1[i]) then glData[i]:=1;
+        if (not glComb2[i]) then glData[i]:=2;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,7 +112,6 @@ begin
             1:if (bits[i] <> true) then Result:=false;
             2:if (bits[i] <> false) then Result:=false;
         end;
-        a:=i + i;
         if (not Result) then Exit;
     end;
 end;

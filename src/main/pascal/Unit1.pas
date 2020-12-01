@@ -28,6 +28,7 @@ type
     cbRjad: TCheckBox;
     btSaveBimap: TButton;
     spd: TSavePictureDialog;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -44,6 +45,7 @@ type
     procedure cbRjadClick(Sender: TObject);
     procedure btSaveBimapClick(Sender: TObject);
     procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure Button1Click(Sender: TObject);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -58,15 +60,17 @@ type
     RjadX, RjadY:TXYRjad;
     CountRjadX, CountRjadY:TXYCountRjad;
     procedure Draw;
+    procedure RefreshPole;
     procedure DrawPole;
     procedure DrawSmall;
     procedure DrawLeft;
-    procedure DrawTopt;
+    procedure DrawTop;
     procedure GetRjadX;
     procedure GetRjadY;
     procedure DataFromRjadX(y:integer);
     procedure DataFromRjadY(x:integer);
     procedure ClearData;
+    procedure GetFin;
     function  Check:integer;
     function  GetMaxCountRjadX:integer;
     function  GetMaxCountRjadY:integer;
@@ -167,7 +171,7 @@ begin
     DrawPole;
     if (not cbRjad.Checked) then DrawSmall;
     DrawLeft;
-    DrawTopt;
+    DrawTop;
     Buf.Width:=bmpLeft.Width + bmpPole.Width;
     Buf.Height:=bmpTop.Height + bmpPole.Height;
     Buf.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpTop.Height);
@@ -215,7 +219,7 @@ begin
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.DrawTopt;
+procedure TForm1.DrawTop;
 var x, y, tx, ty, a, d, py:integer;
     tstr:string;
 begin
@@ -239,8 +243,21 @@ begin
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.RefreshPole;
+begin
+    Draw;
+    exit;
+    DrawPole;
+    DrawSmall;
+    Buf.Canvas.Draw(bmpLeft.Width, bmpTop.Height, bmpPole);
+    if (not cbRjad.Checked)
+        then Buf.Canvas.Draw((bmpLeft.Width - bmpSmall.Width) div 2,
+                             (bmpTop.Height - bmpSmall.Height) div 2, bmpSmall);
+    pbPaint(Self);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DrawPole;
-var x, y, d1, d2:integer;
+var x, y, d1, d2, tx1, ty1, tx2, ty2:integer;
 begin
     bmpPole.Width:=LenX*wid + 1;
     bmpPole.Height:=LenY*wid + 1;
@@ -249,20 +266,24 @@ begin
         for y:=1 to LenY do begin
             if ((x mod 5) = 0) then d1:=0 else d1:=1;
             if ((y mod 5) = 0) then d2:=0 else d2:=1;
+            tx1:=(x - 1)*wid;
+            ty1:=(y - 1)*wid;
+            tx2:=x*wid;
+            ty2:=y*wid;
             case (Data[x, y]) of
                 0: begin
                     bmpPole.Canvas.Brush.Color:=clWhite;
-                    bmpPole.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + d1, y*wid + d2);
+                    bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
                    end;
                 1: begin
                     bmpPole.Canvas.Brush.Color:=clLtGray;
-                    bmpPole.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + d1, y*wid + d2);
+                    bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
                     bmpPole.Canvas.Brush.Color:=clBlack;
-                    bmpPole.Canvas.Ellipse((x - 1)*wid + 2, (y - 1)*wid + 2, x*wid - 2, y*wid - 2);
+                    bmpPole.Canvas.Ellipse(tx1 + 2, ty1 + 2, tx2 - 2, ty2 - 2);
                    end;
                 2: begin
                     bmpPole.Canvas.Brush.Color:=clLtGray;
-                    bmpPole.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + d1, y*wid + d2);
+                    bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
                    end;
             end;
         end;
@@ -385,12 +406,13 @@ begin
             Unit2.glLen:=LenX;
             if (not Unit2.Calculate) then begin
                 ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
+                RefreshPole;
                 Exit;
             end;
-            if (Unit2.glCountRjad = 0) then Exit;
             for x:=1 to LenX do
                 Form1.Data[x, y]:=Unit2.glData[x];
-            Draw;
+//            GetFin;
+            RefreshPole;
             Exit;
         end;
 
@@ -458,12 +480,13 @@ begin
             Unit2.glLen:=LenY;
             if (not Unit2.Calculate) then begin
                 ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(X) + ').');
+                RefreshPole;
                 Exit;
             end;
-            if (Unit2.glCountRjad = 0) then Exit;
             for y:=1 to LenY do
                 Form1.Data[x, y]:=Unit2.glData[y];
-            Draw;
+//            GetFin;
+            RefreshPole;
             Exit;
         end;
 
@@ -654,12 +677,11 @@ begin
             btClear.Enabled:=true;
             edInput.Enabled:=true;
             edInput.SetFocus;
-            Draw;
+            RefreshPole;
             Exit; // сразу выходим
         end;
 
     t:=Now; //
-    Unit2.Max:=0; //
 
     x:=Check; // проверка на совпадение рядов
     if (x <> 0) then begin
@@ -682,20 +704,19 @@ begin
                 btCalc.Click; // остановка
                 Exit;
             end;
-            // заполнение поля
-            c:=false; // флаг закончености строки
-            for x:=1 to LenX do begin // по строке
-                b:=b or (Form1.Data[x, y] <> Unit2.glData[x]); // если произошли изменения
-                Form1.Data[x, y]:=Unit2.glData[x]; // запись
-                c:=c or (Form1.Data[x, y] = 0); // если заполнено
-            end;
-            FinX[y]:=not c; // массив флагов заполнености
+            for x:=1 to LenX do
+                if (Data[x, y] <> Unit2.glData[x]) then begin
+                    Data[x, y]:=Unit2.glData[x];
+                    b:=true;
+                end;
         end;
-        Draw; // прорисовка
+        GetFin;
+        RefreshPole; // прорисовка поля
         // дальше то же только для столбцов
         for x:=1 to LenX do begin
             Application.ProcessMessages;
             if (btCalc.Tag = 0) then edInput.SetFocus;
+
             if (FinY[x]) then Continue;
             PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
@@ -704,22 +725,40 @@ begin
                 btCalc.Click;
                 Exit;
             end;
-            c:=false;
-            for y:=1 to LenY do begin
-                b:=b or (Form1.Data[x, y] <> Unit2.glData[y]);
-                Form1.Data[x, y]:=Unit2.glData[y];
-                c:=c or (Form1.Data[x, y] = 0);
-            end;
-            FinY[x]:=not c;
+            for y:=1 to LenY do
+                if (Data[x, y] <> Unit2.glData[y]) then begin
+                    b:=true;
+                    Data[x, y]:=Unit2.glData[y];
+                end;
         end;
-        Draw;
+        GetFin;
+        RefreshPole;
     until (not b);
     DecodeTime(Now - t, h, m, s, ms);  //
-    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms) + '-' + IntToStr(Unit2.Max) ;  //
+    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);  //
     // очистка массивв флагов заполнености
     for x:=1 to LenX do FinY[x]:=false;
     for y:=1 to LenY do FinX[y]:=false;
     btCalc.Click; // остановка
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.GetFin;
+var c:boolean;
+    x, y:integer;
+begin
+    // заполнение поля
+    for y:=1 to LenY do begin
+        c:=false; // флаг закончености строки
+        for x:=1 to LenX do  // по строке
+            c:=c or (Data[x, y] = 0); // если заполнено
+        FinX[y]:=not c; // массив флагов заполнености
+    end;
+    for x:=1 to LenX do begin
+        c:=false; // флаг закончености строки
+        for y:=1 to LenY do  // по строке
+            c:=c or (Data[x, y] = 0); // если заполнено
+        FinY[x]:=not c; // массив флагов заполнености
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.PrepRjadX(Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
@@ -920,11 +959,12 @@ procedure TForm1.edInputKeyPress(Sender: TObject; var Key: Char);
 var i, j, a:integer;
     tstr:string;
 begin
-    if not (Key in ['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', #13. #8]) then begin
+    if not (Key in ['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', #13, #8]) then begin
         Key:=#0;
         Exit;
     end;
     if (Key = #13) then begin
+        Key:=#0;
         tstr:=edInput.Text;
         if (tstr = '') then Exit;
         // убираем дубл. точки
@@ -1062,6 +1102,23 @@ begin
                 'Оле, Наде, Наташе, Саше (Буля), компьютерке "Компьютер+": Руслану, Вове и Толику, которые собираль мой комп, 5 и 9 школе где я долго зависал в компьютерных классах,' + #$0D + #$0A +
                 'и всем всем, кто меня знает и уважает, но кого я не смог вспомнить... Пользуйтесь программой на здоровье, я буду только рад...');
 //    PlaySound(nil, 0, 0);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.Button1Click(Sender: TObject);
+var i:integer;
+begin
+    i:=2;
+    od.FileName:=od.InitialDir + '\' + IntToStr(i) + '.jap';
+    while FileExists(od.FileName) do begin
+        LoadRjadFromFile(od.FileName); // грузим файл
+        ClearData; // очищаем проле
+        Draw;
+        edInput.SetFocus;
+        btCalc.Click;
+        ShowMessage(IntToStr(i));
+        inc(i);
+        od.FileName:=od.InitialDir + '\' + IntToStr(i) + '.jap';
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
