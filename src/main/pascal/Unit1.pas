@@ -13,6 +13,12 @@ type
   TFinish = array [1..MaxLen] of boolean;
   TXYCountRjad = array [1..MaxLen] of byte;
   TXYVer = array [1..MaxLen, 1..MaxLen, 1..2] of Real;
+  TPredpl = record
+    SetTo:TPoint;
+    SetDot:boolean;
+    B:boolean;
+    CountOpened:integer;
+  end;
   TAllData = record
     Ver:TXYVer;
     FinX, FinY:TFinish;
@@ -20,13 +26,9 @@ type
     Data:TXYData;
     tChX, tChY:TFinish;
     NoSet:TXYPustot;
+    Predpl:TPredpl;
   end;
   PAllData = ^TAllData;
-  TPredpl = record
-    SetTo:TPoint;
-    SetDot:boolean;
-    B:boolean;
-  end;
   TCurrPt = record // текущий ряд (для редактирования)
     pt:TPoint; // координаты
     xy:boolean; // ряд / столбец
@@ -81,8 +83,7 @@ type
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure CheckBox1Click(Sender: TObject);
-    procedure edInputKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     t:TdateTime; // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     PredCoord:TPoint; PredButt:TShiftState; //
@@ -90,8 +91,9 @@ type
     Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap; // битмапы для подготовки изображения
     CurrPt:TCurrPt;
     bChangeLen, bUpDown:boolean; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
-    AllData1, AllData2, AllData3:TAllData; // масивы данных
     pDM, pDT, pDP:PAllData; // это указаьели на массивы данных
+    pDArr:array of array [boolean] of PAllData;
+    Arr_pDLen:integer;
     Predpl:TPredpl; //данные предположения
     LenX, LenY:integer; // длинна и высота кроссворда
     RjadX, RjadY:TXYRjad; // тут хранятся цифры рядов
@@ -123,6 +125,7 @@ type
     procedure SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
     procedure ChangeActive(pt:TPoint; xy:boolean);
     procedure ActiveNext(c:integer);
+    procedure DisposeAll;
   public
     { Public declarations }
   end;
@@ -437,17 +440,17 @@ begin
             tx2:=x*wid;
             ty2:=y*wid;
             case (pDM^.Data[x, y]) of
-                0:  begin
+                0:  begin  // ничего
                         bmpPole.Canvas.Brush.Color:=clWhite;
                         bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
                     end;
-                1:  begin
+                1:  begin // точка
                         bmpPole.Canvas.Brush.Color:=clLtGray;
                         bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
                         bmpPole.Canvas.Brush.Color:=clBlack;
                         bmpPole.Canvas.Ellipse(tx1 + 2, ty1 + 2, tx2 - 2, ty2 - 2);
                     end;
-                2:  begin
+                2:  begin // пустота
                         bmpPole.Canvas.Brush.Color:=clLtGray;
                         bmpPole.Canvas.Rectangle(tx1, ty1, tx2 + d1, ty2 + d2);
                     end;
@@ -484,9 +487,8 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-    pDM:=@AllData1;
-    pDT:=@AllData2;
-    pDP:=@AllData3;
+    Arr_pDLen:=0;
+    New(pDM);
     Application.Title:=Form1.Caption;
     udCountX.Max:=MaxLen;
     udCountY.Max:=MaxLen;
@@ -856,7 +858,7 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
-var x, y:integer;
+var x, y, i:integer;
     b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
     h, m, s, ms:word;
     MaxVer1, MaxVer2:Real;
@@ -902,11 +904,14 @@ begin
             edInput.SetFocus;
             RefreshPole; // прорисовка поля
             SetInfo(0, true, false, false, 0);
+            DisposeAll;
             Exit; // сразу выходим
         end;
 
     t:=Now; //
 
+    New(pDT);
+    New(pDP);
     // проверка на совпадение рядов
     pt:=Check;
     x:=abs(pt.x - pt.y);
@@ -974,7 +979,50 @@ begin
                     then pWork:=pDT
                     else pWork:=pDP;
             end
-            else pWork:=pDM;
+            else begin
+                pWork:=pDM;
+
+                            {перед предположением надо проверить все предидущие сохраненые предположения}
+                            i:=0;
+                            while (i < Arr_pDLen) do begin // по всем сохраненным предположениям
+                                pt:=pDArr[i, true]^.Predpl.SetTo; // координаты, куда ставили
+                                if (pDM^.Data[pt.x, pt.y] = 1) then begin // если то что ставили в этом предположеинии уже стоит, то проставляем все новвоведения
+                                    for x:=1 to LenX do  // по всему полю
+                                        for y:=1 to LenY do begin
+                                            if (pDArr[i, true]^.Data[x, y] <> 0) and (pDM^.Data[x, y] = 0) then begin // как раз ищем новоовведения
+                                                pDM^.Data[x, y]:=pDArr[i, true]^.Data[x, y];
+                                                pDM^.ChX[y]:=true;
+                                                pDM^.ChY[x]:=true;
+                                            end;
+                                        end;
+                                    Dispose(pDArr[i, true]); // удаляем сохраненное
+                                    Dispose(pDArr[i, false]);
+                                    pDArr[i, true]:=pDArr[Arr_pDLen - 1, true];
+                                    pDArr[i, false]:=pDArr[Arr_pDLen - 1, false];
+                                    Arr_pDLen:=Arr_pDLen - 1;
+                                    GetFin(pDM); // ну и финализируем
+                                end;
+//                                pt:=pDArr[i, false]^.Predpl.SetTo; // координаты, куда ставили
+                                if (pDM^.Data[pt.x, pt.y] = 2) then begin // если то что ставили в этом предположеинии уже стоит, то проставляем все новвоведения
+                                    for x:=1 to LenX do  // по всему полю
+                                        for y:=1 to LenY do begin
+                                            if (pDArr[i, false]^.Data[x, y] <> 0) and (pDM^.Data[x, y] = 0) then begin // как раз ищем новоовведения
+                                                pDM^.Data[x, y]:=pDArr[i, false]^.Data[x, y];
+                                                pDM^.ChX[y]:=true;
+                                                pDM^.ChY[x]:=true;
+                                            end;
+                                        end;
+                                    Dispose(pDArr[i, true]); // удаляем сохраненное
+                                    Dispose(pDArr[i, false]);
+                                    pDArr[i, true]:=pDArr[Arr_pDLen - 1, true];
+                                    pDArr[i, false]:=pDArr[Arr_pDLen - 1, false];
+                                    Arr_pDLen:=Arr_pDLen - 1;
+                                    GetFin(pDM); // ну и финализируем
+                                end;
+                                inc(i);
+                            end;
+                            {и только потом предполагать дальше}
+            end;
 
         if ((not b5) and (not b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
             for y:=1 to LenY do begin
@@ -1006,6 +1054,7 @@ begin
                 for x:=1 to LenX do begin
                     pWork^.Ver[x, y, 1]:=Unit2.glVer[x];
                     if (pWork^.Data[x, y] <> Unit2.glData[x]) then begin
+                        if (Predpl.B) then pWork^.Predpl.CountOpened:=pWork^.Predpl.CountOpened + 1;
                         pWork^.Data[x, y]:=Unit2.glData[x];
                         if (not b)
                             then b:=true;
@@ -1021,7 +1070,7 @@ begin
             end;
             if (not Predpl.B) then RefreshPole; // прорисовка поля только в случае точного расчета
         end;
-        if (not b9)
+        if ((not b9) and (not b8))
             then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
 
         if ((not b2) and (not b5) and (not b8) and (not b9)) then begin // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
@@ -1055,6 +1104,7 @@ begin
                 for y:=1 to LenY do begin
                     pWork^.Ver[x, y, 2]:=Unit2.glVer[y];
                     if (pWork^.Data[x, y] <> Unit2.glData[y]) then begin
+                        if (Predpl.B) then pWork^.Predpl.CountOpened:=pWork^.Predpl.CountOpened + 1;
                         pWork^.Data[x, y]:=Unit2.glData[y];
                         if (not b)
                             then b:=true;
@@ -1071,7 +1121,7 @@ begin
             if (not Predpl.B) then RefreshPole;// прорисовка поля
             if (b11) then b:=true; // чтобы после прогона по х пошел прогон по у
         end;
-        if (not b9)
+        if ((not b9) and (not b8))
             then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
 
         if (b7 or b8) then b:=false; // все конец
@@ -1116,6 +1166,12 @@ begin
                                             pt:=Predpl.SetTo;
                                             pDM^.NoSet[pt.x, pt.y]:=true;
                                             pDM^.Data[pt.x, pt.y]:=0;
+                                            Arr_pDLen:=Arr_pDLen + 1;
+                                            SetLength(pDArr, Arr_pDLen);
+                                            pDArr[Arr_pDLen - 1, true]:=pDT;
+                                            pDArr[Arr_pDLen - 1, false]:=pDP;
+                                            New(pDT);
+                                            New(pDP);
                                             Draw(pt);
                                             b5:=true; // дальше предполагаем
                                             b:=true; // продолжаем дальше
@@ -1236,6 +1292,7 @@ begin
     pWork.ChY[pt.x]:=true;
     pWork.FinX[pt.y]:=false;
     pWork.FinY[pt.x]:=false;
+    pWork.Predpl:=Predpl;
     Draw(pt);
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1288,6 +1345,7 @@ begin
     end;
     Predpl.SetTo:=pt;
     Predpl.SetDot:=bDot;
+    Predpl.CountOpened:=0;
     SetPredplDot(bDot);
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1423,7 +1481,7 @@ begin
         1: SaveRjadToFile(sd.FileName);
         2: SaveDataToFile(sd.FileName);
     end;
-    Form1.Caption:='Японские головоломки - ' + ExtractFileName(sd.FileName);
+    Form1.Caption:='NEW Японские головоломки - ' + ExtractFileName(sd.FileName);
     edInput.SetFocus;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1467,7 +1525,7 @@ begin
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            Form1.Caption:='Японские головоломки - ' + ExtractFileName(tstr) + ', ' + ExtractFileName(tstr2);
+            Form1.Caption:='NEW Японские головоломки - ' + ExtractFileName(tstr) + ', ' + ExtractFileName(tstr2);
             SetInfo(0, true, false, true, 0);
             Exit;
         end;
@@ -1485,7 +1543,7 @@ begin
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+            Form1.Caption:='NEW Японские головоломки - ' + ExtractFileName(od.FileName);
             SetInfo(0, true, false, false, 0);
             if (not b) then btCalc.Click;
         end;
@@ -1503,7 +1561,7 @@ begin
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+            Form1.Caption:='NEW Японские головоломки - ' + ExtractFileName(od.FileName);
             SetInfo(0, true, false, true, 0);
         end;
     end;
@@ -1911,6 +1969,18 @@ begin
         for y:=1 to LenY do
             if (pDM^.Data[x, y] > 0) then a:=a + 1;
     Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DisposeAll;
+var i:integer;
+begin
+    for i:=0 to (Arr_pDLen - 1) do begin
+        Dispose(pDArr[i, true]);
+        Dispose(pDArr[i, false]);
+    end;
+    Dispose(pDT);
+    Dispose(pDP);
+    Arr_pDLen:=0;
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
