@@ -16,10 +16,10 @@ object Form1: TForm1
   PixelsPerInch = 96
   TextHeight = 13
   object pb: TPaintBox
-    Left = 88
+    Left = 80
     Top = 8
-    Width = 377
-    Height = 25
+    Width = 489
+    Height = 513
     OnMouseDown = pbMouseDown
     OnMouseMove = pbMouseMove
     OnMouseUp = pbMouseUp
@@ -60,7 +60,7 @@ object Form1: TForm1
     Top = 80
     Width = 65
     Height = 17
-    Caption = 'cbMode'
+    Caption = 'Расш.'
     TabOrder = 3
     OnClick = cbModeClick
   end
@@ -84,5 +84,33 @@ object Form1: TForm1
     Position = 20
     TabOrder = 5
     Wrap = False
+  end
+  object btSave: TButton
+    Left = 8
+    Top = 136
+    Width = 65
+    Height = 25
+    Caption = 'Сохранить'
+    TabOrder = 6
+    OnClick = btSaveClick
+  end
+  object btLoad: TButton
+    Left = 8
+    Top = 168
+    Width = 65
+    Height = 25
+    Caption = 'Загрузить'
+    TabOrder = 7
+    OnClick = btLoadClick
+  end
+  object od: TOpenDialog
+    Filter = 'Файлы расшифровщика (*.jap)|*.jap|Файлы редактора (*.jdt)|*.jdt'
+    Left = 56
+    Top = 168
+  end
+  object sd: TSaveDialog
+    Filter = 'Файлы расшифровщика (*.jap)|*.jap|Файлы редактора (*.jdt)|*.jdt'
+    Left = 56
+    Top = 136
   end
 end

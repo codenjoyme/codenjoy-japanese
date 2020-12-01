@@ -10,7 +10,7 @@ type
      Pos, Ass:TPoint;
      Check:byte; // 0 - пусто 1 - чек 2 - нечек
   end;
-  TData = array [1..40] of TDataPt;
+  TData = array [1..40] of byte;
   TRjad10 = array [1..40] of record
     c:byte;
     b:boolean;
@@ -34,11 +34,30 @@ var
     function  ManipuleRjad(var r: TRjad10; var cr:integer):boolean;
     function  TestComb(var dt:TData; l:integer; var bits:TBitArray):boolean;
     procedure Calculate;
-    procedure Init(Data:TData; Len:integer; Rjad:TRjad; CountRjad:integer);
-    procedure Finish(var Data:TData; var Len:integer; var Rjad:TRjad; var CountRjad:integer);
-
+    procedure GetRjad;
 
 implementation
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure GetRjad;
+var i, a:integer;
+begin
+    a:=0; glCountRjad:=1;
+    for i:=1 to glLen do begin
+        if (glData[i] = 1)
+            then inc(a)
+            else
+                if (a <> 0) then begin
+                    glRjad[glCountRjad]:=a;
+                    a:=0;
+                    inc(glCountRjad);
+                end;
+    end;
+    if (a <> 0) then begin
+        glRjad[glCountRjad]:=a;
+        inc(glCountRjad);
+    end;
+    dec(glCountRjad);
+end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure Calculate;
 var i, j:integer;
@@ -47,6 +66,14 @@ var i, j:integer;
     cr:integer;
     Del:array [1..100000] of boolean;
 begin
+//    GetRjad;
+
+    if (glCountRjad = 0) then begin
+        glCountRjad:=-1;
+        for i:=1 to glLen do glData[i]:=2;
+        Exit;
+    end;
+
     glCountComb:=1;
 
     for i:=1 to 100000 do Del[i]:=true;
@@ -77,7 +104,7 @@ begin
     end;
     //-----------
     for i:=1 to glLen do begin
-        glData[i].Check:=0;
+        glData[i]:=0;
         b1:=true;
         b2:=false;
         for j:=1 to glCountComb do begin
@@ -85,8 +112,8 @@ begin
             b1:=b1 and glComb[j, i];
             b2:=b2 or glComb[j, i];
         end;
-        if (b1) then glData[i].Check:=1;
-        if (not b2) then glData[i].Check:=2;
+        if (b1) then glData[i]:=1;
+        if (not b2) then glData[i]:=2;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,7 +122,7 @@ var i:integer;
 begin
     Result:=true;
     for i:=1 to l do begin
-        case dt[i].Check of
+        case dt[i] of
             0:;
             1:if (bits[i] <> true) then Result:=false;
             2:if (bits[i] <> false) then Result:=false;
@@ -227,22 +254,6 @@ begin
    {|}     {|}      end;
    {|}      end;
     end;
-end;
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure Init(Data:TData; Len:integer; Rjad:TRjad; CountRjad:integer);
-begin
-    glData:=Data;
-    glLen:=Len;
-    glRjad:=Rjad;
-    glCountRjad:=CountRjad;
-end;
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure Finish(var Data:TData; var Len:integer; var Rjad:TRjad; var CountRjad:integer);
-begin
-    Data:=glData;
-    Len:=glLen;
-    Rjad:=glRjad;
-    CountRjad:=glCountRjad;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
