@@ -9,7 +9,7 @@ uses
 type
   TData = record
      Pos, Ass:TPoint;
-     Check:byte; // 0 - пусто 1 - чек 2 - нечек
+     Check:boolean; // 0 - пусто 1 - нет
   end;
   TRjad10 = array [1..40] of record
     c:byte;
@@ -24,6 +24,9 @@ type
     udCount: TUpDown;
     pb: TPaintBox;
     btCalc: TButton;
+    cbMode: TCheckBox;
+    Button1: TButton;
+    Button2: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -32,6 +35,9 @@ type
     procedure pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure pbMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure btCalcClick(Sender: TObject);
+    procedure cbModeClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -93,18 +99,23 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DrawPole;
-var i:integer;
+var i, x1, y1, x2, y2, x3, y3:integer;
+    tstr:string;
 begin
     bmpPole.Width:=udCount.Position*wid;
     bmpPole.Height:=wid;
     bmpPole.Canvas.Rectangle(0, 0, bmpPole.Width, bmpPole.Height);
     for i:=1 to udCount.Position do begin
-        case (Data[i].Check) of
-            0: bmpPole.Canvas.Brush.Color:=clWhite;
-            1: bmpPole.Canvas.Brush.Color:=clBlack;
-            2: bmpPole.Canvas.Brush.Color:=clLtGray;
-        end;
-        bmpPole.Canvas.Rectangle((i - 1)*wid, 0, i*wid, wid);
+        tstr:='+';
+        x1:=(i - 1)*wid; y1:=0;
+        x2:=i*wid;       y2:=wid;
+        x3:=x1 + (wid - bmpLeft.Canvas.TextWidth(tstr)) div 2;
+        y3:=y1 + (wid - bmpLeft.Canvas.TextHeight(tstr)) div 2;
+        if (Data[i].Check)
+            then bmpPole.Canvas.Brush.Color:=clDkGray
+            else bmpPole.Canvas.Brush.Color:=clWhite;
+        bmpPole.Canvas.Rectangle(x1, y1, x2, y2);
+        if (not cbMode.Checked) then bmpPole.Canvas.TextOut(x3, y3, tstr);
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -147,7 +158,7 @@ var i, a:integer;
 begin
     a:=0; CountRjad:=1;
     for i:=1 to udCount.Position do begin
-        if (Data[i].Check = 1)
+        if (Data[i].Check)
             then inc(a)
             else
                 if (a <> 0) then begin
@@ -193,21 +204,22 @@ begin
             end;
         end;
 
-        for i:=1 to udCount.Position do Data[i].Check:=0;
-        k:=1; i:=1;
-        while (i <= CountRjad) do begin
-            for j:=1 to Rjad[i] do
-                Data[k + j - 1].Check:=1;
-            Data[k + j].Check:=0;
-            k:=k + j;
-            inc(i);                                    
+        if (cbMode.Checked) then begin
+            for i:=1 to udCount.Position do Data[i].Check:=false;
+            k:=1; i:=1;
+            while (i <= CountRjad) do begin
+                for j:=1 to Rjad[i] do
+                    Data[k + j - 1].Check:=true;
+                Data[k + j].Check:=false;
+                k:=k + j;
+                inc(i);
+            end;
         end;
-
         Draw;
         Exit;
     end;
     bDown:=true;
-    pbMouseMove(Sender, Shift, X, Y);    
+    pbMouseMove(Sender, Shift, X, Y);
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbPaint(Sender: TObject);
@@ -231,12 +243,13 @@ begin
     for i:=1 to udCount.Position do begin
         Data[i].Pos:=Point(i, 0);
         Data[i].Ass:=Point(0, 0);
-        Data[i].Check:=0;
+        Data[i].Check:=false;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var bDraw:boolean;
+    a:integer;
 begin
     if (not bDown) then Exit;
     X:=X - bmpLeft.Width;
@@ -245,21 +258,17 @@ begin
     if ((PredButt = Shift) and (PredCoord.x = X)) then Exit;
     bDraw:=false;
     if (ssLeft in Shift) then begin
-        bDraw:=(Data[X].Check <> 1);
-        Data[X].Check:=1
+        bDraw:=(not Data[X].Check);
+        Data[X].Check:=true;
     end;
     if (ssRight in Shift) then begin
-        bDraw:=(Data[X].Check <> 0);
-        Data[X].Check:=0;
-    end;
-    if (ssMiddle in Shift) then begin
-        bDraw:=(Data[X].Check <> 2);
-        Data[X].Check:=2;
+        bDraw:=Data[X].Check;
+        Data[X].Check:=false;
     end;
     PredCoord:=Point(x, 1);
     PredButt:=Shift;
     if (bDraw) then begin
-        GetRjad;
+        if (cbMode.Checked) then GetRjad;
         Draw;
     end;
 end;
@@ -271,29 +280,19 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var i, j:integer;
-    b, b2:boolean;
+    b1, b2:boolean;
 begin
-    for i:=1 to udCount.Position do Data[i].Check:=0;
     GetCombine;
-    for i:=1 to udCount.Position do begin
-        b:=true;
-        for j:=1 to CountCombine do begin
-            b:=b and Combine[j, i];
-        end;
-        if (b) then Data[i].Check:=1;
-    end;
-
-    for i:=1 to udCount.Position do Data[i].Check:=0;
     GetNextCombine;
     for i:=1 to udCount.Position do begin
-        b:=true;
+        b1:=true;
         b2:=false;
 {df}    for j:=1 to CountCombine do begin
-            b:=b and Combine[j, i];
-            b2:=b2 or Combine[j, i];
+            b1:=b1 and Combine[j, i];
+            b2:=b2 or  Combine[j, i];
         end;
-        if (b) then Data[i].Check:=1;
-        if (not b2) then Data[i].Check:=2;
+        if (b1)     then Data[i].Check:=true;
+        if (not b2) then Data[i].Check:=false;
     end;
     GetRjad;
     Draw;
@@ -463,4 +462,50 @@ begin
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.cbModeClick(Sender: TObject);
+begin
+    btCalc.Enabled:=not cbMode.Checked; 
+    ClearData;
+    GetRjad;
+    Draw;
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.Button1Click(Sender: TObject);
+var i, j:integer;
+    b1, b2:boolean;
+begin
+    GetCombine;
+    for i:=1 to udCount.Position do begin
+        b1:=true;
+        b2:=false;
+{df}    for j:=1 to CountCombine do begin
+            b1:=b1 and Combine[j, i];
+            b2:=b2 or  Combine[j, i];
+        end;
+        if (b1)     then Data[i].Check:=true;
+        if (not b2) then Data[i].Check:=false;
+    end;
+    GetRjad;
+    Draw;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+var i, j:integer;
+    b1, b2:boolean;
+begin
+    GetNextCombine;
+    for i:=1 to udCount.Position do begin
+        b1:=true;
+        b2:=false;
+{df}    for j:=1 to CountCombine do begin
+            b1:=b1 and Combine[j, i];
+            b2:=b2 or  Combine[j, i];
+        end;
+        if (b1)     then Data[i].Check:=true;
+        if (not b2) then Data[i].Check:=false;
+    end;
+    GetRjad;
+    Draw;
+end;
+
 end.

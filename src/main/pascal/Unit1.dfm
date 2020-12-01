@@ -55,4 +55,31 @@ object Form1: TForm1
     TabOrder = 2
     OnClick = btCalcClick
   end
+  object cbMode: TCheckBox
+    Left = 176
+    Top = 44
+    Width = 129
+    Height = 17
+    Caption = 'Редактор \ Расчет'
+    TabOrder = 3
+    OnClick = cbModeClick
+  end
+  object Button1: TButton
+    Left = 352
+    Top = 48
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 4
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 456
+    Top = 48
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 5
+    OnClick = Button2Click
+  end
 end
