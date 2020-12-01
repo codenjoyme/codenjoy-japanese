@@ -25,6 +25,13 @@ object Form1: TForm1
     OnMouseUp = pbMouseUp
     OnPaint = pbPaint
   end
+  object Label1: TLabel
+    Left = 280
+    Top = 48
+    Width = 32
+    Height = 13
+    Caption = 'Label1'
+  end
   object edCount: TEdit
     Left = 8
     Top = 8
@@ -46,22 +53,22 @@ object Form1: TForm1
     TabOrder = 1
     Wrap = False
   end
-  object btClear: TButton
+  object btCalc: TButton
     Left = 96
     Top = 40
     Width = 75
     Height = 25
-    Caption = 'Сброс'
+    Caption = 'Расчет'
     TabOrder = 2
-    OnClick = btClearClick
+    OnClick = btCalcClick
   end
-  object btCalc: TButton
+  object Button1: TButton
     Left = 176
     Top = 40
     Width = 75
     Height = 25
-    Caption = 'Расчет'
+    Caption = 'Button1'
     TabOrder = 3
-    OnClick = btCalcClick
+    OnClick = Button1Click
   end
 end
