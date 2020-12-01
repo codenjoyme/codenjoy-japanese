@@ -1,12 +1,13 @@
 unit Unit1;
+unit Unit1;
 
 interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls;
+  ExtCtrls, StdCtrls, Spin;
 
-const WH = 5;
+const WH = 15;
       LengthArr = 255;
 
 type
@@ -15,22 +16,33 @@ type
   TTop     = array [1..LengthArr, 1..10] of byte;
   TForm1 = class(TForm)
     pb: TPaintBox;
+    seSizeX: TSpinEdit;
+    seSizeY: TSpinEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure pbClick(Sender: TObject);
+    procedure pbPaint(Sender: TObject);
+    procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure seSizeYChange(Sender: TObject);
   private
     Dots:TDotsArr;
     LeftCifer:TLeft;
     TopCifer:TTop;
     Buf, LeftBmp, TopBmp, CenterBmp:TBitMap;
     LeftCount, TopCount:integer;
-    Size:TPoint;    
+    Size:TPoint;
   public
+    procedure Main;
+    procedure DotFromCoord(var x, y:integer);
+    procedure DrawTextCenter(Canvas: TCanvas; Rect: TRect; str:string);
     procedure ClearDotsArr;
     procedure ClearTopArr;
     procedure ClearLeftArr;
     procedure CalculateLeftTop;
+    procedure DrawLeft;
+    procedure DrawTop;
+    procedure DrawAll;
     procedure Build;
+    procedure DrawCenter;
   end;
 
 var
@@ -57,40 +69,96 @@ end;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.CalculateLeftTop;
 var x, y:integer;
-    LeftMax, TopMax, lm, tm:integer;
-    b1, b2:boolean;
-    i, j:integer;
+    LeftMax, TopMax, m:integer;
+    b1, b2, b3:boolean;
+    i:integer;
+    c:integer;
     tArr:array [1..10] of integer;
 begin
     ClearLeftArr;
     ClearTopArr;
+    {боковые числа}
     LeftMax:=0;
-    TopMax:=0;
     for y:=1 to Size.y do begin
+        b1:=false;
+        c:=0;
+        b3:=false;
+        m:=0;
         x:=Size.x;
-        b1:=Dots[x, y];
-        b2:=false;
-        lm:=0;
-        i:=0;
-        if (b1) then begin
-            i:=1;
-            lm:=1;
-            LeftMax:=1;
+        while (x <> 0) do begin
+            b2:=Dots[x, y];
+            if (b3)
+                then begin
+                    if (b2 xor b1)
+                        then begin  // счет закончился
+                            tArr[m]:=c;
+                            c:=0;
+                            b3:=false;
+                        end
+                        else inc(c); // счет идет
+                end
+                else begin
+                    b3:=(b2 xor b1);
+                    if (b3) then begin // счет начался
+                        inc(c);
+                        inc(m);
+                        if (m > LeftMax) then LeftMax:=m;
+                    end
+                end;
+                b1:=b2;
+                dec(x);
+                if ((x = 0) and b1) then tArr[m]:=c;
         end;
-        for x:=(Size.x - 1) downto 1 do begin
-            if (Dots[x, y]) then Inc(i);
-            if ((Dots[x, y] <> b1) and b2) then begin
-                tArr[lm]:=i;
-                inc(lm);
-                if (lm > LeftMax) then LeftMax:=lm;
-            end;
-            if ((Dots[x, y] <> b1) and (not Dots[x, y]))
-                then b2:=true; //
-            b1:=Dots[x, y];
-        end;
+        for i:=1 to m do LeftCifer[i, y]:=tArr[i];
     end;
     LeftCount:=LeftMax;
-    LeftCount:=i;
+    for y:=1 to Size.y do
+        for x:=1 to (LeftCount div 2) do begin
+            c:=LeftCifer[x, y];
+            LeftCifer[x, y]:=LeftCifer[LeftCount - x + 1, y];
+            LeftCifer[LeftCount - x + 1, y]:=c;
+        end;
+    {верхние числа}
+    TopMax:=0;
+    for x:=1 to Size.x do begin
+        b1:=false;
+        c:=0;
+        b3:=false;
+        m:=0;
+        y:=Size.y;
+        while (y <> 0) do begin
+            b2:=Dots[x, y];
+            if (b3)
+                then begin
+                    if (b2 xor b1)
+                        then begin  // счет закончился
+                            tArr[m]:=c;
+                            c:=0;
+                            b3:=false;
+                        end
+                        else inc(c); // счет идет
+                end
+                else begin
+                    b3:=(b2 xor b1);
+                    if (b3) then begin // счет начался
+                        inc(c);
+                        inc(m);
+                        if (m > TopMax) then TopMax:=m;
+                    end
+                end;
+                b1:=b2;
+                dec(y);
+                if ((y = 0) and b1) then tArr[m]:=c;
+        end;
+        for i:=1 to m do TopCifer[x, i]:=tArr[i];
+    end;
+    TopCount:=TopMax;
+    for x:=1 to Size.x do
+        for y:=1 to (TopCount div 2) do begin
+            c:=TopCifer[x, y];
+            TopCifer[x, y]:=TopCifer[x, TopCount - y + 1];
+            TopCifer[x, TopCount - y + 1]:=c;
+        end;
 end;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.ClearDotsArr;
@@ -119,26 +187,81 @@ begin
             TopCifer[x, y]:=0;
 end;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DrawCenter;
+var x, y:integer;
+    rct:TRect;
+begin
+    CenterBmp.Width:=Size.x*WH;
+    CenterBmp.Height:=Size.y*WH;
+    for x:=0 to Size.x do
+        for y:=0 to Size.y do begin
+           rct:=Rect(x*WH, y*WH, (x+1)*WH, (y+1)*WH);
+            if (Dots[x + 1, y + 1])
+                then begin
+                    CenterBmp.Canvas.Brush.Color:=clBlack;
+                    CenterBmp.Canvas.Rectangle(rct);
+                end
+                else begin
+                    CenterBmp.Canvas.Brush.Color:=clWhite;
+                    CenterBmp.Canvas.Rectangle(rct);
+                    CenterBmp.Canvas.MoveTo(rct.Left, rct.Top);
+                    CenterBmp.Canvas.LineTo(rct.Right, rct.Bottom);
+                    CenterBmp.Canvas.MoveTo(rct.Right, rct.Top);
+                    CenterBmp.Canvas.LineTo(rct.Left, rct.Bottom);
+                end;
+        end;
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DrawLeft;
+var x, y:integer;
+    rct:TRect;
+begin
+    LeftBmp.Width:=LeftCount*WH;
+    LeftBmp.Height:=Size.y*WH;
+    for x:=0 to (LeftCount - 1) do
+        for y:=0 to (Size.y - 1) do begin
+            rct:=Rect(x*WH, y*WH, (x+1)*WH, (y+1)*WH);
+            LeftBmp.Canvas.Rectangle(rct);
+            if (LeftCifer[x + 1, y + 1] <> 0) then DrawTextCenter(LeftBmp.Canvas, rct, IntToStr(LeftCifer[x + 1, y + 1]));
+        end;
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DrawTop;
+var x, y:integer;
+    rct:TRect;
+begin
+    TopBmp.Width:=Size.x*WH;
+    TopBmp.Height:=TopCount*WH;
+    for x:=0 to (Size.x - 1) do
+        for y:=0 to (TopCount - 1) do begin
+            rct:=Rect(x*WH, y*WH, (x+1)*WH, (y+1)*WH);
+            TopBmp.Canvas.Rectangle(rct);
+            if (TopCifer[x + 1, y + 1] <> 0) then DrawTextCenter(TopBmp.Canvas, rct, IntToStr(TopCifer[x + 1, y + 1]));
+        end;
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DrawAll;
+begin
+    Buf.Width:=(LeftCount + Size.x)*WH;
+    Buf.Height:=(TopCount + Size.y)*WH;
+    Buf.Canvas.Rectangle(0, 0, LeftCount*WH, TopCount*WH);
+    Buf.Canvas.Draw(0, TopCount*WH, LeftBmp);
+    Buf.Canvas.Draw(LeftCount*WH, 0, TopBmp);
+    Buf.Canvas.Draw(LeftCount*WH, TopCount*WH, CenterBmp);
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.FormCreate(Sender: TObject);
 begin
     Buf:=TBitMap.Create;
-    Buf.Width:=pb.Width;
-    Buf.Height:=pb.Height;
     Buf.PixelFormat:=pf24bit;
 
     LeftBmp:=TBitMap.Create;
-    LeftBmp.Width:=pb.Width;
-    LeftBmp.Height:=pb.Height;
     LeftBmp.PixelFormat:=pf24bit;
 
     TopBmp:=TBitMap.Create;
-    TopBmp.Width:=pb.Width;
-    TopBmp.Height:=pb.Height;
     TopBmp.PixelFormat:=pf24bit;
 
     CenterBmp:=TBitMap.Create;
-    CenterBmp.Width:=pb.Width;
-    CenterBmp.Height:=pb.Height;
     CenterBmp.PixelFormat:=pf24bit;
 
     LeftCount:=0;
@@ -154,10 +277,50 @@ begin
     CenterBmp.FreeImage;
 end;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------.
-procedure TForm1.pbClick(Sender: TObject);
+procedure TForm1.Main;
 begin
-    Build;
     CalculateLeftTop;
+    DrawLeft;
+    DrawTop;
+    DrawCenter;
+    DrawAll;
+    pb.Width:=Buf.Width;
+    pb.Height:=Buf.Height;        
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DrawTextCenter(Canvas: TCanvas; Rect: TRect; str:string);
+var iLeft, iTop:integer;
+begin
+    iLeft:=Rect.Left + (Rect.Right - Rect.Left - Canvas.TextWidth(str)) div 2;
+    iTop:=Rect.Top + (Rect.Bottom - Rect.Top - Canvas.TextHeight(str)) div 2;;
+    Canvas.TextOut(iLeft, iTop, str);
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.pbPaint(Sender: TObject);
+begin
+    pb.Canvas.Draw(0, 0, Buf);
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+    DotFromCoord(X, Y);
+    if (X < 1) or (Y < 1) or (X > Size.x) or (Y > Size.y) then Exit;  
+    Dots[X, Y]:=not Dots[X, Y];
+    Main;
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DotFromCoord(var x, y: integer);
+begin
+    x:=((x - LeftCount*WH) div WH) + 1;
+    y:=((y - TopCount*WH) div WH) + 1;    
+end;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.seSizeYChange(Sender: TObject);
+begin
+    Size.x:=seSizeX.Value;
+    Size.y:=seSizeY.Value;
+    ClearDotsArr;
+    Main;
 end;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
