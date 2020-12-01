@@ -1,8 +1,12 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.SQLOutput;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
 
@@ -11,7 +15,6 @@ class Unit1 {
     public Unit2 Unit2 = new Unit2();
     public Date t; // TODO TdateTime // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     public TPoint PredCoord;
-    Form1 Form1 = new Form1();
     TButton btCalc = new TButton();
     TCheckBox cbMode = new TCheckBox();
     TOpenDialog od = new TOpenDialog();
@@ -19,7 +22,6 @@ class Unit1 {
     TEdit edInput = new TEdit();
     TCheckBox cbRjad = new TCheckBox();
     TCheckBox cbVerEnable = new TCheckBox();
-    TCheckBox cbLoadNaklad = new TCheckBox();
     boolean bDown; // непомню
     TCurrPt CurrPt = new TCurrPt();
     boolean bChangeLen, bUpDown; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
@@ -33,7 +35,6 @@ class Unit1 {
     TXYRjad RjadY = new TXYRjad();
     TXYCountRjad CountRjadX = new TXYCountRjad(); // тут хранятся количества цифер рядов
     TXYCountRjad CountRjadY = new TXYCountRjad();
-    String LoadFileName;
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void ClearData(boolean all) {
@@ -480,7 +481,7 @@ class Unit1 {
         pt = Check();
         int x0 = Math.abs(pt.x - pt.y);
         if (x0 > 0) {
-            System.out.println("Ошибка! Несовпадение на " + Integer.toString(x0));
+            System.out.println("Ошибка! Несовпадение на " + x0);
             btCalc.Click(); // остановка
             return;
         }
@@ -957,12 +958,12 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void AssignFile(TextFile f, String fileName) {
-
+        f.open(fileName);
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public String ReadLn(TextFile f) {
-        return "";
+        return f.readLine();
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -971,12 +972,12 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void ReSet(TextFile f) {
-
+        f.loadData();
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void CloseFile(TextFile f) {
-
+        f.close();
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -988,7 +989,6 @@ class Unit1 {
     public void LoadRjadFromFile(String FileName) {
         TextFile F = new TextFile();
         String tstr;
-        LoadFileName = FileName;
         AssignFile(F, FileName);
         ReSet(F);
         tstr = ReadLn(F);
@@ -1018,7 +1018,6 @@ class Unit1 {
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void SaveRjadToFile(String FileName) {
         TextFile F = new TextFile();
-        LoadFileName = FileName;
         AssignFile(F, FileName);
         ReWrite(F);
         WriteLn(F, Integer.toString(LenX));  // ширина
@@ -1041,115 +1040,44 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     private String ChangeFileExt(String fileName, String ext) {
-        return "";
+        return fileName.substring(0, fileName.lastIndexOf(".")) + ext;
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     private String ExtractFileExt(String fileName) {
-        return "";
+        return fileName.substring(fileName.lastIndexOf("."));
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     private String ExtractFileName(String fileName) {
-        return "";
+        return new File(fileName).getName();
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     private boolean FileExists(String fileName) {
-        return true;
+        return new File(fileName).exists();
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void btSaveClick() {
-        String tstr;
-        String ext = "";
-        if (cbMode.Checked) { // расширение по умолчанию (2 - файло редактора)
-            sd.FilterIndex = 2;
-        } else {
-            sd.FilterIndex = 1;
-        }
-        switch (sd.FilterIndex) {
+    public void btSaveClick(int FilterIndex, String FileName) {
+        switch (FilterIndex) {
             case 1:
-                ext = ".jap";
-                break;
+                SaveRjadToFile(FileName);
             case 2:
-                ext = ".jdt";
-                break;
+                SaveDataToFile(FileName);
         }
-        if (sd.FileName != "") sd.FileName = ChangeFileExt(sd.FileName, ext);
-        if (!sd.Execute()) {
-            edInput.SetFocus();
-            return; // запуск диалога
-        }
-        tstr = ExtractFileExt(sd.FileName); // расширение
-        switch (sd.FilterIndex) {
-            case 1:
-                ext = ".jap";
-                break;
-            case 2:
-                ext = ".jdt";
-                break;
-        }
-
-        if (tstr != ext) { // если не те расширения ...
-            sd.FileName = ChangeFileExt(sd.FileName, ext); //... то по умолчанию
-        }
-        // грузим файл
-        od.FileName = sd.FileName;
-        switch (sd.FilterIndex) {
-            case 1:
-                SaveRjadToFile(sd.FileName);
-            case 2:
-                SaveDataToFile(sd.FileName);
-        }
-        Form1.Caption = "Японские головоломки - " + ExtractFileName(sd.FileName);
-        edInput.SetFocus();
+        System.out.println("Японские головоломки - " + ExtractFileName(FileName));
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void btLoadClick() {
+    public void btLoadClick(boolean cbLoadNaklad, String FileName, int FilterIndex) {
         String tstr, tstr2;
-        String ext = "";
         boolean b; // флаг накладывания
-        if (cbMode.Checked) { // расширение по умолчанию (2 - файло редактора)
-            od.FilterIndex = 2;
-        } else {
-            od.FilterIndex = 1;
-        }
-        switch (od.FilterIndex) {
-            case 1:
-                ext = ".jap";
-                break;
-            case 2:
-                ext = ".jdt";
-                break;
-        }
-        if (od.FileName != "") od.FileName = ChangeFileExt(od.FileName, ext);
-        if (!od.Execute()) {
-            edInput.SetFocus();
-            return; // запуск диалога
-        }
-        tstr = ExtractFileExt(od.FileName); // имя файла
-        switch (od.FilterIndex) {
-            case 1:
-                ext = ".jap";
-                break;
-            case 2:
-                ext = ".jdt";
-                break;
-        }
-        if (tstr != ext) { // если не те расширения ...
-            od.FileName = ChangeFileExt(od.FileName, ext); //... то по умолчанию
-        }
-        if (!FileExists(od.FileName)) {
-            edInput.SetFocus();
-            return;
-        }
-        sd.FileName = od.FileName;
+
         cbRjad.Checked = true;
-        if (cbLoadNaklad.Checked) {
-            tstr = ChangeFileExt(od.FileName, ".jap");
-            tstr2 = ChangeFileExt(od.FileName, ".jdt");
+        if (cbLoadNaklad) {
+            tstr = ChangeFileExt(FileName, ".jap");
+            tstr2 = ChangeFileExt(FileName, ".jdt");
             if (FileExists(tstr) && FileExists(tstr2)) {
                 cbMode.Checked = false;
                 cbMode.Caption = "Расш.";
@@ -1158,13 +1086,13 @@ class Unit1 {
                 bChangeLen = true;
                 bUpDown = true;
                 Draw(new TPoint(0, 0));
-                Form1.Caption = "Японские головоломки - " + ExtractFileName(tstr) + ", " + ExtractFileName(tstr2);
+                System.out.println("Японские головоломки - " + ExtractFileName(tstr) + ", " + ExtractFileName(tstr2));
                 SetInfo(0, true, false, true, 0);
                 return;
             }
         }
-        b = (cbLoadNaklad.Checked && (cbMode.Checked ^ (od.FilterIndex == 2)));
-        switch (od.FilterIndex) {
+        b = (cbLoadNaklad && (cbMode.Checked ^ (FilterIndex == 2)));
+        switch (FilterIndex) {
             case 1: { // файл расшифровщика
                 if (!b) {
                     // перекл режим
@@ -1176,11 +1104,11 @@ class Unit1 {
                     }
                     ClearData(true); // очищаем поле
                 }
-                LoadRjadFromFile(od.FileName); // грузим файл
+                LoadRjadFromFile(FileName); // грузим файл
                 bChangeLen = true;
                 bUpDown = true;
                 Draw(new TPoint(0, 0));
-                Form1.Caption = "Японские головоломки - " + ExtractFileName(od.FileName);
+                System.out.println("Японские головоломки - " + ExtractFileName(FileName));
                 SetInfo(0, true, false, false, 0);
                 if (!b) btCalc.Click();
             }
@@ -1195,7 +1123,7 @@ class Unit1 {
                         cbMode.Caption = "Расш.";
                     }
                 }
-                LoadDataFromFile(od.FileName);  // грузим файл
+                LoadDataFromFile(FileName);  // грузим файл
                 if (!b) {
                     GetRjadX(); // получаем ряды
                     GetRjadY();
@@ -1203,19 +1131,17 @@ class Unit1 {
                 bChangeLen = true;
                 bUpDown = true;
                 Draw(new TPoint(0, 0));
-                Form1.Caption = "Японские головоломки - " + ExtractFileName(od.FileName);
+                System.out.println("Японские головоломки - " + ExtractFileName(FileName));
                 SetInfo(0, true, false, true, 0);
             }
             break;
         }
-        edInput.SetFocus();
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void LoadDataFromFile(String FileName) {
         String tstr;
         TextFile F = null;
-        LoadFileName = FileName;
         AssignFile(F, FileName);
         ReSet(F);
         tstr = ReadLn(F);
@@ -1234,7 +1160,6 @@ class Unit1 {
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void SaveDataToFile(String FileName) {
         TextFile F = null;
-        LoadFileName = FileName;
         AssignFile(F, FileName);
         ReWrite(F);
         WriteLn(F, Integer.toString(LenX)); // ширина
@@ -1613,28 +1538,34 @@ class Unit1 {
 
 
     static class TextFile {
+        File file;
+        List<String> lines;
+        int index;
 
-    }
-
-    static class TMemo {
-
-        public void Clear() {
+        public void open(String fileName) {
+            file = new File(fileName);
+            lines = new LinkedList<>();
         }
-    }
 
-    static class Form1 {
-        public String Caption;
-    }
+        public void loadData() {
+            try (Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
+                stream.forEach(lines::add);
+                index = 0;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
+        public String readLine() {
+            return lines.get(index++);
+        }
 
-    static class Screen {
+        public void close() {
+            lines.clear();
+            index = 0;
+        }
     }
 
     public static class TShiftState {
     }
-
-    public static class TBitMap {
-    }
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 }
