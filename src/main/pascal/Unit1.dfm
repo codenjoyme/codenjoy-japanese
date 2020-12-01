@@ -16,6 +16,13 @@ object Form1: TForm1
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
+  object Label1: TLabel
+    Left = 9
+    Top = 72
+    Width = 6
+    Height = 13
+    Caption = '0'
+  end
   object edCountX: TEdit
     Left = 4
     Top = 8
@@ -46,11 +53,11 @@ object Form1: TForm1
     OnChangingEx = udCountXChangingEx
   end
   object btCalc: TButton
-    Left = 8
-    Top = 88
-    Width = 65
-    Height = 25
-    Caption = '&'#1056#1072#1089#1095#1077#1090
+    Left = 6
+    Top = 91
+    Width = 73
+    Height = 24
+    Caption = '&'#1056#1072#1089#1095#1077#1090'    '
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -62,9 +69,9 @@ object Form1: TForm1
   end
   object cbMode: TCheckBox
     Left = 8
-    Top = 64
+    Top = 56
     Width = 67
-    Height = 17
+    Height = 15
     Caption = #1056#1072#1089#1096'.'
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
@@ -105,10 +112,10 @@ object Form1: TForm1
     OnChangingEx = udCountXChangingEx
   end
   object btSave: TButton
-    Left = 8
-    Top = 113
-    Width = 65
-    Height = 25
+    Left = 6
+    Top = 115
+    Width = 73
+    Height = 24
     Caption = '&'#1057#1086#1093#1088#1072#1085#1080#1090#1100
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
@@ -120,10 +127,10 @@ object Form1: TForm1
     OnClick = btSaveClick
   end
   object btLoad: TButton
-    Left = 8
-    Top = 138
-    Width = 65
-    Height = 25
+    Left = 6
+    Top = 139
+    Width = 73
+    Height = 24
     Caption = '&'#1047#1072#1075#1088#1091#1079#1080#1090#1100
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
@@ -135,10 +142,10 @@ object Form1: TForm1
     OnClick = btLoadClick
   end
   object btClear: TButton
-    Left = 8
+    Left = 6
     Top = 163
-    Width = 65
-    Height = 25
+    Width = 73
+    Height = 24
     Caption = '&'#1054#1095#1080#1089#1090#1080#1090#1100
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
@@ -150,7 +157,7 @@ object Form1: TForm1
     OnClick = btClearClick
   end
   object edInput: TEdit
-    Left = 8
+    Left = 6
     Top = 216
     Width = 65
     Height = 21
@@ -174,10 +181,10 @@ object Form1: TForm1
     OnClick = cbRjadClick
   end
   object btSaveBitmap: TButton
-    Left = 8
-    Top = 188
-    Width = 65
-    Height = 25
+    Left = 6
+    Top = 187
+    Width = 73
+    Height = 24
     Caption = #1056'&'#1080#1089#1091#1085#1086#1082
     TabOrder = 10
     OnClick = btSaveBitmapClick
@@ -209,6 +216,13 @@ object Form1: TForm1
       OnMouseUp = pbMouseUp
       OnPaint = pbPaint
     end
+  end
+  object cbVerEnable: TCheckBox
+    Left = 61
+    Top = 96
+    Width = 13
+    Height = 13
+    TabOrder = 14
   end
   object od: TOpenDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'

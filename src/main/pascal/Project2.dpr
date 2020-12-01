@@ -2,7 +2,9 @@ program Project2;
 
 uses
   Forms,
-  Unit1 in 'Unit1.pas' {Form1};
+  Unit1 in 'Unit1.pas' {Form1},
+  Unit2 in 'Unit2.pas',
+  MyUnit in '..\..\MyUnit\MyUnit.pas';
 
 {$R *.RES}
 

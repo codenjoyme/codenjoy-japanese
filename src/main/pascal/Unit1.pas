@@ -11,6 +11,7 @@ type
   TXYRjad = array [1..MaxLen, 1..MaxLen] of byte;
   TFinish = array [1..MaxLen] of boolean;
   TXYCountRjad = array [1..MaxLen] of integer;
+  TXYVer = array [1..MaxLen, 1..MaxLen, 1..2] of Real;
   TForm1 = class(TForm)
     edCountX: TEdit;
     udCountX: TUpDown;
@@ -32,6 +33,8 @@ type
     WordApplication1: TWordApplication;
     WordDocument1: TWordDocument;
     Panel1: TPanel;
+    Label1: TLabel;
+    cbVerEnable: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -59,6 +62,7 @@ type
         xy:boolean;
     end;
     bChangeLen, bUpDown:boolean;
+    Ver:TXYVer;
     FinX, FinY:TFinish;
     ChX, ChY:TFinish;
     Data:TXYData;
@@ -103,6 +107,8 @@ begin
     for x:=1 to MaxLen do begin
         for y:=1 to MaxLen do begin
             Data[x, y]:=0;
+            Ver[x, y, 1]:=-1;
+            Ver[x, y, 2]:=-1;
 //            RjadX[x, y]:=0;
 //            RjadY[x, y]:=0;
         end;
@@ -531,8 +537,10 @@ begin
                 RefreshPole; // обновляем поле
                 Exit; // выходим
             end;
-            for x:=1 to LenX do // тут обновляем ряд
+            for x:=1 to LenX do begin// тут обновляем ряд
                 Form1.Data[x, y]:=Unit2.glData[x];
+                Ver[x, y, 1]:=Unit2.glVer[x];
+            end;
 //            GetFin;
             RefreshPole; // и выводим его на екран
             Exit; // выходим
@@ -615,8 +623,10 @@ begin
                 RefreshPole;
                 Exit;
             end;
-            for y:=1 to LenY do
+            for y:=1 to LenY do begin
                 Form1.Data[x, y]:=Unit2.glData[y];
+                Ver[x, y, 2]:=Unit2.glVer[y];
+            end;
 //            GetFin;
             RefreshPole;
             Exit;
@@ -731,13 +741,14 @@ end;
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var bDraw:boolean;
 begin
-    if (not bDown) then Exit;
     Y:=Y - bmpTop.Height;
     X:=X - bmpLeft.Width;
     Y:=(Y div wid) + 1;
     X:=(X div wid) + 1;
     if ((Y <= 0) or (Y > LenY)) then Exit;
     if ((X <= 0) or (X > LenX)) then Exit;
+    Label1.Caption:=FloatToStr(Round(Ver[x, y, 1]*100)/100) + '     ' + FloatToStr(Round(Ver[x, y, 2]*100)/100);
+    if (not bDown) then Exit;
     bDraw:=false;
     if (ssLeft in Shift) then begin
         bDraw:=(Data[X, Y] <> 1);
@@ -799,10 +810,11 @@ procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
     b, c:boolean;
     t:TdateTime; h, m, s, ms:word;
+    MaxVer1, MaxVer2:Real;    pt:TPoint;
 begin
     if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
         then begin
-            btCalc.Caption:='&Остановить';
+            btCalc.Caption:='&Стоп      ';
             btCalc.Tag:=1;
             udCountX.Enabled:=false;
             udCountY.Enabled:=false;
@@ -814,7 +826,7 @@ begin
             edInput.Enabled:=false;
         end
         else begin
-            btCalc.Caption:='&Расчет';
+            btCalc.Caption:='&Расчет    ';
             btCalc.Tag:=0;
             udCountX.Enabled:=true;
             udCountY.Enabled:=true;
@@ -829,7 +841,7 @@ begin
             Exit; // сразу выходим
         end;
 
-//    t:=Now; //
+    t:=Now; //
 
     x:=Check; // проверка на совпадение рядов
     if (x <> 0) then begin
@@ -852,12 +864,14 @@ begin
                 btCalc.Click; // остановка
                 Exit;
             end;
-            for x:=1 to LenX do
+            for x:=1 to LenX do begin
+                Ver[x, y, 1]:=Unit2.glVer[x];
                 if (Data[x, y] <> Unit2.glData[x]) then begin
                     Data[x, y]:=Unit2.glData[x];
                     b:=true;
                     ChY[x]:=true;
                 end;
+            end;
             ChX[y]:=false;
         end;
         GetFin;
@@ -876,24 +890,60 @@ begin
                 Exit;
             end;
             c:=false;
-            for y:=1 to LenY do
+            for y:=1 to LenY do begin
+                Ver[x, y, 2]:=Unit2.glVer[y];
                 if (Data[x, y] <> Unit2.glData[y]) then begin
                     b:=true;
                     Data[x, y]:=Unit2.glData[y];
                     ChX[y]:=true;
                 end;
+            end;
             ChY[x]:=false;
         end;
         GetFin;
         RefreshPole;
+        if ((cbVerEnable.Checked) and (not b)) then begin
+            MaxVer1:=0;
+            MaxVer2:=0;
+            for x:=1 to LenX do
+                for y:=1 to LenY do begin
+                    if ((MaxVer1 <= Ver[x, y, 1]) and (MaxVer2 <= Ver[x, y, 2]) and (Ver[x, y, 1] < 1) and (Ver[x, y, 2] < 1)) then begin
+                        MaxVer1:=Ver[x, y, 1];
+                        MaxVer2:=Ver[x, y, 2];
+                        pt:=Point(x, y);
+                    end;
+                end;
+            if ((MaxVer1 > 0.0) and (MaxVer2 > 0.0)) then begin
+                Data[pt.x, pt.y]:=1;
+                ChX[pt.y]:=true;
+                ChY[pt.x]:=true;
+                Ver[pt.x, pt.y, 1]:=1;
+                Ver[pt.x, pt.y, 2]:=1;
+                b:=true;
+                RefreshPole; // прорисовка поля
+            end;
+        end;
     until (not b);
-//    DecodeTime(Now - t, h, m, s, ms);  //
-//    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);  //
+    DecodeTime(Now - t, h, m, s, ms);  //
+    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);  //
     // очистка массивв флагов заполнености
     for x:=1 to LenX do FinY[x]:=false;
     for y:=1 to LenY do FinX[y]:=false;
     for x:=1 to LenX do ChY[x]:=true;
     for y:=1 to LenY do ChX[y]:=true;
+    for x:=1 to LenX do
+        for y:=1 to LenY do begin
+            case (Data[x, y]) of
+                1:  begin
+                        Ver[x, y, 1]:=1;
+                        Ver[x, y, 2]:=1;
+                    end;
+                2: begin
+                        Ver[x, y, 1]:=0;
+                        Ver[x, y, 2]:=0;
+                    end;
+            end;
+        end;
     btCalc.Click; // остановка
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
