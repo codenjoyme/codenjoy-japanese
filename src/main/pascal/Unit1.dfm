@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 69
-  Top = 236
-  Width = 876
-  Height = 104
+  Left = 75
+  Top = 104
+  Width = 585
+  Height = 563
   Caption = 'Form1'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -25,21 +25,21 @@ object Form1: TForm1
     OnMouseUp = pbMouseUp
     OnPaint = pbPaint
   end
-  object edCount: TEdit
+  object edCountX: TEdit
     Left = 8
     Top = 8
     Width = 57
     Height = 21
     TabOrder = 0
     Text = '20'
-    OnChange = edCountChange
+    OnChange = edCountXChange
   end
-  object udCount: TUpDown
+  object udCountX: TUpDown
     Left = 65
     Top = 8
     Width = 12
     Height = 21
-    Associate = edCount
+    Associate = edCountX
     Min = 1
     Max = 40
     Position = 20
@@ -47,21 +47,42 @@ object Form1: TForm1
     Wrap = False
   end
   object btCalc: TButton
-    Left = 88
-    Top = 40
-    Width = 75
+    Left = 8
+    Top = 104
+    Width = 65
     Height = 25
     Caption = '&Расчет'
     TabOrder = 2
     OnClick = btCalcClick
   end
   object cbMode: TCheckBox
-    Left = 176
-    Top = 44
-    Width = 129
+    Left = 8
+    Top = 80
+    Width = 65
     Height = 17
-    Caption = 'Редактор \ Расчет'
+    Caption = 'cbMode'
     TabOrder = 3
     OnClick = cbModeClick
+  end
+  object edCountY: TEdit
+    Left = 8
+    Top = 32
+    Width = 57
+    Height = 21
+    TabOrder = 4
+    Text = '20'
+    OnChange = edCountXChange
+  end
+  object udCountY: TUpDown
+    Left = 65
+    Top = 32
+    Width = 12
+    Height = 21
+    Associate = edCountY
+    Min = 1
+    Max = 40
+    Position = 20
+    TabOrder = 5
+    Wrap = False
   end
 end
