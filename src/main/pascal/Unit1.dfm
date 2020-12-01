@@ -233,22 +233,12 @@ object Form1: TForm1
     Height = 13
     TabOrder = 15
   end
-  object CheckBox1: TCheckBox
-    Left = 12
-    Top = 72
-    Width = 73
-    Height = 17
-    Caption = #1087#1088#1086#1075#1086#1085'?'
-    TabOrder = 16
-    Visible = False
-    OnClick = CheckBox1Click
-  end
   object gbInfo: TGroupBox
     Left = 4
     Top = 231
     Width = 93
     Height = 52
-    TabOrder = 17
+    TabOrder = 16
     object Label2: TLabel
       Left = 3
       Top = 7
@@ -313,7 +303,8 @@ object Form1: TForm1
     Font.Name = 'MS Serif'
     Font.Style = []
     ParentFont = False
-    TabOrder = 18
+    TabOrder = 17
+    Visible = False
   end
   object od: TOpenDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
