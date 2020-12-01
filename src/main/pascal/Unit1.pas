@@ -22,6 +22,7 @@ type
     btLoad: TButton;
     od: TOpenDialog;
     sd: TSaveDialog;
+    btClear: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -33,6 +34,7 @@ type
     procedure cbModeClick(Sender: TObject);
     procedure btSaveClick(Sender: TObject);
     procedure btLoadClick(Sender: TObject);
+    procedure btClearClick(Sender: TObject);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -69,11 +71,8 @@ procedure TForm1.ClearData;
 var x, y:integer;
 begin
     for x:=1 to LenX do
-        for y:=1 to LenX do begin
-//            Data[x, y]:=Point(x, y);
-//            Data[x, y].Ass:=Point(0, 0);
+        for y:=1 to LenY do
             Data[x, y]:=0;
-        end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetRjadX;
@@ -139,37 +138,45 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DrawLeft;
-var x, y, tx, ty:integer;
+var x, y, tx, ty, a, px:integer;
     tstr:string;
 begin
-    bmpLeft.Width:={CountRjad}((LenX + 1) div 2)*wid;
+    a:=((LenX + 1) div 2);
+    bmpLeft.Width:={CountRjad}a*wid;
     bmpLeft.Height:=LenY*wid;
     bmpLeft.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpLeft.Height);
-    for y:=1 to LenY do
+    for y:=1 to LenY do begin
+        for x:=1 to LenX do bmpLeft.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid, y*wid);
         for x:=1 to CountRjadX[y] do begin
-            tx:=(x - 1)*wid; ty:=(y - 1)*wid;
-            bmpLeft.Canvas.Rectangle(tx, ty, x*wid, y*wid);
+            px:=a - CountRjadX[y] + x;
+            tx:=(px - 1)*wid; ty:=(y - 1)*wid;
+            bmpLeft.Canvas.Rectangle(tx, ty, px*wid, y*wid);
             tstr:=IntToStr(RjadX[x, y]);
             bmpLeft.Canvas.TextOut(tx + (wid - bmpLeft.Canvas.TextWidth(tstr) + 1) div 2,
                                    ty + (wid - bmpLeft.Canvas.TextHeight(tstr)) div 2, tstr);
         end;
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DrawRight;
-var x, y, tx, ty:integer;
+var x, y, tx, ty, a, py:integer;
     tstr:string;
 begin
+    a:=((LenY + 1) div 2);
     bmpTop.Width:=LenX*wid;
-    bmpTop.Height:=((LenY + 1) div 2)*wid;
+    bmpTop.Height:=a*wid;
     bmpTop.Canvas.Rectangle(0, 0, bmpTop.Width, bmpTop.Height);
-    for x:=1 to LenX do
+    for x:=1 to LenX do begin
+        for y:=1 to LenY do bmpTop.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid, y*wid);
         for y:=1 to CountRjadY[x] do begin
-            tx:=(x - 1)*wid; ty:=(y - 1)*wid;
-            bmpTop.Canvas.Rectangle(tx, ty, x*wid, y*wid);
+            py:=a - CountRjadY[x] + y;
+            tx:=(x - 1)*wid; ty:=(py - 1)*wid;
+            bmpTop.Canvas.Rectangle(tx, ty, x*wid, py*wid);
             tstr:=IntToStr(RjadY[x, y]);
             bmpTop.Canvas.TextOut(tx + (wid - bmpTop.Canvas.TextWidth(tstr) + 1) div 2,
                                     ty + (wid - bmpTop.Canvas.TextHeight(tstr)) div 2, tstr);
         end;
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DrawPole;
@@ -212,6 +219,7 @@ begin
     bmpLeft.Canvas.Pen.Color:=clBlack;
     bmpLeft.Canvas.Brush.Color:=clWhite;
     bmpLeft.Canvas.Font.Name:='Times New Roman';
+    bmpLeft.Canvas.Font.Style:=[fsBold];
     bmpLeft.Canvas.Font.Size:=7;
 
     bmpTop:=TBitMap.Create;
@@ -221,6 +229,7 @@ begin
     bmpTop.Canvas.Pen.Color:=clBlack;
     bmpTop.Canvas.Brush.Color:=clWhite;
     bmpTop.Canvas.Font.Name:='Times New Roman';
+    bmpTop.Canvas.Font.Style:=[fsBold];
     bmpTop.Canvas.Font.Size:=7;
 
     bmpPole:=TBitMap.Create;
@@ -248,8 +257,10 @@ begin
         Y:=Y - bmpTop.Height;
         X:=X;
         Y:=(Y div wid) + 1;
-        X:=(X div wid) + 1;
+        X:=(X div wid);
 
+        j:=((LenX + 1) div 2);
+        X:=X - (j - CountRjadX[Y]) + 1;
         if (Shift = [ssCtrl, ssLeft]) then begin
             for ty:=(Y + 1) to LenY do begin
                 CountRjadX[ty - 1]:=CountRjadX[ty];
@@ -268,9 +279,10 @@ begin
             j:=0;
             for tx:=1 to CountRjadX[Y] do
                 j:=j + RjadX[tx, Y];
-            if (X > CountRjadX[Y]) then begin
-                X:=CountRjadX[Y] + 1;
-                if ((j + CountRjadX[Y]) > LenX - 1) then Exit;
+            if (X <= 0) then begin
+                if ((j + CountRjadX[Y]) > (LenX - 1)) then Exit;
+                for tx:=CountRjadX[Y] downto 1 do RjadX[tx + 1, Y]:=RjadX[tx, Y];
+                X:=1;
                 inc(CountRjadX[Y]);
                 RjadX[X, Y]:=0;
             end;
@@ -279,7 +291,7 @@ begin
         end;
         if (Shift = [ssRight]) then begin
             if (CountRjadX[Y] = 0) then Exit;
-            if (X > CountRjadX[Y]) then X:=CountRjadX[Y];
+            if (X <= 0) then X:=1;
             RjadX[X, Y]:=RjadX[X, Y] - 1;
             if (RjadX[X, Y] = 0) then begin
                 if (X < CountRjadX[Y]) then
@@ -308,8 +320,11 @@ begin
     if (Y < bmpTop.Height) then begin
         Y:=Y;
         X:=X - bmpLeft.Width;
-        Y:=(Y div wid) + 1;
+        Y:=(Y div wid);
         X:=(X div wid) + 1;
+
+        j:=((LenY + 1) div 2);
+        Y:=Y - (j - CountRjadY[X]) + 1;
         if (Shift = [ssCtrl, ssLeft]) then begin
             for tx:=(X + 1) to LenX do begin
                 CountRjadY[tx - 1]:=CountRjadY[tx];
@@ -324,30 +339,31 @@ begin
             end;
             CountRjadY[X]:=0;
         end;
-        if (Shift = [ssLeft]) then begin
-            j:=0;
-            for ty:=1 to CountRjadY[X] do
-                j:=j + RjadY[X, ty];
-            if (Y > CountRjadY[X]) then begin
-                Y:=CountRjadY[X] + 1;
-                if ((j + CountRjadY[X]) > LenY - 1) then Exit;
-                inc(CountRjadY[X]);
-                RjadY[X, Y]:=0;
-            end;
-            if ((j + CountRjadY[X]) > LenY) then Exit;
-            RjadY[X, Y]:=RjadY[X, Y] + 1;
-        end;
+        if (Shift = [ssLeft]) then begin                                         
+            j:=0;                                                                
+            for ty:=1 to CountRjadY[X] do                                        
+                j:=j + RjadY[X, ty];                                             
+            if (Y <= 0) then begin                                               
+                if ((j + CountRjadY[X]) > (LenY - 1)) then Exit;                 
+                for ty:=CountRjadY[X] downto 1 do RjadY[X, ty + 1]:=RjadY[X, ty];
+                Y:=1;                                                            
+                inc(CountRjadY[X]);                                              
+                RjadY[X, Y]:=0;                                                  
+            end;                                                                 
+            if ((j + CountRjadY[X]) > LenY) then Exit;                           
+            RjadY[X, Y]:=RjadY[X, Y] + 1;                                        
+        end;                                                                     
         if (Shift = [ssRight]) then begin
-            if (CountRjadY[X] = 0) then Exit;
-            if (Y > CountRjadY[X]) then Y:=CountRjadY[X];
-            RjadY[X, Y]:=RjadY[X, Y] - 1;
-            if (RjadY[X, Y] = 0) then begin
-                if (Y < CountRjadY[X]) then
-                    for ty:=Y to CountRjadY[X] do
-                        RjadY[X, ty]:=RjadY[X, ty + 1];
-                dec(CountRjadY[X]);
-            end;
-        end;
+            if (CountRjadY[X] = 0) then Exit;                        
+            if (Y <= 0) then Y:=1;
+            RjadY[X, Y]:=RjadY[X, Y] - 1;                            
+            if (RjadY[X, Y] = 0) then begin                          
+                if (Y < CountRjadY[X]) then                          
+                    for ty:=Y to CountRjadY[X] do                    
+                        RjadY[X, ty]:=RjadY[X, ty + 1];              
+                dec(CountRjadY[X]);                                  
+            end;                                                     
+        end;                                                         
 
         if (cbMode.Checked) then begin
             for ty:=1 to LenY do Data[X, ty]:=0;
@@ -428,9 +444,11 @@ end;
 procedure TForm1.cbModeClick(Sender: TObject);
 begin
     btCalc.Enabled:=not cbMode.Checked;
-    if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';  
-    GetRjadX;
-    GetRjadY;
+    if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
+    if (cbMode.Checked) then begin
+        GetRjadX;
+        GetRjadY;
+    end;
     Draw;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -607,6 +625,16 @@ begin
         for y:=1 to LenY do
             WriteLn(F, IntToStr(Data[x, y]));
     CloseFile(F);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.btClearClick(Sender: TObject);
+begin
+    ClearData;
+    if (cbMode.Checked) then begin
+        GetRjadX;
+        GetRjadY;
+    end;
+    Draw;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.

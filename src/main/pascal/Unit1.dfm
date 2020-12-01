@@ -103,6 +103,15 @@ object Form1: TForm1
     TabOrder = 7
     OnClick = btLoadClick
   end
+  object btClear: TButton
+    Left = 8
+    Top = 200
+    Width = 65
+    Height = 25
+    Caption = 'Очистить'
+    TabOrder = 8
+    OnClick = btClearClick
+  end
   object od: TOpenDialog
     Filter = 'Файлы расшифровщика (*.jap)|*.jap|Файлы редактора (*.jdt)|*.jdt'
     Left = 56
