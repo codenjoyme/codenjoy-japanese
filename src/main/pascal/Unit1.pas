@@ -866,7 +866,8 @@ begin
         end;
     end;
     Draw;
-    edInput.SetFocus;    
+    edInput.SetFocus;
+    btCalc.Click;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.LoadDataFromFile(FileName: string);
@@ -912,13 +913,17 @@ begin
         GetRjadY;
     end;
     Draw; // прорисовка
-    edInput.SetFocus;    
+    edInput.SetFocus;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edInputKeyPress(Sender: TObject; var Key: Char);
 var i, j, a:integer;
     tstr:string;
 begin
+    if not (Key in ['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', #13. #8]) then begin
+        Key:=#0;
+        Exit;
+    end;
     if (Key = #13) then begin
         tstr:=edInput.Text;
         if (tstr = '') then Exit;

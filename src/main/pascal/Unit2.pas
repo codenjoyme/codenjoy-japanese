@@ -5,20 +5,22 @@ interface
 uses
   Windows, Classes;
 
+Const MaxLen = 50;
+
 type
   TDataPt = record
      Pos, Ass:TPoint;
      Check:byte; // 0 - пусто 1 - чек 2 - нечек
   end;
-  TData = array [1..40] of byte;
+  TData = array [1..MaxLen] of byte;
   PData = ^TData;
-  TRjad10 = array [1..40] of record
+  TRjad10 = array [1..MaxLen] of record
     c:byte;
     b:boolean;
   end;
-  TRjad = array [1..40] of byte;
+  TRjad = array [1..MaxLen] of byte;
   PRjad = ^TRjad;
-  TBitArray = array [1..40] of boolean;
+  TBitArray = array [1..MaxLen] of boolean;
   TComb = array [1..1000000] of TBitArray;
 
 var
@@ -37,7 +39,7 @@ var
     procedure GetCombFromRjad(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
     function  ManipuleRjad(var r: TRjad10; var cr:integer):boolean;
     function  TestComb(var dt:TData; l:integer; var bits:TBitArray):boolean;
-    procedure Calculate;
+    function  Calculate:boolean;
     procedure GetRjad;
             
 implementation
@@ -63,15 +65,20 @@ begin
     dec(glCountRjad);
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure Calculate;
+function Calculate:boolean;
 var i, j:integer;
     b1, b2:boolean;
     Rjad10:TRjad10;
     cr:integer;
 begin
+    Result:=false;
     if (glCountRjad = 0) then begin
         glCountRjad:=-1;
-        for i:=1 to glLen do glData[i]:=2;
+        Result:=true;
+        for i:=1 to glLen do
+            if (glData[i] = 1)
+                then Result:=false
+                else glData[i]:=2;
         Exit;
     end;
 
@@ -106,7 +113,9 @@ begin
             then glComb[glCountComb]:=glCurrComb
             else Dec(glCountComb);
     end;
-    if (glCountComb = 0) then Exit;
+    if (glCountComb = 0)
+        then Exit
+        else Result:=true;
     if (Max < glCountComb) then Max:=glCountComb;
     //-----------
     for i:=1 to glLen do begin
@@ -124,6 +133,7 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function TestComb(var dt: TData; l:integer; var bits: TBitArray): boolean;
 var i:integer;
+    a:integer;
 begin
     Result:=true;
     for i:=1 to l do begin
@@ -132,6 +142,7 @@ begin
             1:if (bits[i] <> true) then Result:=false;
             2:if (bits[i] <> false) then Result:=false;
         end;
+        a:=i + i;
         if (not Result) then Exit;
     end;
 end;
