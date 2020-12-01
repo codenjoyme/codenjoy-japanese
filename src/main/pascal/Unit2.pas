@@ -50,7 +50,7 @@ var
 implementation
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function Calculate:boolean;
-var i, j:integer;
+var i, j, i0, leni:integer;
     b1:boolean;
 begin
     if (glCountRjad = 0) then begin
@@ -102,13 +102,17 @@ begin
             if (TestComb)
                 then begin
                     glCombNum:=glCombNum + 1;
-                    for i:=glCutFrom to glCutTo do
+
+                    i0:=glCutFrom;
+                    leni:=glCutTo;
+                    for i:=i0 to leni do
                         if (glCurrComb[i])
                             then glVer[i]:=glVer[i] + 1;
                 end;
             GetRjadFromComb;
             b1:=ManipuleRjad;
         end;
+
         for i:=glCutFrom to glCutTo do begin
             if (glCombNum <> 0)
                 then glVer[i]:=glVer[i]/glCombNum
@@ -152,12 +156,16 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure GetRjadFromComb;
-var i, j, cr:integer;
+var j, cr:integer;
+    i, leni, i0:integer; 
     b:boolean;
 begin
     b:=glCurrComb[glCutFrom];
     j:=1; cr:=1;
-    for i:=(glCutFrom + 1) to glCutTo do begin
+
+    i0:=(glCutFrom + 1);
+    leni:=glCutTo;
+    for i:=i0 to leni do begin
         if (glCurrComb[i] xor b) then begin
             glRjad10[cr].c:=j;
             glRjad10[cr].b:=b;

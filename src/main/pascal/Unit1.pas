@@ -866,6 +866,7 @@ var x, y:integer;
     pt:TPoint;
     pWork:PAllData;
     bErrT, bErrP:boolean;
+    p:^byte;
 begin
     if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
         then begin
@@ -978,7 +979,7 @@ begin
             end
             else pWork:=pDM;
 
-        if ((not b5) and (not b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
+        if (not (b5  or b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
             for y:=1 to LenY do begin
 //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
                 Application.ProcessMessages;  // передышка
@@ -1006,17 +1007,19 @@ begin
                     break;
                 end;
                 for x:=1 to LenX do begin
-                    pWork^.Ver[x, y, 1]:=Unit2.glVer[x];
-                    if (pWork^.Data[x, y] <> Unit2.glData[x]) then begin
-                        pWork^.Data[x, y]:=Unit2.glData[x];
+                     pWork^.Ver[x, y, 1]:=Unit2.glVer[x];
+
+                     p:=@pWork^.Data[x, y];
+                     if (p^ <> Unit2.glData[x]) then begin
+                        p^:=Unit2.glData[x];
                         if (not b)
-                            then b:=true;
+                            then b:=true; // b:=true;
                         if (not pWork^.ChY[x])
-                            then pWork^.ChY[x]:=true;
+                            then pWork^.ChY[x]:=true; // pWork^.ChY[x]:=true;
                         if (Predpl.B)
                             then
                                 if (not pWork^.tChY[x])
-                                    then pWork^.tChY[x]:=true
+                                    then pWork^.tChY[x]:=true; // pWork^.tChY[x]:=true;
                     end;
                 end;
                 pWork^.ChX[y]:=false;
@@ -1056,16 +1059,18 @@ begin
                 c:=false;
                 for y:=1 to LenY do begin
                     pWork^.Ver[x, y, 2]:=Unit2.glVer[y];
-                    if (pWork^.Data[x, y] <> Unit2.glData[y]) then begin
-                        pWork^.Data[x, y]:=Unit2.glData[y];
+
+                    p:=@pWork^.Data[x, y];
+                    if (p^ <> Unit2.glData[y]) then begin
+                        p^:=Unit2.glData[y];
                         if (not b)
-                            then b:=true;
+                            then b:=true; // b:=true;
                         if (not pWork^.ChX[y])
-                            then pWork^.ChX[y]:=true;
+                            then pWork^.ChX[y]:=true; // pWork^.ChX[y]:=true;
                         if (Predpl.B)
                             then
                                 if (not pWork^.tChY[x])
-                                    then pWork^.tChY[x]:=true
+                                    then pWork^.tChY[x]:=true; // pWork^.tChY[x]:=true;
                     end;
                 end;
                 pWork^.ChY[x]:=false
@@ -1146,6 +1151,7 @@ begin
                                         b6:=true;
                                     end;
                                 end;
+
                             b6:=b6 and ((MaxVer1 > 0) or (MaxVer2 > 0)); // критерий отбора
                             if (b6) // нашли точку?
                                 then begin // да
