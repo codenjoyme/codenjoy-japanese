@@ -224,6 +224,8 @@ object Form1: TForm1
     Top = 96
     Width = 13
     Height = 13
+    Checked = True
+    State = cbChecked
     TabOrder = 14
   end
   object cbLoadNaklad: TCheckBox
@@ -305,19 +307,6 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 17
     Visible = False
-  end
-  object RadioGroup1: TRadioGroup
-    Left = 8
-    Top = 288
-    Width = 81
-    Height = 49
-    Caption = 'RadioGroup1'
-    Items.Strings = (
-      #1043#1083
-      #1058#1095#1082
-      #1055#1091#1089#1090)
-    TabOrder = 18
-    OnClick = RadioGroup1Click
   end
   object od: TOpenDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'

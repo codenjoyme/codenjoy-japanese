@@ -11,7 +11,7 @@ type
   TXYPustot = array [1..MaxLen, 1..MaxLen] of boolean;
   TXYRjad = array [1..MaxLen, 1..MaxLen] of byte;
   TFinish = array [1..MaxLen] of boolean;
-  TXYCountRjad = array [1..MaxLen] of integer;
+  TXYCountRjad = array [1..MaxLen] of byte;
   TXYVer = array [1..MaxLen, 1..MaxLen, 1..2] of Real;
   TAllData = record
     Ver:TXYVer;
@@ -57,7 +57,6 @@ type
     Label4: TLabel;
     Label5: TLabel;
     Memo1: TMemo;
-    RadioGroup1: TRadioGroup;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -78,7 +77,6 @@ type
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure CheckBox1Click(Sender: TObject);
-    procedure RadioGroup1Click(Sender: TObject);
   private
     t:TdateTime; // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     PredCoord:TPoint; PredButt:TShiftState; //
@@ -108,10 +106,10 @@ type
     procedure ClearData(all:boolean = true); // очистка данных
     function  GetFin(p:PAllData):boolean; // получение закончености рядов и всего кроссворда
     function  Check:TPoint; // проверка на правильность
-    function  GetMaxCountRjadX:integer; 
+    function  GetMaxCountRjadX:integer;
     function  GetMaxCountRjadY:integer;
-    procedure PrepRjadX(p:PAllData; Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
-    procedure PrepRjadY(p:PAllData; X:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
+    procedure PrepRjadX(p:PAllData; Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:byte);
+    procedure PrepRjadY(p:PAllData; X:integer; var Data:TData; var Rjad:TRjad; var CountRjad:byte);
     procedure SaveRjadToFile(FileName:string);
     procedure LoadRjadFromFile(FileName:string);
     procedure SaveDataToFile(FileName:string);
@@ -829,6 +827,7 @@ end;
 procedure TForm1.cbModeClick(Sender: TObject);
 begin
     btCalc.Enabled:=not cbMode.Checked;
+    cbVerEnable.Enabled:=btCalc.Enabled;
     if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
     if (cbMode.Checked) then begin
         GetRjadX;
@@ -907,6 +906,17 @@ begin
     end;
     //-----------------------------
     // сам рачсет
+{    for x:=1 to LenX do begin
+        h:=0;
+        for y:=1 to CountRjadX[x] do h:=h + RjadX[x, y];
+        if (h < (LenX div 2)) then pDM^.ChY[x]:=false;
+    end;
+    for y:=1 to LenY do begin
+        h:=0;
+        for x:=1 to CountRjadY[y] do h:=h + RjadY[x, y];
+        if (h < (LenY div 2)) then pDM^.ChX[y]:=false;
+    end; }
+    //----------
     for x:=1 to LenX do begin
         pDM^.tChY[x]:=true;
         pDT^.tChY[x]:=true;
@@ -1287,7 +1297,7 @@ begin
     Result:=c2;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.PrepRjadX(p:PAllData; Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
+procedure TForm1.PrepRjadX(p:PAllData; Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
 var x:integer;
 begin
     // подготовка строки
@@ -1296,7 +1306,7 @@ begin
     for x:=1 to CountRjadX[Y] do Rjad[x]:=Form1.RjadX[x, Y];  // сам ряд
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.PrepRjadY(p:PAllData; X: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
+procedure TForm1.PrepRjadY(p:PAllData; X: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
 var y:integer;
 begin
     // подготовка столбца
@@ -1828,19 +1838,6 @@ begin
         for y:=1 to LenY do
             if (pDM^.Data[x, y] > 0) then a:=a + 1;
     Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
-end;
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.RadioGroup1Click(Sender: TObject);
-var p:PAllData;
-begin
-    p:=pDM;
-    Case (RadioGroup1.ItemIndex) of
-        0:;
-        1:pDM:=pDT;
-        2:pDM:=pDP;
-    end;
-    RefreshPole;
-    pDM:=p;
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
