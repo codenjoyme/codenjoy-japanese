@@ -7,26 +7,26 @@ uses
   ComCtrls, StdCtrls, ExtCtrls;
 
 type
-  TData = record
+  TDataPt = record
      Pos, Ass:TPoint;
-     Check:boolean; // 0 - пусто 1 - нет
+     Check:byte; // 0 - пусто 1 - чек 2 - нечек
   end;
+  TData = array [1..40] of TDataPt;  
   TRjad10 = array [1..40] of record
     c:byte;
     b:boolean;
   end;
   TRjad = array [1..40] of byte;
   TBitArray = array [1..40] of boolean;
-  PBitArray = ^TBitArray;
-  TCombine = array [1..100000] of TBitArray;
+  TComb = array [1..100000] of TBitArray;
   TForm1 = class(TForm)
     edCount: TEdit;
     udCount: TUpDown;
     pb: TPaintBox;
     btCalc: TButton;
     cbMode: TCheckBox;
-    Button1: TButton;
-    Button2: TButton;
+    edCountY: TEdit;
+    udCountY: TUpDown;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -36,18 +36,16 @@ type
     procedure pbMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure btCalcClick(Sender: TObject);
     procedure cbModeClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
     Buf, bmpLeft, bmpPole:TBitMap;
 
-    Data:array [1..40] of TData;
+    Data:TData;
 
-    Combine:TCombine;
-    CountCombine:integer;
-    NumCombine:integer;
+    Comb:TComb;
+    CountComb:integer;
+    Len:integer;
 
     Rjad:TRjad;
     CountRjad:integer;
@@ -56,11 +54,10 @@ type
     procedure DrawLeft;
     procedure GetRjad;
     procedure ClearData;
-    procedure GetCombine;
-    procedure GetNextCombine;
-    procedure GetRjadFromCombine(var r: TRjad10; var cr:integer; bits:PBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
-    procedure GetCombineFromRjad(var r: TRjad10; var cr:integer; bits:PBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
+    procedure GetRjadFromComb(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
+    procedure GetCombFromRjad(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
     function  ManipuleRjad(var r: TRjad10; var cr:integer):boolean;
+    function  TestComb(var dt:TData; l:integer; var bits:TBitArray):boolean;
   public
     { Public declarations }
   end;
@@ -86,7 +83,7 @@ procedure TForm1.DrawLeft;
 var i, x, y:integer;
     tstr:string;
 begin
-    bmpLeft.Width:={CountRjad}((udCount.Position+1) div 2)*wid;
+    bmpLeft.Width:={CountRjad}((Len+1) div 2)*wid;
     bmpLeft.Height:=wid;
     bmpLeft.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpLeft.Height);
     for i:=1 to CountRjad do begin
@@ -99,23 +96,18 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DrawPole;
-var i, x1, y1, x2, y2, x3, y3:integer;
-    tstr:string;
+var i:integer;
 begin
-    bmpPole.Width:=udCount.Position*wid;
+    bmpPole.Width:=Len*wid;
     bmpPole.Height:=wid;
     bmpPole.Canvas.Rectangle(0, 0, bmpPole.Width, bmpPole.Height);
-    for i:=1 to udCount.Position do begin
-        tstr:='+';
-        x1:=(i - 1)*wid; y1:=0;
-        x2:=i*wid;       y2:=wid;
-        x3:=x1 + (wid - bmpLeft.Canvas.TextWidth(tstr)) div 2;
-        y3:=y1 + (wid - bmpLeft.Canvas.TextHeight(tstr)) div 2;
-        if (Data[i].Check)
-            then bmpPole.Canvas.Brush.Color:=clDkGray
-            else bmpPole.Canvas.Brush.Color:=clWhite;
-        bmpPole.Canvas.Rectangle(x1, y1, x2, y2);
-        if (not cbMode.Checked) then bmpPole.Canvas.TextOut(x3, y3, tstr);
+    for i:=1 to Len do begin
+        case (Data[i].Check) of
+            0: bmpPole.Canvas.Brush.Color:=clWhite;
+            1: bmpPole.Canvas.Brush.Color:=clBlack;
+            2: bmpPole.Canvas.Brush.Color:=clLtGray;
+        end;
+        bmpPole.Canvas.Rectangle((i - 1)*wid, 0, i*wid, wid);
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,6 +115,7 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
     PredCoord:=Point(-1, -1);
     PredButt:=[ssLeft];
+    Len:=udCount.Position;
     bDown:=false;
 
     Buf:=TBitMap.Create;
@@ -157,8 +150,8 @@ procedure TForm1.GetRjad;
 var i, a:integer;
 begin
     a:=0; CountRjad:=1;
-    for i:=1 to udCount.Position do begin
-        if (Data[i].Check)
+    for i:=1 to Len do begin
+        if (Data[i].Check = 1)
             then inc(a)
             else
                 if (a <> 0) then begin
@@ -176,7 +169,6 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i, j, k:integer;
-    b:boolean;
 begin
     if (X < bmpLeft.Width) then begin
         X:=(X div wid) + 1;
@@ -186,14 +178,15 @@ begin
                 j:=j + Rjad[i];
             if (X > CountRjad) then begin
                 X:=CountRjad + 1;
-                if ((j + CountRjad) > udCount.Position - 1) then Exit;
+                if ((j + CountRjad) > Len - 1) then Exit;
                 inc(CountRjad);
                 Rjad[X]:=0;
             end;
-            if ((j + CountRjad) > udCount.Position) then Exit;
+            if ((j + CountRjad) > Len) then Exit;
             Rjad[X]:=Rjad[X] + 1;
         end;
         if (ssRight in Shift) then begin
+            if (CountRjad = 0) then Exit;
             if (X > CountRjad) then X:=CountRjad;
             Rjad[X]:=Rjad[X] - 1;
             if (Rjad[X] = 0) then begin
@@ -205,21 +198,22 @@ begin
         end;
 
         if (cbMode.Checked) then begin
-            for i:=1 to udCount.Position do Data[i].Check:=false;
+            for i:=1 to Len do Data[i].Check:=0;
             k:=1; i:=1;
             while (i <= CountRjad) do begin
                 for j:=1 to Rjad[i] do
-                    Data[k + j - 1].Check:=true;
-                Data[k + j].Check:=false;
+                    Data[k + j - 1].Check:=1;
+                Data[k + j].Check:=0;
                 k:=k + j;
                 inc(i);
             end;
         end;
+        
         Draw;
         Exit;
     end;
     bDown:=true;
-    pbMouseMove(Sender, Shift, X, Y);
+    pbMouseMove(Sender, Shift, X, Y);    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbPaint(Sender: TObject);
@@ -232,6 +226,7 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edCountChange(Sender: TObject);
 begin
+    Len:=udCount.Position;
     ClearData;
     GetRjad;
     Draw;
@@ -240,30 +235,33 @@ end;
 procedure TForm1.ClearData;
 var i:integer;
 begin
-    for i:=1 to udCount.Position do begin
+    for i:=1 to Len do begin
         Data[i].Pos:=Point(i, 0);
         Data[i].Ass:=Point(0, 0);
-        Data[i].Check:=false;
+        Data[i].Check:=0;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var bDraw:boolean;
-    a:integer;
 begin
     if (not bDown) then Exit;
     X:=X - bmpLeft.Width;
     X:=(X div wid) + 1;
-    if ((X <= 0) or (X > udCount.Position)) then Exit;
+    if ((X <= 0) or (X > Len)) then Exit;
     if ((PredButt = Shift) and (PredCoord.x = X)) then Exit;
     bDraw:=false;
     if (ssLeft in Shift) then begin
-        bDraw:=(not Data[X].Check);
-        Data[X].Check:=true;
+        bDraw:=(Data[X].Check <> 1);
+        Data[X].Check:=1
     end;
     if (ssRight in Shift) then begin
-        bDraw:=Data[X].Check;
-        Data[X].Check:=false;
+        bDraw:=(Data[X].Check <> 0);
+        Data[X].Check:=0;
+    end;
+    if (ssMiddle in Shift) then begin
+        bDraw:=(Data[X].Check <> 2);
+        Data[X].Check:=2;
     end;
     PredCoord:=Point(x, 1);
     PredButt:=Shift;
@@ -281,80 +279,87 @@ end;
 procedure TForm1.btCalcClick(Sender: TObject);
 var i, j:integer;
     b1, b2:boolean;
+    Rjad10:TRjad10;
+    cr:integer;
+    Del:array [1..100000] of boolean;
 begin
-    GetCombine;
-    GetNextCombine;
-    for i:=1 to udCount.Position do begin
+    CountComb:=1;
+
+    for i:=1 to 100000 do Del[i]:=true;
+
+    cr:=1; j:=0;
+    for i:=1 to CountRjad do begin
+        Rjad10[cr].b:=true;
+        Rjad10[cr].c:=Rjad[i];
+        Rjad10[cr + 1].b:=false;
+        Rjad10[cr + 1].c:=1;
+        j:=j + Rjad[i] + 1;
+        cr:=cr + 2;
+    end;
+    cr:=cr - 1;
+    if (j > Len) then cr:=cr - 1;
+    if (j < Len) then Rjad10[cr].c:=Rjad10[cr].c + Len - j;
+
+    GetCombFromRjad(Rjad10, cr, Comb[CountComb]);
+    Del[CountComb]:=TestComb(Data, Len, Comb[CountComb]);
+    //-------
+    b1:=true;
+    while (b1) do begin
+        inc(CountComb);
+        GetRjadFromComb(Rjad10, cr, Comb[CountComb - 1]);
+        b1:=ManipuleRjad(Rjad10, cr);
+        GetCombFromRjad(Rjad10, cr, Comb[CountComb]);
+        Del[CountComb]:=TestComb(Data, Len, Comb[CountComb]);
+    end;
+    //-----------
+    for i:=1 to Len do begin
+        Data[i].Check:=0;
         b1:=true;
         b2:=false;
-{df}    for j:=1 to CountCombine do begin
-            b1:=b1 and Combine[j, i];
-            b2:=b2 or  Combine[j, i];
+        for j:=1 to CountComb do begin
+            if (not Del[j]) then Continue; 
+            b1:=b1 and Comb[j, i];
+            b2:=b2 or Comb[j, i];
         end;
-        if (b1)     then Data[i].Check:=true;
-        if (not b2) then Data[i].Check:=false;
+        if (b1) then Data[i].Check:=1;
+        if (not b2) then Data[i].Check:=2;
     end;
     GetRjad;
     Draw;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.GetCombine;
-var i, j, x:integer;
-begin
-    CountCombine:=1;
-    NumCombine:=1;
-    x:=1;
-    for i:=1 to CountRjad do begin
-        for j:=x to (x + Rjad[i] - 1) do begin
-            Combine[CountCombine, j]:=true;
-        end;
-        x:=x + Rjad[i];
-        Combine[CountCombine, x]:= false;
-        x:=x + 1;
-    end;
-    for i:=x to udCount.Position do begin
-        Combine[CountCombine, i]:= false;
-    end;
-end;
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.GetNextCombine;
+function TForm1.TestComb(var dt: TData; l:integer; var bits: TBitArray): boolean;
 var i:integer;
-    bits1, bits2:PBitArray;
-    b:boolean;
-    Rjad10:TRjad10;
-    cr:integer;
 begin
-    b:=true;
-    while (b) do begin
-        inc(CountCombine);
-        inc(NumCombine);
-        bits1:=@Combine[CountCombine - 1];
-        bits2:=@Combine[CountCombine];
-
-        GetRjadFromCombine(Rjad10, cr, bits1);
-        b:=ManipuleRjad(Rjad10, cr);
-        GetCombineFromRjad(Rjad10, cr, bits2);
+    Result:=true;
+    for i:=1 to l do begin
+        case dt[i].Check of
+            0:;
+            1:if (bits[i] <> true) then Result:=false;
+            2:if (bits[i] <> false) then Result:=false;
+        end;
+        if (not Result) then Exit;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.GetCombineFromRjad(var r: TRjad10; var cr:integer; bits:PBitArray);
+procedure TForm1.GetCombFromRjad(var r: TRjad10; var cr:integer; var bits:TBitArray);
 var  i, j, x:integer;
 begin
     x:=0;
     for i:=1 to cr do begin
         for j:=1 to r[i].c do
-            bits^[x + j]:=r[i].b;
+            bits[x + j]:=r[i].b;
         x:=x + r[i].c;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.GetRjadFromCombine(var r: TRjad10; var cr: integer; bits: PBitArray);
+procedure TForm1.GetRjadFromComb(var r: TRjad10; var cr: integer; var bits: TBitArray);
 var i, j:integer;
     b:boolean;
 begin
-    b:=bits^[1];
+    b:=bits[1];
     j:=1; cr:=1;
-    for i:=2 to udCount.Position do begin
+    for i:=2 to Len do begin
         if (bits[i] xor b) then begin
             r[cr].c:=j;
             r[cr].b:=b;
@@ -362,7 +367,7 @@ begin
             j:=0;
         end;
         inc(j);
-        b:=bits^[i];
+        b:=bits[i];
     end;
     if (j <> 0) then begin
         r[cr].c:=j;
@@ -465,47 +470,8 @@ end;
 procedure TForm1.cbModeClick(Sender: TObject);
 begin
     btCalc.Enabled:=not cbMode.Checked; 
-    ClearData;
     GetRjad;
     Draw;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.Button1Click(Sender: TObject);
-var i, j:integer;
-    b1, b2:boolean;
-begin
-    GetCombine;
-    for i:=1 to udCount.Position do begin
-        b1:=true;
-        b2:=false;
-{df}    for j:=1 to CountCombine do begin
-            b1:=b1 and Combine[j, i];
-            b2:=b2 or  Combine[j, i];
-        end;
-        if (b1)     then Data[i].Check:=true;
-        if (not b2) then Data[i].Check:=false;
-    end;
-    GetRjad;
-    Draw;
-end;
-
-procedure TForm1.Button2Click(Sender: TObject);
-var i, j:integer;
-    b1, b2:boolean;
-begin
-    GetNextCombine;
-    for i:=1 to udCount.Position do begin
-        b1:=true;
-        b2:=false;
-{df}    for j:=1 to CountCombine do begin
-            b1:=b1 and Combine[j, i];
-            b2:=b2 or  Combine[j, i];
-        end;
-        if (b1)     then Data[i].Check:=true;
-        if (not b2) then Data[i].Check:=false;
-    end;
-    GetRjad;
-    Draw;
-end;
-
 end.
