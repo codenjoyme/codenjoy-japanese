@@ -43,7 +43,7 @@ class Unit1 {
     TXYCountRjad CountRjadY = new TXYCountRjad();
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public String print() {
+    public String printData() {
         return (String)new PrinterFactoryImpl<>().getPrinter(
                 pDataMain.data.Data, null).print();
     }

@@ -11,15 +11,22 @@ public class Main {
         unit.FormCreate();
         unit.assumption = true; // не будем гадать, пробуем решить точно
         unit.loadFile(true, folder + "5.jap", 1);
+        unit.ClearData(false); // чистим только поле
         unit.solve();
         unit.saveFile(1, folder + "!5.jap");
         unit.saveFile(2, folder + "!5.jdt");
 
-        String board = unit.print();
-        LevelImpl level = new LevelImpl(board);
-        String board2 = (String)new PrinterFactoryImpl<>().getPrinter(level, null).print();
+        String board = unit.printData();
 
-        System.out.println(board2);
+        LevelImpl level = new LevelImpl(board);
+
+        String board2 = printLevel(level);
+
+        System.out.println(board);
+    }
+
+    private static String printLevel(LevelImpl level) {
+        return (String)new PrinterFactoryImpl<>().getPrinter(level, null).print();
     }
 
 
