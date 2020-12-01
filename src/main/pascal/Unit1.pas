@@ -36,6 +36,14 @@ type
     Panel1: TPanel;
     Label1: TLabel;
     cbVerEnable: TCheckBox;
+    cbLoadNaklad: TCheckBox;
+    CheckBox1: TCheckBox;
+    gbInfo: TGroupBox;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -55,7 +63,9 @@ type
     procedure Button1Click(Sender: TObject);
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure CheckBox1Click(Sender: TObject);
   private
+    t:TdateTime;
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
     Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap;
@@ -67,9 +77,9 @@ type
     Ver:TXYVer;
     FinX, FinY:TFinish;
     ChX, ChY:TFinish;
-    tChX, tChY:TFinish;
     Data:TXYData;
     {данные для востановления}
+    tChX, tChY:TFinish;
     bPredpl:boolean;
     Predpl:record
         Pustot:TXYPustot;
@@ -79,6 +89,7 @@ type
         bPredpl:boolean;
         FinX, FinY:TFinish;
         ChX, ChY:TFinish;
+//v        Ver:TXYVer;
     end;
     {------------------------}
     LenX, LenY:integer;
@@ -96,7 +107,7 @@ type
     procedure DataFromRjadY(x:integer);
     procedure ClearData(all:boolean = true);
     function  GetFin:boolean;
-    function  Check:integer;
+    function  Check:TPoint;
     function  GetMaxCountRjadX:integer;
     function  GetMaxCountRjadY:integer;
     procedure PrepRjadX(Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
@@ -108,13 +119,14 @@ type
     procedure SavePustot(pt:TPoint);
     function  LoadPustot:TPoint;
     procedure SetPredplDot(bDot:boolean);
+    procedure SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
   public
     { Public declarations }
   end;
 
 var Form1: TForm1;
-const wid = 14;
-      fs = 7;
+const wid = 10;
+      fs = 5;
 implementation
 
 {$R *.DFM}
@@ -220,12 +232,12 @@ var w, h, a:integer;
     procedure ResForm;
     begin
         h:=pb.Height + Panel1.Top + 30 + 15;
-        a:=edInput.Top + edInput.Height + 30;
+        a:=gbInfo.Top + gbInfo.Height + 32;
         if (h < a) then h:=a;
         w:=pb.Width + Panel1.Left + 11 + 15;
         Form1.Constraints.MinHeight:=0;
         Form1.Constraints.MinWidth:=0;
-        if (w < (Screen.Width - 50)) then begin
+        if (w < (Screen.Width - 20)) then begin
             if (b) then Form1.Width:=w;
             Form1.Constraints.MinWidth:=w;
         end;
@@ -472,7 +484,7 @@ begin
     PredButt:=[ssLeft];
     CurrPt.xy:=true;
     CurrPt.pt:=Point(1, 1);
-//    edInput.SetFocus;    
+//    edInput.SetFocus;
     bChangeLen:=true;
     bUpDown:=false;
     LenX:=udCountX.Position;
@@ -481,6 +493,8 @@ begin
     bPredpl:=false;
 
     ClearData;
+
+    SetInfo(0, true, false, true, 0);
 
     od.InitialDir:=ExtractFileDir(Application.ExeName);
     sd.InitialDir:=od.InitialDir;
@@ -823,7 +837,7 @@ begin
     Draw(Point(-1, -1));
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function TForm1.Check:integer;
+function TForm1.Check:TPoint;
 var x, y, a1, a2:integer;
 begin
     a1:=0;
@@ -832,14 +846,15 @@ begin
     a2:=0;
     for y:=1 to LenY do
         for x:=1 to CountRjadX[y] do a2:=a2 + RjadX[x, y];
-    Result:=Abs(a1 - a2);  // разница рядов
+    Result:=Point(a1, a2);  // разница рядов
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
-    b, b2, b3, b4, b5, b6, b7, b8, b9, b10, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - предполагали ли, b4 - после точки ошибки небыло, мы поставили пустоту для проверки, b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b10 - предположение сработало
-    t:TdateTime; h, m, s, ms:word;
+    b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - предполагали ли, b4 - после точки ошибки небыло, мы поставили пустоту для проверки, b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b10 - предположение сработало, b11 - нудно для пропуска прогона по у если LenX больше LenY
+    h, m, s, ms:word;
     MaxVer1, MaxVer2:Real;
+    a1, a2:real;
     pt:TPoint;
 begin
     if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
@@ -851,6 +866,7 @@ begin
             cbMode.Enabled:=false;
             btSave.Enabled:=false;
             btLoad.Enabled:=false;
+            cbLoadNaklad.Enabled:=true;
             cbVerEnable.Enabled:=false;
             btClear.Enabled:=false;
             btSaveBitmap.Enabled:=false;
@@ -864,22 +880,26 @@ begin
             cbMode.Enabled:=true;
             btSave.Enabled:=true;
             btLoad.Enabled:=true;
+            cbLoadNaklad.Enabled:=true;
             cbVerEnable.Enabled:=true;
             btClear.Enabled:=true;
             btSaveBitmap.Enabled:=true;
             edInput.Enabled:=true;
             edInput.SetFocus;
+            SetInfo(0, true, false, false, 0);
             Exit; // сразу выходим
         end;
 
     t:=Now; //
 
-    x:=Check; // проверка на совпадение рядов
-    if (x <> 0) then begin
+    // проверка на совпадение рядов
+    pt:=Check;
+    if ((pt.x - pt.y) <> 0) then begin
         ShowMessage('Ошибка! Несовпадение на ' + IntToStr(x));
         btCalc.Click; // остановка
         Exit;
     end;
+    //-----------------------------
     // сам рачсет
     for x:=1 to LenX do tChY[x]:=true;
     for y:=1 to LenY do tChX[y]:=true;
@@ -893,12 +913,31 @@ begin
     b8:=false;
     b9:=false;
     b10:=false;
+    // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
+    b11:=(LenX > LenY); // нужно для пропуска прогона
+    a1:=0;
+    for x:=1 to LenX do
+        a1:=a1 + CountRjadY[x];
+    a2:=0;
+    for y:=1 to LenY do
+        a2:=a2 + CountRjadX[y];
+    b11:=(a1/LenY > a2/LenX);
+//if (b11)
+//    then CheckBox1.Caption:='t'
+//    else CheckBox1.Caption:='f';
+//b11:=CheckBox1.Checked;
+    //----------------------------------------------------------
     bPredpl:=false;
+    b:=false; // для b11
+    Memo1.Clear;
     repeat
+        if (b and b11) then b11:=false;
         b:=false;
         b2:=false;
-        if (not b5) then begin // при поиску другой точки пропускаем этот шаг
+        if ((not b5) and (not b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
             for y:=1 to LenY do begin
+//                if (not bPredpl) then RefreshPole; // прорисовка поля
+                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
                 Application.ProcessMessages;  // передышка
                 b8:=(btCalc.Tag = 0);
                 if (b8) then begin
@@ -920,6 +959,13 @@ begin
                     end;
                 PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
                 Unit2.glLen:=LenX; // длинна строки
+if (bPredpl)
+then begin
+    if (Predpl.SetDot = 1)
+        then Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' предп. т')
+        else Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' предп. п');
+end
+else Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' точно');
                 if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
                     if (not cbVerEnable.Checked) then begin
                         ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
@@ -931,6 +977,9 @@ begin
                     break;
                 end;
                 for x:=1 to LenX do begin
+//v                    if (bPredpl)
+//v                        then Predpl.Ver[x, y, 1]:=Unit2.glVer[x]
+//v                        else Ver[x, y, 1]:=Unit2.glVer[x];
                     Ver[x, y, 1]:=Unit2.glVer[x];
                     if (Data[x, y] <> Unit2.glData[x]) then begin
                         Data[x, y]:=Unit2.glData[x];
@@ -955,6 +1004,8 @@ begin
         if ((not b2) and (not b5) and (not b8) and (not b9)) then begin // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
             // дальше то же только для столбцов
             for x:=1 to LenX do begin
+//                if (not bPredpl) then RefreshPole; // прорисовка поля
+                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
                 Application.ProcessMessages;
                 b8:=(btCalc.Tag = 0);
                 if (b8) then begin
@@ -976,6 +1027,13 @@ begin
                     end;
                 PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
                 Unit2.glLen:=LenY;
+if (bPredpl)
+then begin
+    if (Predpl.SetDot = 1)
+        then Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' предп. т')
+        else Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' предп. п');
+end
+else Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' точно');
                 if (not Unit2.Calculate) then begin
                     if (not cbVerEnable.Checked) then begin
                         ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
@@ -988,6 +1046,9 @@ begin
                 end;
                 c:=false;
                 for y:=1 to LenY do begin
+//v                    if (bPredpl)
+//v                        then Predpl.Ver[x, y, 2]:=Unit2.glVer[y]
+//v                        else Ver[x, y, 2]:=Unit2.glVer[y];
                     Ver[x, y, 2]:=Unit2.glVer[y];
                     if (Data[x, y] <> Unit2.glData[y]) then begin
                         b:=true;
@@ -1006,12 +1067,14 @@ begin
             end;
             if (bPredpl) then GetFin;
             if (not bPredpl) then RefreshPole;// прорисовка поля
+            if (b11) then b:=true; // чтобы после прогона по х пошел прогон по у
         end;
         if ((not bPredpl) and (not b9)) then b9:=GetFin;
 
         if (b7 or b8) then b:=false; // все конец
         if ((cbVerEnable.Checked) and (not b) and (not b7) and (not b8) and (not b9)) then begin // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
             b10:=false;
+            if (b11) then b11:=false;
             if (b2) // ошибка была?
                 then begin // была ошибка - отменяем все и ставим другую точку
                     b2:=false;
@@ -1032,6 +1095,7 @@ begin
                                                 bPredpl:=false;
                                                 SetPredplDot(true); // ставим точку
                                                 // очищаем сохранения пустых мест
+Memo1.Lines.Add('Предп.т. ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
                                                 b3:=false; // закончили предположение
                                                 b10:=true; // предположение сработало
                                                 Draw(pt);
@@ -1049,7 +1113,6 @@ begin
                         else begin // если была ошибка без предположений то в кросворде ошибка
                             ShowMessage('Ошибка в кроссворде.');
                             b9:=true;
-                            Exit;
                         end;
                 end
                 else begin // небыло ошибки - предполагаем
@@ -1070,6 +1133,7 @@ begin
                                                 pt:=LoadPustot;
                                                 Predpl.NoSet[pt.x, pt.y]:=true;
                                                 Draw(pt);
+Memo1.Lines.Add('Галяк. ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
                                                 b5:=true;
                                                 b3:=false; // закончили предположение
                                                 b:=true; // произошли измения
@@ -1077,9 +1141,10 @@ begin
                                             else begin // после того как поставили точку была ошибка, а после пустоты небыло, значит там пустота стопудово
                                                 // очищаем сохранения пустых мест
                                                 pt:=Predpl.SetTo;
-                                                bPredpl:=false;
-                                                SetPredplDot(false); // ненадо
+                                                bPredpl:=false;  // в этих двух строках порядок обязателен
+                                                SetPredplDot(false); // в этих двух строках порядок обязателен
                                                 Draw(pt);
+Memo1.Lines.Add('Предп.п. ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
                                                 b3:=false; // закончили предположение
                                                 b10:=true; // предположение сработало
                                                 b:=true; // произошли измения
@@ -1111,6 +1176,7 @@ begin
                                     Predpl.SetTo:=pt;
                                     Data[pt.x, pt.y]:=3;
                                     Draw(pt);
+Memo1.Lines.Add('Предп. в ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
                                     SetPredplDot(true); // ставим точку
                                     b:=true; // произошли изменения
                                     b3:=true; // предположили и поставили точку
@@ -1138,8 +1204,6 @@ begin
         end;
         if (b9) then b:=false; // все конец
     until (not b);
-    DecodeTime(Now - t, h, m, s, ms);  //
-    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);  //
     // очистка массивв флагов заполнености
     for x:=1 to LenX do begin
         ChY[x]:=true;
@@ -1174,15 +1238,29 @@ begin
             Data[pt.x, pt.y]:=1;
             Predpl.SetDot:=1;
             // меняем вероятности
-            Ver[pt.x, pt.y, 1]:=1;
-            Ver[pt.x, pt.y, 2]:=1;
+//v            if (bPredpl)
+//v                then begin
+//v                    Predpl.Ver[pt.x, pt.y, 1]:=1;
+//v                    Predpl.Ver[pt.x, pt.y, 2]:=1;
+//v                end
+//v                else begin
+                    Ver[pt.x, pt.y, 1]:=1;
+                    Ver[pt.x, pt.y, 2]:=1;
+//v                end;
         end
         else begin
             Data[pt.x, pt.y]:=2;
             Predpl.SetDot:=2;
             // меняем вероятности
-            Ver[pt.x, pt.y, 1]:=0;
-            Ver[pt.x, pt.y, 2]:=0;
+//v            if (bPredpl)
+//v                then begin
+//v                    Predpl.Ver[pt.x, pt.y, 1]:=0;
+//v                    Predpl.Ver[pt.x, pt.y, 2]:=0;
+//v                end
+//v                else begin
+                    Ver[pt.x, pt.y, 1]:=0;
+                    Ver[pt.x, pt.y, 2]:=0;
+//v                end;
         end;
     // строка и солбец, содержащие эту точку пересчитать
     if (bPredpl)
@@ -1372,11 +1450,13 @@ begin
         1: SaveRjadToFile(sd.FileName);
         2: SaveDataToFile(sd.FileName);
     end;
+    Form1.Caption:='Японские головоломки - ' + ExtractFileName(sd.FileName);
     edInput.SetFocus;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btLoadClick(Sender: TObject);
-var tstr, ext:string;
+var tstr, tstr2, ext:string;
+    b:boolean; // флаг накладывания
 begin
     if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
         then od.FilterIndex:=2
@@ -1391,7 +1471,7 @@ begin
         Exit; // запуск диалога
     end;
     tstr:=ExtractFileExt(od.FileName); // имя файла
-    case (od.FilterIndex) of 
+    case (od.FilterIndex) of
         1:ext:='.jap';
         2:ext:='.jdt';
     end;
@@ -1403,28 +1483,55 @@ begin
     end;
     sd.FileName:=od.FileName;
     cbRjad.Checked:=true;
+    if (cbLoadNaklad.Checked) then begin
+        tstr:=ChangeFileExt(od.FileName, '.jap');
+        tstr2:=ChangeFileExt(od.FileName, '.jdt');
+        if (FileExists(tstr) and FileExists(tstr2)) then begin
+            cbMode.Checked:=false;
+            cbMode.Caption:='Расш.';
+            LoadRjadFromFile(tstr); // грузим файл
+            LoadDataFromFile(tstr2);  // грузим файл
+            bChangeLen:=true;
+            bUpDown:=true;
+            Draw(Point(0, 0));
+            Form1.Caption:='Японские головоломки - ' + ExtractFileName(tstr) + ', ' + ExtractFileName(tstr2);
+            SetInfo(0, true, false, true, 0);
+            Exit;
+        end;
+    end;
+    b:=(cbLoadNaklad.Checked and (cbMode.Checked xor (od.FilterIndex = 2)));
     case (od.FilterIndex) of
         1: begin // файл расшифровщика
-            // перекл режим
-            cbMode.Checked:=false;
-            if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
-            ClearData; // очищаем проле
+            if (not b) then begin
+                // перекл режим
+                cbMode.Checked:=false;
+                if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
+                ClearData; // очищаем поле
+            end;
             LoadRjadFromFile(od.FileName); // грузим файл
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            btCalc.Click;
+            Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+            SetInfo(0, true, false, false, 0);
+            if (not b) then btCalc.Click;
         end;
         2: begin // файл редактора
-            // перекл режим
-            cbMode.Checked:=true;
-            if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
+            if (not b) then begin
+                // перекл режим
+                cbMode.Checked:=true;
+                if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
+            end;
             LoadDataFromFile(od.FileName);  // грузим файл
-            GetRjadX; // получаем ряды
-            GetRjady;
+            if (not b) then begin
+                GetRjadX; // получаем ряды
+                GetRjady;
+            end;
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
+            Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+            SetInfo(0, true, false, true, 0);
         end;
     end;
     edInput.SetFocus;
@@ -1469,6 +1576,7 @@ begin
     CurrPt.xy:=true;
     CurrPt.pt:=Point(1, 1);
     Draw(Point(0, 0)); // прорисовка
+    SetInfo(0, true, false, true, 0);
     edInput.SetFocus;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1753,6 +1861,37 @@ end;
 procedure TForm1.FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
     Label1.Caption:='';
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.CheckBox1Click(Sender: TObject);
+begin
+    btClear.Click;
+    btCalc.Click;
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
+var x, y, a:integer;
+    h, m, s, ms:word;
+begin
+    if (bTimeNow) then t:=Now;
+    if (bPredpl)
+        then begin
+            if (bWhoPredpl = 1)
+                then Label2.Caption:='Расчет: предп. т.'
+                else Label2.Caption:='Расчет: предп. п.';
+        end
+        else Label2.Caption:='Расчет: точно';
+    if (bRjadStolb)
+        then Label4.Caption:=Format('Ряд: %d', [Rjad])
+        else Label4.Caption:=Format('Столбец: %d', [Rjad]);
+    DecodeTime(Now - t, h, m, s, ms);  //
+    Label5.Caption:=Format('Время: %d-%d-%d', [(h*60) + m, s, ms]);
+    if (bPredpl) then Exit;
+    a:=0;
+    for x:=1 to LenX do
+        for y:=1 to LenY do
+            if (Data[x, y] > 0) then a:=a + 1;
+    Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.

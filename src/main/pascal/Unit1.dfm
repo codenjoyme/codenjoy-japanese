@@ -1,8 +1,8 @@
 object Form1: TForm1
   Left = 245
   Top = 144
-  Width = 583
-  Height = 266
+  Width = 619
+  Height = 365
   Caption = #1071#1087#1086#1085#1089#1082#1080#1077' '#1075#1086#1083#1086#1074#1086#1083#1086#1084#1082#1080
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,14 +18,14 @@ object Form1: TForm1
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 9
+    Left = 13
     Top = 72
     Width = 6
     Height = 13
     Caption = '0'
   end
   object edCountX: TEdit
-    Left = 4
+    Left = 9
     Top = 8
     Width = 44
     Height = 21
@@ -41,7 +41,7 @@ object Form1: TForm1
     OnChange = edCountXChange
   end
   object udCountX: TUpDown
-    Left = 48
+    Left = 53
     Top = 8
     Width = 12
     Height = 21
@@ -54,7 +54,7 @@ object Form1: TForm1
     OnChangingEx = udCountXChangingEx
   end
   object btCalc: TButton
-    Left = 6
+    Left = 10
     Top = 91
     Width = 73
     Height = 24
@@ -69,7 +69,7 @@ object Form1: TForm1
     OnClick = btCalcClick
   end
   object cbMode: TCheckBox
-    Left = 8
+    Left = 12
     Top = 56
     Width = 67
     Height = 15
@@ -84,7 +84,7 @@ object Form1: TForm1
     OnClick = cbModeClick
   end
   object edCountY: TEdit
-    Left = 4
+    Left = 9
     Top = 32
     Width = 44
     Height = 21
@@ -100,7 +100,7 @@ object Form1: TForm1
     OnChange = edCountXChange
   end
   object udCountY: TUpDown
-    Left = 48
+    Left = 53
     Top = 32
     Width = 12
     Height = 21
@@ -113,7 +113,7 @@ object Form1: TForm1
     OnChangingEx = udCountXChangingEx
   end
   object btSave: TButton
-    Left = 6
+    Left = 10
     Top = 115
     Width = 73
     Height = 24
@@ -128,11 +128,11 @@ object Form1: TForm1
     OnClick = btSaveClick
   end
   object btLoad: TButton
-    Left = 6
+    Left = 10
     Top = 139
     Width = 73
     Height = 24
-    Caption = '&'#1047#1072#1075#1088#1091#1079#1080#1090#1100
+    Caption = '&'#1054#1090#1082#1088#1099#1090#1100'     '
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -143,7 +143,7 @@ object Form1: TForm1
     OnClick = btLoadClick
   end
   object btClear: TButton
-    Left = 6
+    Left = 10
     Top = 163
     Width = 73
     Height = 24
@@ -158,10 +158,11 @@ object Form1: TForm1
     OnClick = btClearClick
   end
   object edInput: TEdit
-    Left = 6
-    Top = 216
-    Width = 65
-    Height = 21
+    Left = 10
+    Top = 214
+    Width = 73
+    Height = 17
+    AutoSize = False
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -173,8 +174,8 @@ object Form1: TForm1
     OnMouseDown = edInputMouseDown
   end
   object cbRjad: TCheckBox
-    Left = 64
-    Top = 24
+    Left = 71
+    Top = 23
     Width = 14
     Height = 17
     Caption = 'cbRjad'
@@ -182,7 +183,7 @@ object Form1: TForm1
     OnClick = cbRjadClick
   end
   object btSaveBitmap: TButton
-    Left = 6
+    Left = 10
     Top = 187
     Width = 73
     Height = 24
@@ -191,8 +192,8 @@ object Form1: TForm1
     OnClick = btSaveBitmapClick
   end
   object Button1: TButton
-    Left = 32
-    Top = 192
+    Left = 36
+    Top = 200
     Width = 63
     Height = 25
     Caption = 'Button1'
@@ -201,7 +202,7 @@ object Form1: TForm1
     OnClick = Button1Click
   end
   object Panel1: TPanel
-    Left = 88
+    Left = 99
     Top = 8
     Width = 481
     Height = 225
@@ -219,25 +220,114 @@ object Form1: TForm1
     end
   end
   object cbVerEnable: TCheckBox
-    Left = 61
+    Left = 65
     Top = 96
     Width = 13
     Height = 13
     TabOrder = 14
   end
+  object cbLoadNaklad: TCheckBox
+    Left = 65
+    Top = 144
+    Width = 13
+    Height = 13
+    TabOrder = 15
+  end
+  object CheckBox1: TCheckBox
+    Left = 12
+    Top = 72
+    Width = 73
+    Height = 17
+    Caption = #1087#1088#1086#1075#1086#1085'?'
+    TabOrder = 16
+    Visible = False
+    OnClick = CheckBox1Click
+  end
+  object gbInfo: TGroupBox
+    Left = 4
+    Top = 231
+    Width = 93
+    Height = 52
+    TabOrder = 17
+    object Label2: TLabel
+      Left = 3
+      Top = 7
+      Width = 60
+      Height = 11
+      Caption = #1056#1072#1089#1095#1077#1090': '#1090#1086#1095#1085#1086
+      Font.Charset = RUSSIAN_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -9
+      Font.Name = 'MS Serif'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label3: TLabel
+      Left = 3
+      Top = 17
+      Width = 62
+      Height = 11
+      Caption = #1054#1090#1082#1088#1099#1090#1086': 100%'
+      Font.Charset = RUSSIAN_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -9
+      Font.Name = 'MS Serif'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label4: TLabel
+      Left = 3
+      Top = 28
+      Width = 28
+      Height = 11
+      Caption = #1056#1103#1076': 10'
+      Font.Charset = RUSSIAN_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -9
+      Font.Name = 'MS Serif'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label5: TLabel
+      Left = 4
+      Top = 38
+      Width = 30
+      Height = 11
+      Caption = #1042#1088#1077#1084#1103':'
+      Font.Charset = RUSSIAN_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -9
+      Font.Name = 'MS Serif'
+      Font.Style = []
+      ParentFont = False
+    end
+  end
+  object Memo1: TMemo
+    Left = 4
+    Top = 284
+    Width = 93
+    Height = 409
+    Font.Charset = RUSSIAN_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -9
+    Font.Name = 'MS Serif'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 18
+  end
   object od: TOpenDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
-    Left = 80
+    Left = 84
     Top = 136
   end
   object sd: TSaveDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
-    Left = 80
+    Left = 84
     Top = 112
   end
   object spd: TSavePictureDialog
     Filter = 'Bitmaps (*.bmp)|*.bmp'
-    Left = 80
+    Left = 84
     Top = 184
   end
   object WordApplication1: TWordApplication

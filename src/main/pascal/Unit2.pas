@@ -45,7 +45,7 @@ implementation
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function Calculate:boolean;
 var i, j:integer;
-    b1, b2:boolean;
+    b1:boolean;
     Rjad10:TRjad10;
     cr:integer;
 begin
@@ -76,7 +76,6 @@ begin
     if (j < glLen) then Rjad10[cr].c:=Rjad10[cr].c + glLen - j;
     //-------
     b1:=true;
-    b2:=false;
     glCombNum:=0;
     while (b1) do begin
         GetCombFromRjad(Rjad10, cr, glCurrComb);
@@ -107,7 +106,6 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function TestComb(var dt: TData; l:integer; var bits: TBitArray): boolean;
 var i:integer;
-    a:integer;
 begin
     Result:=true;
     for i:=1 to l do begin
