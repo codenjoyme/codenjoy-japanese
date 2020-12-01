@@ -18,11 +18,11 @@ type
     FinX, FinY:TFinish;
     ChX, ChY:TFinish;
     Data:TXYData;
-  end;
-  TPredpl = record
     tChX, tChY:TFinish;
-    Pustot:TXYPustot;
     NoSet:TXYPustot;
+  end;
+  PAllData = ^TAllData;
+  TPredpl = record
     SetTo:TPoint;
     SetDot:boolean;
     B:boolean;
@@ -57,6 +57,7 @@ type
     Label4: TLabel;
     Label5: TLabel;
     Memo1: TMemo;
+    RadioGroup1: TRadioGroup;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -77,6 +78,7 @@ type
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure CheckBox1Click(Sender: TObject);
+    procedure RadioGroup1Click(Sender: TObject);
   private
     t:TdateTime; // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     PredCoord:TPoint; PredButt:TShiftState; //
@@ -88,7 +90,7 @@ type
     end;
     bChangeLen, bUpDown:boolean; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
     AllData1, AllData2, AllData3:TAllData; // масивы данных
-    pDM, pDT, pDP:^TAllData; // это указаьели на массивы данных
+    pDM, pDT, pDP:PAllData; // это указаьели на массивы данных
     Predpl:TPredpl; //данные предположения
     LenX, LenY:integer; // длинна и высота кроссворда
     RjadX, RjadY:TXYRjad; // тут хранятся цифры рядов
@@ -104,18 +106,18 @@ type
     procedure DataFromRjadX(y:integer); // получение данных из ряда
     procedure DataFromRjadY(x:integer); // получение данных из ряда
     procedure ClearData(all:boolean = true); // очистка данных
-    function  GetFin:boolean; // получение закончености рядов и всего кроссворда
+    function  GetFin(p:PAllData):boolean; // получение закончености рядов и всего кроссворда
     function  Check:TPoint; // проверка на правильность
     function  GetMaxCountRjadX:integer; 
     function  GetMaxCountRjadY:integer;
-    procedure PrepRjadX(Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
-    procedure PrepRjadY(X:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
+    procedure PrepRjadX(p:PAllData; Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
+    procedure PrepRjadY(p:PAllData; X:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
     procedure SaveRjadToFile(FileName:string);
     procedure LoadRjadFromFile(FileName:string);
     procedure SaveDataToFile(FileName:string);
     procedure LoadDataFromFile(FileName:string);
-    procedure SavePustot(pt:TPoint);
-    procedure LoadPustot;
+    procedure SavePustot(pt:TPoint; bDot:boolean);
+    procedure ChangeDataArr(bDot:boolean);
     procedure SetPredplDot(bDot:boolean);
     procedure SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
   public
@@ -567,7 +569,7 @@ begin
         CurrPt.pt.x:=Y;
 
         if (Shift = [ssAlt, ssLeft]) then begin // если нужно расчитать этот ряд
-            PrepRjadX(Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка ряда
+            PrepRjadX(pDM, Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка ряда
             Unit2.glLen:=LenX; // длинна
             if (not Unit2.Calculate) then begin // расчет - если не получился ...
                 ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
@@ -653,7 +655,7 @@ begin
         CurrPt.pt.y:=Y;
 
         if (Shift = [ssAlt, ssLeft]) then begin
-            PrepRjadY(X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
+            PrepRjadY(pDM, X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
             if (not Unit2.Calculate) then begin
                 ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(X) + ').');
@@ -851,11 +853,13 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
-    b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - предполагали ли, b4 - после точки ошибки небыло, мы поставили пустоту для проверки, b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b10 - предположение сработало, b11 - нудно для пропуска прогона по у если LenX больше LenY
+    b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
     h, m, s, ms:word;
     MaxVer1, MaxVer2:Real;
     a1, a2:real;
     pt:TPoint;
+    pWork:PAllData;
+    bErrT, bErrP:boolean;
 begin
     if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
         then begin
@@ -895,25 +899,34 @@ begin
 
     // проверка на совпадение рядов
     pt:=Check;
-    if ((pt.x - pt.y) <> 0) then begin
+    x:=abs(pt.x - pt.y);
+    if (x > 0) then begin
         ShowMessage('Ошибка! Несовпадение на ' + IntToStr(x));
         btCalc.Click; // остановка
         Exit;
     end;
     //-----------------------------
     // сам рачсет
-    for x:=1 to LenX do Predpl.tChY[x]:=true;
-    for y:=1 to LenY do Predpl.tChX[y]:=true;
+    for x:=1 to LenX do begin
+        pDM^.tChY[x]:=true;
+        pDT^.tChY[x]:=true;
+        pDP^.tChY[x]:=true;
+    end;
+    for y:=1 to LenY do begin
+        pDM^.tChX[y]:=true;
+        pDT^.tChX[y]:=true;
+        pDP^.tChX[y]:=true;
+    end;
     for x:=1 to LenX do
-        for y:=1 to LenY do
-            Predpl.NoSet[x, y]:=false;
-    b3:=false; // пока расчет идет без предположений
-    b4:=false; //
+        for y:=1 to LenY do begin
+            pDM^.NoSet[x, y]:=false;
+            pDT^.NoSet[x, y]:=false;
+            pDP^.NoSet[x, y]:=false;
+        end;
     b5:=false;
     b7:=false;
     b8:=false;
     b9:=false;
-    b10:=false;
     // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
     b11:=(LenX > LenY); // нужно для пропуска прогона
     a1:=0;
@@ -926,34 +939,31 @@ begin
     //----------------------------------------------------------
     Predpl.B:=false;
     b:=false; // для b11
+    bErrT:=false;
+    bErrP:=false;
     Memo1.Clear;
     repeat
         if (b and b11) then b11:=false;
         b:=false;
         b2:=false;
+        // с каким указателем работаем
+        if (Predpl.B)
+            then begin
+                if (Predpl.SetDot)
+                    then pWork:=pDT
+                    else pWork:=pDP;
+            end
+            else pWork:=pDM;
+
         if ((not b5) and (not b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
             for y:=1 to LenY do begin
 //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
                 Application.ProcessMessages;  // передышка
-                b8:=(btCalc.Tag = 0);
-                if (b8) then begin
-                    if (Predpl.B) then begin
-                        LoadPustot;
-                        Predpl.B:=false;
-                        RefreshPole; // прорисовка поля
-                    end;
-                    break;
-                end;
-                if (Predpl.B)
-                    then begin
-                        if (pDT^.FinX[y]) then Continue;
-                        if (not pDT^.ChX[y]) then Continue;
-                    end
-                    else begin
-                        if (pDM^.FinX[y]) then Continue;
-                        if (not pDM^.ChX[y]) then Continue;
-                    end;
-                PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
+                b8:=(btCalc.Tag = 0); // остановка
+                if (b8) then break;
+                if (pWork^.FinX[y]) then Continue;
+                if (not pWork^.ChX[y]) then Continue;
+                PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
                 Unit2.glLen:=LenX; // длинна строки
 //if (bPredpl)
 //then begin
@@ -973,51 +983,30 @@ begin
                     break;
                 end;
                 for x:=1 to LenX do begin
-                    pDM^.Ver[x, y, 1]:=Unit2.glVer[x];
-                    if (pDM^.Data[x, y] <> Unit2.glData[x]) then begin
-                        pDM^.Data[x, y]:=Unit2.glData[x];
+                    pWork^.Ver[x, y, 1]:=Unit2.glVer[x];
+                    if (pWork^.Data[x, y] <> Unit2.glData[x]) then begin
+                        pWork^.Data[x, y]:=Unit2.glData[x];
                         b:=true;
-                        if (Predpl.B)
-                            then pDT^.ChY[x]:=true
-                            else begin
-                                pDM^.ChY[x]:=true;
-                                if (b10) then Predpl.tChY[x]:=true;
-                            end;
+                        pWork^.ChY[x]:=true;
+                        if (Predpl.B) then pWork^.tChY[x]:=true
                     end;
                 end;
-                if (Predpl.B)
-                     then pDT^.ChX[y]:=false
-                     else pDM^.ChX[y]:=false;
+                pWork^.ChX[y]:=false;
             end;
             if (not Predpl.B) then RefreshPole; // прорисовка поля только в случае точного расчета
         end;
         if (not b9)
-            then b9:=GetFin; // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
+            then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
 
         if ((not b2) and (not b5) and (not b8) and (not b9)) then begin // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
-            // дальше то же только для столбцов
-            for x:=1 to LenX do begin
+            for x:=1 to LenX do begin // дальше то же только для столбцов
 //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
                 Application.ProcessMessages;
-                b8:=(btCalc.Tag = 0);
-                if (b8) then begin
-                    if (Predpl.B) then begin
-                        LoadPustot;
-                        Predpl.B:=false;
-                        RefreshPole; // прорисовка поля
-                    end;
-                    break;
-                end;
-                if (Predpl.B)
-                    then begin
-                        if (pDT^.FinY[x]) then Continue;
-                        if (not pDT^.ChY[x]) then Continue;
-                    end
-                    else begin
-                        if (pDM^.FinY[x]) then Continue;
-                        if (not pDM^.ChY[x]) then Continue;
-                    end;
-                PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
+                b8:=(btCalc.Tag = 0); // остановка
+                if (b8) then break;
+                if (pWork^.FinY[x]) then Continue;
+                if (not pWork^.ChY[x]) then Continue;
+                PrepRjadY(pWork, x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
                 Unit2.glLen:=LenY;
 //if (bPredpl)
 //then begin
@@ -1038,117 +1027,86 @@ begin
                 end;
                 c:=false;
                 for y:=1 to LenY do begin
-                    pDM^.Ver[x, y, 2]:=Unit2.glVer[y];
-                    if (pDM^.Data[x, y] <> Unit2.glData[y]) then begin
+                    pWork^.Ver[x, y, 2]:=Unit2.glVer[y];
+                    if (pWork^.Data[x, y] <> Unit2.glData[y]) then begin
                         b:=true;
-                        pDM^.Data[x, y]:=Unit2.glData[y];
-                        if (Predpl.B)
-                            then pDT^.ChX[y]:=true
-                            else begin
-                                pDM^.ChX[y]:=true;
-                                if (b10) then Predpl.tChX[y]:=true;
-                            end;
+                        pWork^.Data[x, y]:=Unit2.glData[y];
+                        pWork^.ChX[y]:=true;
+                        if (Predpl.B) then pWork^.tChY[x]:=true
                     end;
                 end;
-                if (Predpl.B)
-                     then pDT^.ChY[x]:=false
-                     else pDM^.ChY[x]:=false;
+                pWork^.ChY[x]:=false
             end;
             if (not Predpl.B) then RefreshPole;// прорисовка поля
             if (b11) then b:=true; // чтобы после прогона по х пошел прогон по у
         end;
         if (not b9)
-            then b9:=GetFin; // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
+            then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
 
         if (b7 or b8) then b:=false; // все конец
         if ((cbVerEnable.Checked) and (not b) and (not b7) and (not b8) and (not b9)) then begin // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
-            b10:=false;
             if (b11) then b11:=false;
-            if (b2) // ошибка была?
-                then begin // была ошибка - отменяем все и ставим другую точку
-                    b2:=false;
-                    if (b3) // предполагали?
-                        then begin // да
-                            if (Predpl.SetDot) // что предположили
-                                then begin // после того как почставили точку ошибка вышла значит там пусто, что мы иделаем
-                                    LoadPustot;
-                                    SetPredplDot(false); // ставим пустоту
-                                    b3:=true; // все еще предпологаем
-                                    b:=true; // произошли измения
-                                end
-                                else begin // если хоть ставим хоть неставим точку все равно ошибка то ошибка в кроссворде
-                                    if (b4) // проверка на вшивость, после того как поставили точку ошибки небыло, поставили пустоту появилась ошибка, значит тут точка стопудово
-                                        then begin
-                                            b4:=false;
-                                            LoadPustot;
-                                            pt:=Predpl.SetTo;
-                                            Predpl.B:=false;
-                                            SetPredplDot(true); // ставим точку
-                                            // очищаем сохранения пустых мест
-//Memo1.Lines.Add('Предп.т. ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
-                                            b3:=false; // закончили предположение
-                                            b10:=true; // предположение сработало
-                                            Draw(pt);
-                                            b:=true; // произошли измения
-                                        end
-                                        else begin
+
+            if (Predpl.B) // предполагали?
+                then begin // да
+                    if (Predpl.SetDot) // запоминаем ошибки
+                        then bErrT:=b2
+                        else bErrP:=b2;
+                    if (b2) then b2:=false; // была
+                    if (Predpl.SetDot) // что было
+                        then begin
+                            SavePustot(Predpl.SetTo, false); //была точка, теперь пустота
+                            b:=true; // произошли изменения
+                        end
+                        else begin // путота, значит будем определять что нам записывать
+                            if (bErrT)
+                                then begin // ошибка на точке
+                                    if (bErrP)
+                                        then begin // ошибка на точке и на пустоте - ошибка в кроссворде
                                             ShowMessage('Ошибка в кроссворде.');
-                                            LoadPustot;
-                                            Predpl.B:=false;
                                             b9:=true;
+                                        end
+                                        else begin // ошибка на точке и нет ее на пустоте - значит пустота
+                                            ChangeDataArr(false);
+                                            RefreshPole;
+                                            b5:=true; // дальше предполагаем
+                                            b:=true; // продолжаем дальше
+                                        end;
+                                end
+                                else begin  // нет ошибки на точке
+                                    if (bErrP)
+                                        then begin // нету на точке и есть на пустоте - значит точка
+                                            ChangeDataArr(true);
+                                            RefreshPole;
+                                            b5:=true; // дальше предполагаем
+                                            b:=true; // продолжаем дальше
+                                        end
+                                        else begin // нет ни там ни там - значит неизвестно, это потом сохранять будем
+                                            pt:=Predpl.SetTo;
+                                            pDM^.NoSet[pt.x, pt.y]:=true;
+                                            pDM^.Data[pt.x, pt.y]:=0;
+                                            Draw(pt);
+                                            b5:=true; // дальше предполагаем
+                                            b:=true; // продолжаем дальше
                                         end;
                                 end;
-                        end
-                        else begin // если была ошибка без предположений то в кросворде ошибка
-                            ShowMessage('Ошибка в кроссворде.');
-                            b9:=true;
+                            Predpl.B:=false;
                         end;
                 end
-                else begin // небыло ошибки - предполагаем
-                    if (b3) // предполагали?
-                        then begin // если уже предполагали то возвращаемся обратно и ставим в другом месте точку
-                            if (Predpl.SetDot) // что предположили
-                                then begin // после того как поставили точку ошибки небыло, если будет ошибка после того как поставим пустое место, значит там точно точка.
-                                    b4:=true; // отмечаем этот факт, чтобы потом можно было различить 2 ситуации: 1. ошибка после точки и пустоты, и проверку на вшивость
-                                    LoadPustot;
-                                    SetPredplDot(false); // ставим пустоту
-                                    b3:=true; // все еще предполагаем предположение
-                                    b:=true; // произошли измения
-                                end
-                                else begin
-                                    if (b4)
-                                        then begin // ни после точки ни после пустоты ошибок небыло
-                                            b4:=false;
-                                            LoadPustot;
-                                            pt:=Predpl.SetTo;
-                                            Predpl.NoSet[pt.x, pt.y]:=true;
-                                            Draw(pt);
-//Memo1.Lines.Add('Галяк. ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
-                                            b5:=true;
-                                            b3:=false; // закончили предположение
-                                            b:=true; // произошли измения
-                                        end
-                                        else begin // после того как поставили точку была ошибка, а после пустоты небыло, значит там пустота стопудово
-                                            // очищаем сохранения пустых мест
-                                            pt:=Predpl.SetTo;
-                                            Predpl.B:=false;  // в этих двух строках порядок обязателен
-                                            SetPredplDot(false); // в этих двух строках порядок обязателен
-                                            Draw(pt);
-//Memo1.Lines.Add('Предп.п. ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
-                                            b3:=false; // закончили предположение
-                                            b10:=true; // предположение сработало
-                                            b:=true; // произошли измения
-                                        end;
-                                end;
+                else begin
+                    if (b2) // ошибка была?
+                        then begin // если была ошибка без предположений то в кросворде ошибка
+                            ShowMessage('Ошибка в кроссворде.');
+                            b9:=true;
                         end
-                        else begin // если еще не предполпгпли
+                        else begin // еще не предполагали
                             MaxVer1:=0; // пока вероятности такие
                             MaxVer2:=0;
                             b6:=false;
                             for x:=1 to LenX do  // по всему полю
                                 for y:=1 to LenY do begin
                                     if ((MaxVer1 <= pDM^.Ver[x, y, 1]) and (MaxVer2 <= pDM^.Ver[x, y, 2]) and (pDM^.Ver[x, y, 1] < 1) and (pDM^.Ver[x, y, 2] < 1)) then begin // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
-                                        if (Predpl.NoSet[x, y]) then continue;
+                                        if (pDM^.NoSet[x, y]) then continue;
                                         MaxVer1:=pDM^.Ver[x, y, 1];
                                         MaxVer2:=pDM^.Ver[x, y, 2];
                                         pt:=Point(x, y);
@@ -1160,19 +1118,15 @@ begin
                                 then begin // да
                                     if (not b5) then begin
                                         Predpl.B:=true;
-                                        SavePustot(Point(pt.x, pt.y)); // сохраняемся только если искали макс вероятность без учета массива NoSet
+                                        SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
                                     end;
-                                    Predpl.SetTo:=pt;
                                     pDM^.Data[pt.x, pt.y]:=3;
                                     Draw(pt);
 //Memo1.Lines.Add('Предп. в ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
-                                    SetPredplDot(true); // ставим точку
                                     b:=true; // произошли изменения
-                                    b3:=true; // предположили и поставили точку
                                 end
                                 else begin // нет
                                     if (b5) then begin
-                                        LoadPustot; // возвращаем все как было
                                         Predpl.B:=false;
                                         RefreshPole; //
                                     end;
@@ -1215,80 +1169,98 @@ begin
                     end;
             end;
         end;
-    if (not b8) then btCalc.Click; // остановка
+    if (b8)
+        then begin// если нажали остановить
+            if (Predpl.B) then pDM^.Data[Predpl.SetTo.x, Predpl.SetTo.y]:=0;
+            Predpl.B:=false;
+            RefreshPole; // прорисовка поля
+            SetInfo(0, true, false, false, 0);
+        end
+        else btCalc.Click; // иначе нажимем на кнопку
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.SetPredplDot(bDot: boolean);
 var pt:TPoint;
+    pWork:PAllData;
 begin
-    Predpl.SetDot:=bDot;
-    pt:=Point(Predpl.SetTo.x, Predpl.SetTo.y);
+    if (bDot) // что предполагаем?
+        then pWork:=pDT // точку
+        else pWork:=pDP; // путоту
+    pt:=Predpl.SetTo;
     if (bDot)
         then begin
-            pDM^.Data[pt.x, pt.y]:=1;
+            pWork.Data[pt.x, pt.y]:=1;
             // меняем вероятности
-            pDM^.Ver[pt.x, pt.y, 1]:=1;
-            pDM^.Ver[pt.x, pt.y, 2]:=1;
+            pWork.Ver[pt.x, pt.y, 1]:=1;
+            pWork.Ver[pt.x, pt.y, 2]:=1;
         end
         else begin
-            pDM^.Data[pt.x, pt.y]:=2;
+            pWork.Data[pt.x, pt.y]:=2;
             // меняем вероятности
-            pDM^.Ver[pt.x, pt.y, 1]:=0;
-            pDM^.Ver[pt.x, pt.y, 2]:=0;
+            pWork.Ver[pt.x, pt.y, 1]:=0;
+            pWork.Ver[pt.x, pt.y, 2]:=0;
         end;
     // строка и солбец, содержащие эту точку пересчитать
-    if (Predpl.B)
+    pWork.ChX[pt.y]:=true;
+    pWork.ChY[pt.x]:=true;
+    pWork.FinX[pt.y]:=false;
+    pWork.FinY[pt.x]:=false;
+    Draw(pt);
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.ChangeDataArr(bDot:boolean);
+var p:PAllData;
+begin
+    if (bDot)
         then begin
-            pDT^.ChX[pt.y]:=true;
-            pDT^.ChY[pt.x]:=true;
-            pDT^.FinX[pt.y]:=false;
-            pDT^.FinY[pt.x]:=false;
+            p:=pDM;
+            pDM:=pDT;
+            pDT:=p;
         end
         else begin
-            pDM^.ChX[pt.y]:=true;
-            pDM^.ChY[pt.x]:=true;
-            pDM^.FinX[pt.y]:=false;
-            pDM^.FinY[pt.x]:=false;
+            p:=pDM;
+            pDM:=pDP;
+            pDP:=p;
         end;
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.SavePustot(pt:TPoint);
+procedure TForm1.SavePustot(pt:TPoint; bDot:boolean);
 var x, y:integer;
-    b:boolean;
+    b, b2:boolean;
+    pWork:PAllData;
 begin
+    if (bDot) // что предполагаем?
+        then pWork:=pDT // точку
+        else pWork:=pDP; // путоту
     for x:=1 to LenX do // по всему полю
         for y:=1 to LenY do begin
+            pWork^.Data[x, y]:=pDM^.Data[x, y];
+            pWork^.Ver[x, y, 1]:=pDM^.Ver[x, y, 1];
+            pWork^.Ver[x, y, 2]:=pDM^.Ver[x, y, 2];
             b:=(pDM^.Data[x, y] = 0); // пусто?
-            Predpl.Pustot[x, y]:=b; // тут храняться все пустые точки
             if (b)
-                then begin
-                    if (Predpl.tChY[x] and Predpl.tChX[y]) then Predpl.NoSet[x, y]:=false;
+                then begin // пусто
+                    if (pWork.tChY[x] and pWork.tChX[y]) //если производились изменения
+                        then pWork.NoSet[x, y]:=false; // ставить можна
                 end
-                else Predpl.NoSet[x, y]:=true;
+                else pWork.NoSet[x, y]:=true; // непусто - сюда ставить нельзя
         end;
     for x:=1 to LenX do begin
-        pDT^.ChY[x]:=pDM^.ChY[x];
-        pDT^.FinY[x]:=pDM^.FinY[x];
-        Predpl.tChY[x]:=false;
+        pWork.ChY[x]:=pDM^.ChY[x];
+        pWork.FinY[x]:=pDM^.FinY[x];
+        pWork.tChY[x]:=false;
     end;
     for y:=1 to LenY do begin
-        pDT^.ChX[y]:=pDM^.ChX[y];
-        pDT^.FinX[y]:=pDM^.FinX[y];
-        Predpl.tChX[y]:=false;
+        pWork.ChX[y]:=pDM^.ChX[y];
+        pWork.FinX[y]:=pDM^.FinX[y];
+        pWork.tChX[y]:=false;
     end;
     Predpl.SetTo:=pt;
+    Predpl.SetDot:=bDot;
+    SetPredplDot(bDot);
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.LoadPustot;
-var x, y:integer;
-begin
-    for x:=1 to LenX do
-        for y:=1 to LenY do
-            if (Predpl.Pustot[x, y]) then
-                pDM^.Data[x, y]:=0;
-end;
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function TForm1.GetFin:boolean;
+function TForm1.GetFin(p:PAllData):boolean;
 var c, c2:boolean;
     x, y:integer;
 begin
@@ -1315,21 +1287,20 @@ begin
     Result:=c2;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.PrepRjadX(Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
+procedure TForm1.PrepRjadX(p:PAllData; Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
 var x:integer;
 begin
     // подготовка строки
-    for x:=1 to LenX do Data[x]:=Form1.pDM^.Data[x, Y]; // данные
+    for x:=1 to LenX do Data[x]:=p^.Data[x, Y]; // данные
     CountRjad:=CountRjadX[Y]; // длинна ряда
     for x:=1 to CountRjadX[Y] do Rjad[x]:=Form1.RjadX[x, Y];  // сам ряд
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.PrepRjadY(X: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
+procedure TForm1.PrepRjadY(p:PAllData; X: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
 var y:integer;
 begin
     // подготовка столбца
-    for y:=1 to LenY do
-        Data[y]:=Form1.pDM^.Data[X, y];  // данные
+    for y:=1 to LenY do Data[y]:=p^.Data[X, y];  // данные
     CountRjad:=CountRjadY[X]; // длинна ряда
     for y:=1 to CountRjadY[X] do Rjad[y]:=Form1.RjadY[X, y]; // сам ряд
 end;
@@ -1857,6 +1828,19 @@ begin
         for y:=1 to LenY do
             if (pDM^.Data[x, y] > 0) then a:=a + 1;
     Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.RadioGroup1Click(Sender: TObject);
+var p:PAllData;
+begin
+    p:=pDM;
+    Case (RadioGroup1.ItemIndex) of
+        0:;
+        1:pDM:=pDT;
+        2:pDM:=pDP;
+    end;
+    RefreshPole;
+    pDM:=p;
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
