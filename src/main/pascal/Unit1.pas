@@ -27,6 +27,10 @@ type
     SetDot:boolean;
     B:boolean;
   end;
+  TCurrPt = record // текущий р€д (дл€ редактировани€)
+    pt:TPoint; // координаты
+    xy:boolean; // р€д / столбец
+  end;
   TForm1 = class(TForm)
     edCountX: TEdit;
     udCountX: TUpDown;
@@ -77,15 +81,14 @@ type
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure CheckBox1Click(Sender: TObject);
+    procedure edInputKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     t:TdateTime; // тут хранитс€ врем€ начала разгадывани€ кроссворда, с помощью нее вычисл€етс€ врем€ расчета
     PredCoord:TPoint; PredButt:TShiftState; //
     bDown:boolean; // непомню
     Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap; // битмапы дл€ подготовки изображени€
-    CurrPt:record // текущий р€д (дл€ редактировани€)
-        pt:TPoint; // координаты
-        xy:boolean; // р€д / столбец
-    end;
+    CurrPt:TCurrPt;
     bChangeLen, bUpDown:boolean; // флаг изменени€ размера кроссворда, флаг показывающий увеличилс€ или уменшилс€ кроссворд
     AllData1, AllData2, AllData3:TAllData; // масивы данных
     pDM, pDT, pDP:PAllData; // это указаьели на массивы данных
@@ -118,6 +121,8 @@ type
     procedure ChangeDataArr(bDot:boolean);
     procedure SetPredplDot(bDot:boolean);
     procedure SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
+    procedure ChangeActive(pt:TPoint; xy:boolean);
+    procedure ActiveNext(c:integer);
   public
     { Public declarations }
   end;
@@ -265,7 +270,7 @@ begin
 
     b:=(Form1.WindowState <> wsMaximized);
 
-    if (not bChangeLen) then Exit;
+//    if (not bChangeLen) then Exit;
 
     if (bUpDown)
         then begin
@@ -322,6 +327,9 @@ begin
             yy2:=yy;
         end;
     for y:=yy1 to yy2 do begin
+        if ((CurrPt.xy) and (CurrPt.pt.x = y))
+            then bmpLeft.Canvas.Brush.Color:=clSilver
+            else bmpLeft.Canvas.Brush.Color:=clWhite;
         if ((y mod 5) = 0) then d:=0 else d:=1;
         for x:=1 to a do bmpLeft.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + 1, y*wid + d);
         for x:=1 to CountRjadX[y] do begin
@@ -363,6 +371,9 @@ begin
             xx2:=xx;
         end;
     for x:=xx1 to xx2 do begin
+        if ((not CurrPt.xy) and (CurrPt.pt.x = x))
+            then bmpTop.Canvas.Brush.Color:=clSilver
+            else bmpTop.Canvas.Brush.Color:=clWhite;
         if ((x mod 5) = 0) then d:=0 else d:=1;
         for y:=1 to a do bmpTop.Canvas.Rectangle((x - 1)*wid, (y - 1)*wid, x*wid + d, y*wid + 1);
         for y:=1 to CountRjadY[x] do begin
@@ -371,7 +382,7 @@ begin
             bmpTop.Canvas.Rectangle(tx, ty, x*wid + d, py*wid + 1);
             tstr:=IntToStr(RjadY[x, y]);
             bmpTop.Canvas.TextOut(tx + (wid - bmpTop.Canvas.TextWidth(tstr) + 1) div 2,
-                                    ty + (wid - bmpTop.Canvas.TextHeight(tstr)) div 2, tstr);
+                                  ty + (wid - bmpTop.Canvas.TextHeight(tstr)) div 2, tstr);
         end;
     end;
 end;
@@ -556,15 +567,13 @@ begin
     if (edInput.Enabled) then edInput.SetFocus; // фокус едиту! :)
     if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit; // если кликаем в области SmallBmp то выходим
     if (X < bmpLeft.Width) then begin // тут находитс€ bmpLeft
-        if (cbRjad.Checked) then Exit; // это пока не проработал...
+//        if (cbRjad.Checked) then Exit; // это пока не проработал...
         Y:=Y - bmpTop.Height; // получаем координаты начала bmpLeft
         X:=X;
         Y:=(Y div wid) + 1; // теперь номер €чейки
         X:=(X div wid);
 
-        CurrPt.xy:=true; // записываем номер €чейки
-        CurrPt.pt.y:=X;
-        CurrPt.pt.x:=Y;
+        ChangeActive(Point(Y, 0), true); // записываем номер €чейки
 
         if (Shift = [ssAlt, ssLeft]) then begin // если нужно расчитать этот р€д
             PrepRjadX(pDM, Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка р€да
@@ -584,9 +593,9 @@ begin
         end;
         {пересчет дл€ координат дл€ р€дов}
         if (cbRjad.Checked)
-            then X:=X - 1
+            then X:=X + 1 - (GetMaxCountRjadX - CountRjadX[Y])
             else X:=X - (((LenX + 1) div 2) - CountRjadX[Y]) + 1;
-        
+
         if (Shift = [ssCtrl, ssLeft]) then begin // сдвиг р€дов чисел
             for ty:=(Y + 1) to LenY do begin
                 CountRjadX[ty - 1]:=CountRjadX[ty];
@@ -642,15 +651,12 @@ begin
     end;
     // далее то же, но только с р€дами в bmpTop
     if (Y < bmpTop.Height) then begin
-        if (cbRjad.Checked) then Exit;
         Y:=Y;
         X:=X - bmpLeft.Width;
         Y:=(Y div wid);
         X:=(X div wid) + 1;
 
-        CurrPt.xy:=false;
-        CurrPt.pt.x:=X;
-        CurrPt.pt.y:=Y;
+        ChangeActive(Point(X, 0), false); // записываем номер €чейки
 
         if (Shift = [ssAlt, ssLeft]) then begin
             PrepRjadY(pDM, X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
@@ -670,7 +676,7 @@ begin
         end;
 
         if (cbRjad.Checked)
-            then Y:=Y - 1
+            then Y:=Y + 1 - (GetMaxCountRjadY - CountRjadY[X])
             else Y:=Y - (((LenY + 1) div 2) - CountRjadY[X]) + 1;
         if (Shift = [ssCtrl, ssLeft]) then begin
             for tx:=(X + 1) to LenX do begin
@@ -767,8 +773,7 @@ procedure TForm1.edCountXChange(Sender: TObject);
 var a:integer;
 begin
     bChangeLen:=true;
-    CurrPt.xy:=true;
-    CurrPt.pt:=Point(1, 1);
+    ChangeActive(Point(1, 1), true); // записываем номер €чейки
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
     Draw(Point(0, 0));
@@ -1541,21 +1546,71 @@ end;
 procedure TForm1.btClearClick(Sender: TObject);
 begin
     ClearData(cbMode.Checked); // очищаем поле
-    CurrPt.xy:=true;
-    CurrPt.pt:=Point(1, 1);
+    ChangeActive(Point(1, 1), true); // записываем номер €чейки
     Draw(Point(0, 0)); // прорисовка
     SetInfo(0, true, false, true, 0);
     edInput.SetFocus;
 end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.ActiveNext(c:integer);
+begin
+    if (CurrPt.xy)
+        then begin
+            if (c < 0)
+                then begin
+                    if ((CurrPt.pt.x + c) <= 0)
+                        then ChangeActive(Point(LenX, 1), false) // записываем номер €чейки
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующа€ €чейка
+                end
+                else begin
+                    if ((CurrPt.pt.x + c) > LenY)
+                        then ChangeActive(Point(1, 1), false) // записываем номер €чейки
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующа€ €чейка
+                end;
+        end
+        else begin
+            if (c < 0)
+                then begin
+                    if ((CurrPt.pt.x + c) <= 0)
+                        then ChangeActive(Point(LenY, 1), true) // записываем номер €чейки
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующа€ €чейка
+                end
+                else begin
+                    if ((CurrPt.pt.x + c) > LenX)
+                        then ChangeActive(Point(1, 1), true) // записываем номер €чейки
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующа€ €чейка
+                end;
+        end;
+    // делаем текст в едите выделенным
+    edInput.SelectAll;
+//    edInput.Text:=''; // очищаем едит
+end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+    case (Key) of
+        38:begin // вверх
+            ActiveNext(-1);
+            Key:=0;
+        end;
+        39:;
+        40:begin // вниз
+            ActiveNext(1);
+            Key:=0;
+        end;
+        41:;
+    end;
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edInputKeyPress(Sender: TObject; var Key: Char);
 var i, j, a:integer;
     tstr:string;
 begin
-    if not (Key in ['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', #13, #8]) then begin
+    if (not (Key in [',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', #13, #8])) then begin
         Key:=#0;
         Exit;
     end;
+    if (Key = ',') then Key:='.'; 
     if (Key = #13) then begin
         Key:=#0;
         tstr:=edInput.Text;
@@ -1657,26 +1712,22 @@ begin
                         Draw(Point(-1, -1));
                     end;
             end;
-
-        //следующа€ €чейка
-        Inc(CurrPt.pt.x);
-        if (CurrPt.xy)
-            then begin
-                if (CurrPt.pt.x > LenY) then begin
-                    CurrPt.xy:=false;
-                    CurrPt.pt.x:=1;
-                end;
-            end
-            else begin
-                if (CurrPt.pt.x > LenX) then begin
-                    CurrPt.xy:=true;
-                    CurrPt.pt.x:=1;
-                end;
-            end;
-        // делаем текст в едите выделенным 
-        edInput.SelectAll;
-//        edInput.Text:=''; // очищаем едит
+        ActiveNext(1);
     end;
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.ChangeActive(pt: TPoint; xy: boolean);
+var c:TCurrPt;
+begin
+    c:=CurrPt;
+    CurrPt.pt:=pt;
+    CurrPt.xy:=xy;
+    if (CurrPt.xy)
+        then Draw(Point(CurrPt.pt.x, 0))
+        else Draw(Point(0, CurrPt.pt.x));
+    if (c.xy)
+        then Draw(Point(c.pt.x, 0))
+        else Draw(Point(0, c.pt.x));
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.cbRjadClick(Sender: TObject);

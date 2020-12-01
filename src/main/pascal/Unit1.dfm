@@ -170,6 +170,7 @@ object Form1: TForm1
     Font.Style = []
     ParentFont = False
     TabOrder = 0
+    OnKeyDown = edInputKeyDown
     OnKeyPress = edInputKeyPress
     OnMouseDown = edInputMouseDown
   end
@@ -191,15 +192,15 @@ object Form1: TForm1
     TabOrder = 10
     OnClick = btSaveBitmapClick
   end
-  object Button1: TButton
-    Left = 36
+  object btToWord: TButton
+    Left = 26
     Top = 200
-    Width = 63
+    Width = 73
     Height = 25
-    Caption = 'Button1'
+    Caption = #1042' Word'
     TabOrder = 12
     Visible = False
-    OnClick = Button1Click
+    OnClick = btToWordClick
   end
   object Panel1: TPanel
     Left = 99

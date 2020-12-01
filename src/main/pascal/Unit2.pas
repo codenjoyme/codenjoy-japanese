@@ -327,6 +327,10 @@ begin
             2:  begin // пустота
                     if (bDot) // предидущая - точка ?
                         then begin // да
+                            if (cd <> glRjad[dr]) then begin
+                                Result:=false;
+                                Exit;
+                            end;
                             bDot:=false; // теперь точки нет
                             SHLRjad; // сдвигаем ряд (удаляем первый элемент)
                             dr:=dr - 1; // из за смещения
@@ -388,6 +392,10 @@ begin
             2:  begin // пустота
                     if (bDot) // предидущая - точка ?
                         then begin // да
+                            if (cd <> glRjad[dr]) then begin
+                                Result:=false;
+                                Exit;
+                            end;
                             bDot:=false; // теперь точки нет
                             glCountRjad:=glCountRjad - 1;
                         end;
