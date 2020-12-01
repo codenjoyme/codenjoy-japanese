@@ -7,18 +7,17 @@ class Unit2 {
     public TVerArray glVer = new TVerArray();
     public TBitArray glCurrComb = new TBitArray();
 
-    // TODO PData = ^TData;
     public int glCombNum;
     public int glLen;
     public int glCR;
 
-    // TODO PRjad = ^TRjad;
     public TRjad10 glRjad10 = new TRjad10();
     public TRjad glRjad = new TRjad();
     // обрез
-    public int glCutFrom, glCutTo;
+    public int glCutFrom;
+    public int glCutTo;
     public int glCutLen;
-    int glCountRjad; // byte
+    public int glCountRjad;
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public boolean Calculate() {
@@ -27,7 +26,7 @@ class Unit2 {
         boolean Result;
         if (glCountRjad == 0) {
             Result = true;
-            for (int i = 1; i <= glLen; i++) { // TODO i <? glLen проверить все for
+            for (int i = 1; i <= glLen; i++) {
                 if (glData.arr[i] == 1) {
                     Result = false;
                 } else {
@@ -56,7 +55,7 @@ class Unit2 {
         }
         //-----------
         Result = true;
-        if (!Cut()) { // TODO что за Cut
+        if (!Cut()) {
             Result = false;
             glCR = 1;
             j = 0;
@@ -159,10 +158,10 @@ class Unit2 {
             if (glCurrComb.arr[i] ^ b) {
                 glRjad10.arr[cr].c = j;
                 glRjad10.arr[cr].b = b;
-                cr++; // TODO inc(cr);
+                cr++; ;
                 j = 0;
             }
-            j++; // TODO inc(j)
+            j++;
             b = glCurrComb.arr[i];
         }
         if (j != 0) {
@@ -175,7 +174,7 @@ class Unit2 {
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public boolean ManipuleRjad() {
         int a, a2;
-        boolean b, b2 = false; // TODO без инициализации было
+        boolean b, b2 = false;
         a = glCR;
         boolean Result = true;
         while (true) {
@@ -209,7 +208,7 @@ class Unit2 {
 
                         if (b2) break;
 
-                        glCR++; // TODO inc(glCR);
+                        glCR++;
                         glRjad10.arr[glCR].b = false;
                         glRjad10.arr[glCR].c = 0;
                     }
@@ -228,7 +227,7 @@ class Unit2 {
                 }
                 if ((a - 2) <= 0) {
                     if (a < 1) break;
-                    glCR++; // TODO inc(glCR);
+                    glCR++;
                     for (int i = (glCR - 1); i >= 1; i++) { // TODO downto
                         glRjad10.arr[i + 1].c = glRjad10.arr[i].c;
                         glRjad10.arr[i + 1].b = glRjad10.arr[i].b;
@@ -243,7 +242,7 @@ class Unit2 {
                 glRjad10.arr[a].c = glRjad10.arr[a].c - 1;
                 if (glRjad10.arr[a].c == 0) {
                     if (a == glCR) {
-                        glCR--; // TODO dec(glCR);
+                        glCR--;
                         break;
                     } else {
                         glRjad10.arr[a - 2].c = glRjad10.arr[a - 2].c - 1;
@@ -252,7 +251,7 @@ class Unit2 {
                     }
                     continue;
                 } else {
-//                   cr--; // TODO dec(cr);
+//                   cr--;
                     break;
                 }
             }
@@ -270,7 +269,7 @@ class Unit2 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public boolean Cut() {
-        int i, dr, cd; // TODO byte
+        int i, dr, cd;
         boolean b, bDot;
         b = false; // выход из цикла
         i = 1; // по ряду
@@ -331,7 +330,7 @@ class Unit2 {
                 }
                 break;
             }
-            i++; // TODO inc(i);
+            i++;
             if ((!b) && (i > glLen) || (glCountRjad == 0)) { // достигли конца
                 Result = true;
                 return Result;
@@ -394,7 +393,7 @@ class Unit2 {
                 }
                 break;
             }
-            i--; // TODO dec(i);
+            i--;
             if ((!b) && (i < 1) || (glCountRjad == 0)) { // достигли конца
                 Result = true;
                 return Result;
@@ -422,28 +421,28 @@ class Unit2 {
     }
 
     public static class TData {
-        public int[] arr = new int[MaxLen + 1]; // TODO from 1 to MaxLen
+        public int[] arr = new int[MaxLen + 1];
     }
 
     public static class TRjad10Record {
-        public int c;   // TODO был byte
+        public int c;
         public boolean b;
     }
 
     public static class TRjad10 {
-        public TRjad10Record[] arr = new TRjad10Record[MaxLen + 1]; // TODO from 1 to MaxLen
+        public TRjad10Record[] arr = new TRjad10Record[MaxLen + 1];
     }
 
     public static class TRjad {
-        public int[] arr = new int[MaxLen + 1];     // TODO from 1 to MaxLen
+        public int[] arr = new int[MaxLen + 1];
     }
 
     public static class TBitArray {
-        public boolean[] arr = new boolean[MaxLen + 1];     // TODO from 1 to MaxLen
+        public boolean[] arr = new boolean[MaxLen + 1];
     }
 
     public static class TVerArray {
-        public double[] arr = new double[MaxLen + 1];     // TODO from 1 to MaxLen  TODO of Real
+        public double[] arr = new double[MaxLen + 1];
     }
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }

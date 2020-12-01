@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -15,7 +14,6 @@ class Unit1 {
     public Unit2 Unit2 = new Unit2();
     public Date t; // TODO TdateTime // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     public TPoint PredCoord;
-    TButton btCalc = new TButton();
     TCheckBox cbMode = new TCheckBox();
     TOpenDialog od = new TOpenDialog();
     TSaveDialog sd = new TSaveDialog();
@@ -441,8 +439,8 @@ class Unit1 {
             }
         }
         a2 = 0;
-        for (int x = 1; x <= LenY; x++) {
-            for (int y = 1; y <= CountRjadX.arr[y]; y++) {
+        for (int y = 1; y <= LenY; y++) {
+            for (int x = 1; x <= CountRjadX.arr[y]; x++) {
                 a2 = a2 + RjadX.arr[x][y];
             }
         }
@@ -455,25 +453,13 @@ class Unit1 {
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void btCalcClick() {
-        boolean b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
-        int h, m, s, ms; // word
-        double MaxVer1, MaxVer2; // real
-        double a1, a2; // real
+        boolean b, b2, b5, b6, b7, b8, b9, b11; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
+        int h; 
+        double MaxVer1, MaxVer2; 
+        double a1, a2; 
         TPoint pt;
         PAllData pWork;
         boolean bErrT, bErrP;
-        int p; // p:^byte;
-
-        if (btCalc.Tag == 0) { // интерфейсные изменение Остановить-Расчет
-            btCalc.Caption = "&Стоп      ";
-            btCalc.Tag = 1;
-        } else {
-            btCalc.Caption = "&Расчет    ";
-            btCalc.Tag = 0;
-            RefreshPole(); // прорисовка поля
-            SetInfo(0, true, false, false, 0);
-            return; // сразу выходим
-        }
 
         t = Calendar.getInstance().getTime(); //
 
@@ -482,7 +468,6 @@ class Unit1 {
         int x0 = Math.abs(pt.x - pt.y);
         if (x0 > 0) {
             System.out.println("Ошибка! Несовпадение на " + x0);
-            btCalc.Click(); // остановка
             return;
         }
         //-----------------------------
@@ -562,21 +547,19 @@ class Unit1 {
             if (!(b5 || b11)) { // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
                 for (int y = 1; y <= LenY; y++) {
 //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
-                    b8 = (btCalc.Tag == 0); // остановка
-                    if (b8) break;
                     if (pWork.data.FinX.arr[y]) continue;
                     if (!pWork.data.ChX.arr[y]) continue;
                     Unit2.glCountRjad = PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
                     Unit2.glLen = LenX; // длинна строки
-//  if (bPredpl) {
-//      if (Predpl.SetDot == 1) {
-//          Memo1.Lines.Add("Ряд: " + Integer.toString(y) + " предп. т");
-//      } else {
-//          Memo1.Lines.Add("Ряд: " + Integer.toString(y) + " предп. п");
-//      }
-//  } else {
-//      Memo1.Lines.Add("Ряд: " + Integer.toString(y) + " точно");
-//  }
+//                    if (bPredpl) {
+//                        if (Predpl.SetDot == 1) {
+//                            System.out.println("Ряд: " + Integer.toString(y) + " предп. т");
+//                        } else {
+//                            System.out.println(("Ряд: " + Integer.toString(y) + " предп. п");
+//                        }
+//                    } else {
+//                        System.out.println(("Ряд: " + Integer.toString(y) + " точно");
+//                    }
                     if (!Unit2.Calculate()) { // расчет ... если нет ни одной комбины - ошибка
                         if (!cbVerEnable.Checked) {
                             System.out.println("Ошибка в кроссворде (строка " + Integer.toString(y) + ").");
@@ -616,21 +599,19 @@ class Unit1 {
             if ((!b2) && (!b5) && (!b8) && (!b9)) { // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
                 for (int x = 1; x < LenX; x++) { // дальше то же только для столбцов
                     //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
-                    b8 = (btCalc.Tag == 0); // остановка
-                    if (b8) break;
                     if (pWork.data.FinY.arr[x]) continue;
                     if (!pWork.data.ChY.arr[x]) continue;
                     Unit2.glCountRjad = PrepRjadY(pWork, x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
                     Unit2.glLen = LenY;
-                    //if (bPredpl) {
-                    //    if (Predpl.SetDot == 1) {
-                    //        Memo1.Lines.Add("Ст.: " + Integer.toString(x) + " предп. т")
-                    //    } else {
-                    //        Memo1.Lines.Add("Ст.: " + Integer.toString(x) + " предп. п");
-                    //    }
-                    //} else {
-                    //    Memo1.Lines.Add("Ст.: " + Integer.toString(x) + " точно");
-                    //}
+//                    if (bPredpl) {
+//                        if (Predpl.SetDot == 1) {
+//                            System.out.println(("Ст.: " + Integer.toString(x) + " предп. т")
+//                        } else {
+//                            System.out.println(("Ст.: " + Integer.toString(x) + " предп. п");
+//                        }
+//                    } else {
+//                        System.out.println(("Ст.: " + Integer.toString(x) + " точно");
+//                    }
                     if (!Unit2.Calculate()) {
                         if (!cbVerEnable.Checked) {
                             System.out.println("Ошибка в кроссворде (столбец " + Integer.toString(x) + ").");
@@ -641,7 +622,7 @@ class Unit1 {
                         b2 = true; // ошибка была
                         break;
                     }
-                    c = false;
+
                     for (int y = 1; y <= LenY; y++) {
                         pWork.data.Ver.arr[x][y][2] = Unit2.glVer.arr[y];
 
@@ -746,7 +727,7 @@ class Unit1 {
                             }
                             pDM.data.Data.arr[pt.x][pt.y] = 3;
                             Draw(pt);
-//Memo1.Lines.Add("Предп. в " + Integer.toString(pt.y) + ", " + Integer.toString(pt.x));
+//System.out.println(("Предп. в " + Integer.toString(pt.y) + ", " + Integer.toString(pt.x));
                             b = true; // произошли изменения
                         } else { // нет
                             if (b5) {
@@ -803,9 +784,11 @@ class Unit1 {
             RefreshPole(); // прорисовка поля
             SetInfo(0, true, false, false, 0);
         } else {
-            btCalc.Click(); // иначе нажимем на кнопку
             // решили кроссворд!
         }
+
+        RefreshPole(); // прорисовка поля
+        SetInfo(0, true, false, false, 0);
     }
 
     private void Draw(TPoint pt) {
@@ -1110,7 +1093,6 @@ class Unit1 {
                 Draw(new TPoint(0, 0));
                 System.out.println("Японские головоломки - " + ExtractFileName(FileName));
                 SetInfo(0, true, false, false, 0);
-                if (!b) btCalc.Click();
             }
             break;
             case 2: { // файл редактора
