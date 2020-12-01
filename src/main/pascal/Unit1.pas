@@ -8,6 +8,7 @@ uses
 
 type
   TXYData = array [1..MaxLen, 1..MaxLen] of byte;
+  TXYPustot = array [1..MaxLen, 1..MaxLen] of boolean;
   TXYRjad = array [1..MaxLen, 1..MaxLen] of byte;
   TFinish = array [1..MaxLen] of boolean;
   TXYCountRjad = array [1..MaxLen] of integer;
@@ -53,6 +54,8 @@ type
     procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Button1Click(Sender: TObject);
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
+    procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -66,6 +69,16 @@ type
     FinX, FinY:TFinish;
     ChX, ChY:TFinish;
     Data:TXYData;
+    {данные для востановления}
+    cPredpl:integer;
+    Predpl:array of record
+        Pustot:TXYPustot;
+        NoSet:TXYPustot;
+        SetTo:TPoint;
+        SetDot:byte;
+        bPredpl:boolean;
+    end;
+    {------------------------}
     LenX, LenY:integer;
     RjadX, RjadY:TXYRjad;
     CountRjadX, CountRjadY:TXYCountRjad;
@@ -90,6 +103,8 @@ type
     procedure LoadRjadFromFile(FileName:string);
     procedure SaveDataToFile(FileName:string);
     procedure LoadDataFromFile(FileName:string);
+    procedure SavePustot(pt:TPoint);
+    function  LoadPustot:TPoint;
   public
     { Public declarations }
   end;
@@ -456,6 +471,7 @@ begin
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
     bDown:=false;
+    cPredpl:=0;
 
     ClearData;
 
@@ -743,10 +759,16 @@ var bDraw:boolean;
 begin
     Y:=Y - bmpTop.Height;
     X:=X - bmpLeft.Width;
+    if ((X < 0) or (Y < 0)) then begin
+        Label1.Caption:='';
+        Exit;
+    end;
     Y:=(Y div wid) + 1;
     X:=(X div wid) + 1;
-    if ((Y <= 0) or (Y > LenY)) then Exit;
-    if ((X <= 0) or (X > LenX)) then Exit;
+    if ((Y <= 0) or (Y > LenY) or (X <= 0) or (X > LenX)) then begin
+        Label1.Caption:='';
+        Exit;
+    end;
     Label1.Caption:=FloatToStr(Round(Ver[x, y, 1]*100)/100) + '     ' + FloatToStr(Round(Ver[x, y, 2]*100)/100);
     if (not bDown) then Exit;
     bDraw:=false;
@@ -808,7 +830,7 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
-    b, c:boolean;
+    b, b2, c:boolean;
     t:TdateTime; h, m, s, ms:word;
     MaxVer1, MaxVer2:Real;    pt:TPoint;
 begin
@@ -837,6 +859,8 @@ begin
             btSaveBitmap.Enabled:=true;
             edInput.Enabled:=true;
             edInput.SetFocus;
+            cPredpl:=0;
+            SetLength(Predpl, cPredpl);
             RefreshPole;
             Exit; // сразу выходим
         end;
@@ -852,6 +876,7 @@ begin
     // сам рачсет
     repeat
         b:=false;
+        b2:=false;
         for y:=1 to LenY do begin
             Application.ProcessMessages;  // передышка
             if (btCalc.Tag = 0) then Exit; // если остановили
@@ -860,9 +885,37 @@ begin
             PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
             Unit2.glLen:=LenX; // длинна строки
             if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
-                ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
-                btCalc.Click; // остановка
-                Exit;
+                if (not Predpl[cPredpl - 1].bPredpl) then begin
+                    ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
+                    btCalc.Click; // остановка
+                    Exit;
+                end;
+                case (Predpl[cPredpl - 1].SetDot) of
+                    1:  begin
+                            pt:=Point(Predpl[cPredpl - 1].SetTo.x, Predpl[cPredpl - 1].SetTo.y);
+                            Data[pt.x, pt.y]:=2;
+                            Predpl[cPredpl - 1].SetDot:=2;
+                            // строка и солбец, содержащие эту точку пересчитать
+                            ChX[pt.y]:=true;
+                            ChY[pt.x]:=true;
+                            FinY[pt.x]:=false;
+                            FinX[pt.y]:=false;
+                            // меняем вероятности
+                            Ver[pt.x, pt.y, 1]:=0;
+                            Ver[pt.x, pt.y, 2]:=0;
+                        end;
+                    2:  begin
+                            if (cPredpl >= 2)
+                                then Predpl[cPredpl - 2].NoSet[Predpl[cPredpl - 1].SetTo.x, Predpl[cPredpl - 1].SetTo.y]:=true;
+                            pt:=LoadPustot;
+                            if (Predpl[cPredpl - 1].SetDot < 2)
+                                then Inc(Predpl[cPredpl - 1].SetDot);
+                        end;
+                end;
+                // произошли изменения
+                b:=true;
+                b2:=true;
+                break;
             end;
             for x:=1 to LenX do begin
                 Ver[x, y, 1]:=Unit2.glVer[x];
@@ -874,6 +927,7 @@ begin
             end;
             ChX[y]:=false;
         end;
+        if (b2) then continue;
         GetFin;
         RefreshPole; // прорисовка поля
         // дальше то же только для столбцов
@@ -885,9 +939,37 @@ begin
             PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
             if (not Unit2.Calculate) then begin
-                ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
-                btCalc.Click;
-                Exit;
+                if (not Predpl[cPredpl - 1].bPredpl) then begin
+                    ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
+                    btCalc.Click;
+                    Exit;
+                end;
+                case (Predpl[cPredpl - 1].SetDot) of
+                    1:  begin
+                            pt:=Point(Predpl[cPredpl - 1].SetTo.x, Predpl[cPredpl - 1].SetTo.y);
+                            Data[pt.x, pt.y]:=2;
+                            Predpl[cPredpl - 1].SetDot:=2;
+                            // строка и солбец, содержащие эту точку пересчитать
+                            ChX[pt.y]:=true;
+                            ChY[pt.x]:=true;
+                            FinY[pt.x]:=false;
+                            FinX[pt.y]:=false;
+                            // меняем вероятности
+                            Ver[pt.x, pt.y, 1]:=0;
+                            Ver[pt.x, pt.y, 2]:=0;
+                        end;
+                    2:  begin
+                            if (cPredpl >= 2)
+                                then Predpl[cPredpl - 2].NoSet[Predpl[cPredpl - 1].SetTo.x, Predpl[cPredpl - 1].SetTo.y]:=true;
+                            pt:=LoadPustot;
+                            if (Predpl[cPredpl - 1].SetDot < 2)
+                                then Inc(Predpl[cPredpl - 1].SetDot);
+                        end;
+                end;
+                // произошли изменения
+                b:=true;
+                b2:=true;
+                break;
             end;
             c:=false;
             for y:=1 to LenY do begin
@@ -900,27 +982,33 @@ begin
             end;
             ChY[x]:=false;
         end;
+        if (b2) then continue;
         GetFin;
         RefreshPole;
         if ((cbVerEnable.Checked) and (not b)) then begin
             MaxVer1:=0;
             MaxVer2:=0;
-            for x:=1 to LenX do
+            for x:=1 to LenX do  // ищем наиболее вероятную точку
                 for y:=1 to LenY do begin
+                    if (cPredpl <> 0) then
+                        if (Predpl[cPredpl - 1].NoSet[pt.x, pt.y]) then Continue;
                     if ((MaxVer1 <= Ver[x, y, 1]) and (MaxVer2 <= Ver[x, y, 2]) and (Ver[x, y, 1] < 1) and (Ver[x, y, 2] < 1)) then begin
                         MaxVer1:=Ver[x, y, 1];
                         MaxVer2:=Ver[x, y, 2];
                         pt:=Point(x, y);
                     end;
                 end;
-            if ((MaxVer1 > 0.0) and (MaxVer2 > 0.0)) then begin
-                Data[pt.x, pt.y]:=1;
+            if ((MaxVer1 > 0.0) and (MaxVer2 > 0.0)) then begin // критерий отбора
+                SavePustot(Point(pt.x, pt.y)); // сохраняемся
+                Data[pt.x, pt.y]:=1; // ставим точку
+                // строка и солбец, содержащие эту точку пересчитать
                 ChX[pt.y]:=true;
                 ChY[pt.x]:=true;
+                // меняем вероятности
                 Ver[pt.x, pt.y, 1]:=1;
                 Ver[pt.x, pt.y, 2]:=1;
-                b:=true;
-                RefreshPole; // прорисовка поля
+                b:=true; // произошли изменения
+//                RefreshPole; // прорисовка поля
             end;
         end;
     until (not b);
@@ -947,6 +1035,41 @@ begin
     btCalc.Click; // остановка
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.SavePustot(pt:TPoint);
+var x, y:integer;
+begin
+    inc(cPredpl);
+    SetLength(Predpl, cPredpl);
+    
+    Predpl[cPredpl - 1].bPredpl:=true;
+    Predpl[cPredpl - 1].SetDot:=1;
+    for x:=1 to LenX do
+        for y:=1 to LenY do begin
+            Predpl[cPredpl - 1].Pustot[x, y]:=(Data[x, y] = 0);
+            Predpl[cPredpl - 1].NoSet[x, y]:=(Data[x, y] <> 0);
+        end;
+    Predpl[cPredpl - 1].SetTo:=pt;
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function TForm1.LoadPustot: TPoint;
+var x, y:integer;
+begin
+    for x:=1 to LenX do
+        for y:=1 to LenY do
+            if (Predpl[cPredpl - 1].Pustot[x, y]) then begin
+                Data[x, y]:=0;
+                ChX[y]:=true;
+                ChY[x]:=true;
+                FinY[x]:=false;
+                FinX[y]:=false;
+            end;
+    Result:=Predpl[cPredpl - 1].SetTo;
+    Predpl[cPredpl - 1].bPredpl:=false;
+
+    dec(cPredpl);
+    SetLength(Predpl, cPredpl);
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetFin;
 var c:boolean;
     x, y:integer;
@@ -1436,6 +1559,11 @@ begin
         updUp:bUpDown:=true;
         updDown:bUpDown:=false;
     end;
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+begin
+    Label1.Caption:='';
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.

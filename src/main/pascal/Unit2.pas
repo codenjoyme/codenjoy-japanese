@@ -21,13 +21,14 @@ type
   TRjad = array [1..MaxLen] of byte;
   PRjad = ^TRjad;
   TBitArray = array [1..MaxLen] of boolean;
-  TComb = array [1..10000000] of TBitArray;
+  TVerArray = array [1..MaxLen] of Real;
 
 var
     glData:TData;
 
-    glComb1, glComb2:TBitArray;
+    glVer:TVerArray;
     glCurrComb:TBitArray;
+    glCombNum:integer;
     glLen:integer;
 
 
@@ -58,10 +59,8 @@ begin
         Exit;
     end;
     //-----------
-    for i:=1 to glLen do begin
-        glComb1[i]:=true;
-        glComb2[i]:=false;
-    end;
+    for i:=1 to glLen do
+        glVer[i]:=0;
     //-----------
     cr:=1; j:=0;
     for i:=1 to glCountRjad do begin
@@ -78,26 +77,31 @@ begin
     //-------
     b1:=true;
     b2:=false;
+    glCombNum:=0;
     while (b1) do begin
         GetCombFromRjad(Rjad10, cr, glCurrComb);
         if (TestComb(glData, glLen, glCurrComb))
             then begin
-                b2:=true;
-                for i:=1 to glLen do begin
-                    glComb1[i]:=glComb1[i] and glCurrComb[i];
-                    glComb2[i]:=glComb2[i] or  glCurrComb[i];
-                end;
+                glCombNum:=glCombNum + 1;
+                for i:=1 to glLen do
+                    if (glCurrComb[i])
+                        then glVer[i]:=glVer[i] + 1;
             end;
         GetRjadFromComb(Rjad10, cr, glCurrComb);
         b1:=ManipuleRjad(Rjad10, cr);
     end;
-    if (not b2)
+    for i:=1 to glLen do begin
+        if (glCombNum <> 0)
+            then glVer[i]:=glVer[i]/glCombNum
+            else glVer[i]:=-1;
+    end;
+    if (glCombNum = 0)
         then Exit
         else Result:=true;
     //-----------
     for i:=1 to glLen do begin
-        if (glComb1[i]) then glData[i]:=1;
-        if (not glComb2[i]) then glData[i]:=2;
+        if (glVer[i] = 1) then glData[i]:=1;
+        if (glVer[i] = 0) then glData[i]:=2;
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
