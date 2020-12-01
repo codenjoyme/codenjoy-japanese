@@ -101,8 +101,8 @@ begin
     for i:=1 to udCount.Position do begin
         case (Data[i].Check) of
             0: bmpPole.Canvas.Brush.Color:=clWhite;
-            1: bmpPole.Canvas.Brush.Color:=clLtGray;
-            2: bmpPole.Canvas.Brush.Color:=clDkGray;
+            1: bmpPole.Canvas.Brush.Color:=clBlack;
+            2: bmpPole.Canvas.Brush.Color:=clLtGray;
         end;
         bmpPole.Canvas.Rectangle((i - 1)*wid, 0, i*wid, wid);
     end;
@@ -244,15 +244,18 @@ begin
     if ((X <= 0) or (X > udCount.Position)) then Exit;
     if ((PredButt = Shift) and (PredCoord.x = X)) then Exit;
     bDraw:=false;
-    if (ssLeft in Shift)
-        then begin
-            bDraw:=(Data[X].Check <> 1);
-            Data[X].Check:=1
-        end
-        else begin
-            bDraw:=(Data[X].Check <> 0);
-            Data[X].Check:=0;
-        end;
+    if (ssLeft in Shift) then begin
+        bDraw:=(Data[X].Check <> 1);
+        Data[X].Check:=1
+    end;
+    if (ssRight in Shift) then begin
+        bDraw:=(Data[X].Check <> 0);
+        Data[X].Check:=0;
+    end;
+    if (ssMiddle in Shift) then begin
+        bDraw:=(Data[X].Check <> 2);
+        Data[X].Check:=2;
+    end;
     PredCoord:=Point(x, 1);
     PredButt:=Shift;
     if (bDraw) then begin
@@ -268,7 +271,7 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var i, j:integer;
-    b:boolean;
+    b, b2:boolean;
 begin
     for i:=1 to udCount.Position do Data[i].Check:=0;
     GetCombine;
@@ -284,10 +287,13 @@ begin
     GetNextCombine;
     for i:=1 to udCount.Position do begin
         b:=true;
-{df}        for j:=1 to CountCombine do begin
+        b2:=false;
+{df}    for j:=1 to CountCombine do begin
             b:=b and Combine[j, i];
+            b2:=b2 or Combine[j, i];
         end;
         if (b) then Data[i].Check:=1;
+        if (not b2) then Data[i].Check:=2;
     end;
     GetRjad;
     Draw;
