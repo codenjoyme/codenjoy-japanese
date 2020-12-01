@@ -1,9 +1,11 @@
 object Form1: TForm1
   Left = 75
   Top = 104
-  Width = 585
-  Height = 563
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
   Caption = 'Form1'
+  ClientHeight = 536
+  ClientWidth = 577
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +13,7 @@ object Form1: TForm1
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -30,6 +33,7 @@ object Form1: TForm1
     Top = 8
     Width = 57
     Height = 21
+    ReadOnly = True
     TabOrder = 0
     Text = '20'
     OnChange = edCountXChange
@@ -69,6 +73,7 @@ object Form1: TForm1
     Top = 32
     Width = 57
     Height = 21
+    ReadOnly = True
     TabOrder = 4
     Text = '20'
     OnChange = edCountXChange

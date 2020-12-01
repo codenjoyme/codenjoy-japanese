@@ -9,6 +9,7 @@ uses
 type
   TXYData = array [1..40, 1..40] of byte;
   TXYRjad = array [1..40, 1..40] of byte;
+  TFinish = array [1..40] of boolean;
   TXYCountRjad = array [1..40] of integer;
   TForm1 = class(TForm)
     edCountX: TEdit;
@@ -38,14 +39,19 @@ type
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
-    Buf, bmpTop, bmpLeft, bmpPole:TBitMap;
-
+    Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap;
+    CurrPt:record
+        pt:TPoint;
+        xy:boolean;
+    end;
+    FinX, FinY:TFinish;
     Data:TXYData;
     LenX, LenY:integer;
     RjadX, RjadY:TXYRjad;
     CountRjadX, CountRjadY:TXYCountRjad;
     procedure Draw;
     procedure DrawPole;
+    procedure DrawSmall;
     procedure DrawLeft;
     procedure DrawRight;
     procedure GetRjadX;
@@ -73,6 +79,8 @@ begin
     for x:=1 to LenX do
         for y:=1 to LenY do
             Data[x, y]:=0;
+    for x:=1 to LenX do FinY[x]:=false;
+    for y:=1 to LenY do FinX[y]:=false;         
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetRjadX;
@@ -124,14 +132,17 @@ end;
 procedure TForm1.Draw;
 begin
     DrawPole;
+    DrawSmall;
     DrawLeft;
     DrawRight;
     Buf.Width:=bmpLeft.Width + bmpPole.Width;
     Buf.Height:=bmpTop.Height + bmpPole.Height;
     Buf.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpTop.Height);
     Buf.Canvas.Draw(0,             bmpTop.Height, bmpLeft);
-    Buf.Canvas.Draw(bmpLeft.Width, 0,               bmpTop);
+    Buf.Canvas.Draw(bmpLeft.Width, 0,             bmpTop);
     Buf.Canvas.Draw(bmpLeft.Width, bmpTop.Height, bmpPole);
+    Buf.Canvas.Draw((bmpLeft.Width - bmpSmall.Width) div 2,
+                    (bmpTop.Height - bmpSmall.Height) div 2, bmpSmall);
     pb.Height:=Buf.Height;
     pb.Width:=Buf.Width;
     pbPaint(Self);
@@ -150,10 +161,13 @@ begin
         for x:=1 to CountRjadX[y] do begin
             px:=a - CountRjadX[y] + x;
             tx:=(px - 1)*wid; ty:=(y - 1)*wid;
+//            if ((CurrPt.xy) and (px = CurrPt.pt.x) and (y = CurrPt.pt.y))
+//                then bmpTop.Canvas.Brush.Color:=clDkGray;
             bmpLeft.Canvas.Rectangle(tx, ty, px*wid, y*wid);
             tstr:=IntToStr(RjadX[x, y]);
             bmpLeft.Canvas.TextOut(tx + (wid - bmpLeft.Canvas.TextWidth(tstr) + 1) div 2,
                                    ty + (wid - bmpLeft.Canvas.TextHeight(tstr)) div 2, tstr);
+//            bmpTop.Canvas.Brush.Color:=clWhite;
         end;
     end;
 end;
@@ -171,10 +185,13 @@ begin
         for y:=1 to CountRjadY[x] do begin
             py:=a - CountRjadY[x] + y;
             tx:=(x - 1)*wid; ty:=(py - 1)*wid;
+//            if ((not CurrPt.xy) and (x = CurrPt.pt.x) and (py = CurrPt.pt.y))
+//                then bmpTop.Canvas.Brush.Color:=clDkGray;
             bmpTop.Canvas.Rectangle(tx, ty, x*wid, py*wid);
             tstr:=IntToStr(RjadY[x, y]);
             bmpTop.Canvas.TextOut(tx + (wid - bmpTop.Canvas.TextWidth(tstr) + 1) div 2,
                                     ty + (wid - bmpTop.Canvas.TextHeight(tstr)) div 2, tstr);
+//            bmpTop.Canvas.Brush.Color:=clWhite;
         end;
     end;
 end;
@@ -196,6 +213,29 @@ begin
         end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DrawSmall;
+var x, y, w:integer;
+begin
+    w:= wid div 3;
+    bmpSmall.Width:=LenX*w;
+    bmpSmall.Height:=LenY*w;
+    bmpSmall.Canvas.Rectangle(0, 0, bmpSmall.Width, bmpSmall.Height);
+    for x:=1 to LenX do
+        for y:=1 to LenY do begin
+            case (Data[x, y]) of
+                0, 2: begin
+                          bmpSmall.Canvas.Pen.Color:=clWhite;
+                          bmpSmall.Canvas.Brush.Color:=clWhite;
+                      end;
+                1:    begin
+                          bmpSmall.Canvas.Pen.Color:=clBlack;
+                          bmpSmall.Canvas.Brush.Color:=clBlack;
+                      end;
+            end;
+            bmpSmall.Canvas.Rectangle((x - 1)*w, (y - 1)*w, x*w, y*w);
+        end;
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.FormCreate(Sender: TObject);
 begin
     PredCoord:=Point(-1, -1);
@@ -203,6 +243,9 @@ begin
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
     bDown:=false;
+
+    CurrPt.pt:=Point(1, 1);
+    CurrPt.xy:=true;
 
     od.InitialDir:=ExtractFileDir(Application.ExeName);
     sd.InitialDir:=od.InitialDir;
@@ -226,11 +269,11 @@ begin
     bmpTop.PixelFormat:=pf24bit;
     bmpTop.Width:=10;
     bmpTop.Height:=10;
-    bmpTop.Canvas.Pen.Color:=clBlack;
-    bmpTop.Canvas.Brush.Color:=clWhite;
-    bmpTop.Canvas.Font.Name:='Times New Roman';
-    bmpTop.Canvas.Font.Style:=[fsBold];
-    bmpTop.Canvas.Font.Size:=7;
+    bmpTop.Canvas.Pen.Color:=bmpLeft.Canvas.Pen.Color;
+    bmpTop.Canvas.Brush.Color:=bmpLeft.Canvas.Brush.Color;
+    bmpTop.Canvas.Font.Name:=bmpLeft.Canvas.Font.Name;
+    bmpTop.Canvas.Font.Style:=bmpLeft.Canvas.Font.Style;
+    bmpTop.Canvas.Font.Size:=bmpLeft.Canvas.Font.Size;
 
     bmpPole:=TBitMap.Create;
     bmpPole.PixelFormat:=pf24bit;
@@ -238,6 +281,13 @@ begin
     bmpPole.Height:=10;
     bmpPole.Canvas.Pen.Color:=clBlack;
     bmpPole.Canvas.Brush.Color:=clWhite;
+
+    bmpSmall:=TBitMap.Create;
+    bmpSmall.PixelFormat:=pf24bit;
+    bmpSmall.Width:=10;
+    bmpSmall.Height:=10;
+    bmpSmall.Canvas.Pen.Color:=clBlack;
+    bmpSmall.Canvas.Brush.Color:=clWhite;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -246,6 +296,7 @@ begin
     bmpLeft.Free;
     bmpTop.Free;
     bmpPole.Free;
+    bmpSmall.Free;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -258,6 +309,10 @@ begin
         X:=X;
         Y:=(Y div wid) + 1;
         X:=(X div wid);
+
+        CurrPt.xy:=true;
+        CurrPt.pt.x:=X + 1;
+        CurrPt.pt.y:=Y;
 
         j:=((LenX + 1) div 2);
         X:=X - (j - CountRjadX[Y]) + 1;
@@ -323,6 +378,10 @@ begin
         Y:=(Y div wid);
         X:=(X div wid) + 1;
 
+        CurrPt.xy:=false;
+        CurrPt.pt.x:=X;
+        CurrPt.pt.y:=Y + 1;
+
         j:=((LenY + 1) div 2);
         Y:=Y - (j - CountRjadY[X]) + 1;
         if (Shift = [ssCtrl, ssLeft]) then begin
@@ -339,7 +398,7 @@ begin
             end;
             CountRjadY[X]:=0;
         end;
-        if (Shift = [ssLeft]) then begin                                         
+        if (Shift = [ssLeft]) then begin
             j:=0;                                                                
             for ty:=1 to CountRjadY[X] do                                        
                 j:=j + RjadY[X, ty];                                             
@@ -347,23 +406,23 @@ begin
                 if ((j + CountRjadY[X]) > (LenY - 1)) then Exit;                 
                 for ty:=CountRjadY[X] downto 1 do RjadY[X, ty + 1]:=RjadY[X, ty];
                 Y:=1;                                                            
-                inc(CountRjadY[X]);                                              
-                RjadY[X, Y]:=0;                                                  
+                inc(CountRjadY[X]);
+                RjadY[X, Y]:=0;
             end;                                                                 
             if ((j + CountRjadY[X]) > LenY) then Exit;                           
             RjadY[X, Y]:=RjadY[X, Y] + 1;                                        
         end;                                                                     
         if (Shift = [ssRight]) then begin
-            if (CountRjadY[X] = 0) then Exit;                        
+            if (CountRjadY[X] = 0) then Exit;
             if (Y <= 0) then Y:=1;
-            RjadY[X, Y]:=RjadY[X, Y] - 1;                            
-            if (RjadY[X, Y] = 0) then begin                          
-                if (Y < CountRjadY[X]) then                          
-                    for ty:=Y to CountRjadY[X] do                    
-                        RjadY[X, ty]:=RjadY[X, ty + 1];              
-                dec(CountRjadY[X]);                                  
-            end;                                                     
-        end;                                                         
+            RjadY[X, Y]:=RjadY[X, Y] - 1;
+            if (RjadY[X, Y] = 0) then begin
+                if (Y < CountRjadY[X]) then
+                    for ty:=Y to CountRjadY[X] do
+                        RjadY[X, ty]:=RjadY[X, ty + 1];
+                dec(CountRjadY[X]);
+            end;
+        end;
 
         if (cbMode.Checked) then begin
             for ty:=1 to LenY do Data[X, ty]:=0;
@@ -398,6 +457,8 @@ begin
     GetRjadX;
     GetRjadY;
     Draw;
+    Form1.Width:=pb.Width + pb.Left + 10;
+    Form1.Height:=pb.Height + pb.Top + 30;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -454,34 +515,48 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
-    b:boolean;
+    b, c:boolean;
+    t:TdateTime; h, m, s, ms:word;
 begin
+    t:=Now;
     repeat
         b:=false;
         for y:=1 to LenY do begin
+            if (FinX[y]) then Continue;
             PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenX;
             Unit2.Calculate;
             if (Unit2.glCountRjad <> 0) then
+                c:=false;
                 for x:=1 to LenX do begin
                     b:=b or (Form1.Data[x, y] <> Unit2.glData[x]);
                     Form1.Data[x, y]:=Unit2.glData[x];
+                    c:=c or (Form1.Data[x, y] = 0);
                 end;
+                FinX[y]:=not c;
             Draw;
         end;
 
         for x:=1 to LenX do begin
+            if (FinY[x]) then Continue;
             PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
             Unit2.Calculate;
             if (Unit2.glCountRjad <> 0) then
+                c:=false;
                 for y:=1 to LenY do begin
                     b:=b or (Form1.Data[x, y] <> Unit2.glData[y]);
                     Form1.Data[x, y]:=Unit2.glData[y];
+                    c:=c or (Form1.Data[x, y] = 0);
                 end;
+                FinY[x]:=not c;
             Draw;
         end;
     until (not b);
+    DecodeTime(Now - t, h, m, s, ms);
+    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);
+    for x:=1 to LenX do FinY[x]:=false;
+    for y:=1 to LenY do FinX[y]:=false;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.PrepRjadX(Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);

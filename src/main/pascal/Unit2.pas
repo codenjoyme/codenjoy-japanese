@@ -11,11 +11,13 @@ type
      Check:byte; // 0 - пусто 1 - чек 2 - нечек
   end;
   TData = array [1..40] of byte;
+  PData = ^TData;
   TRjad10 = array [1..40] of record
     c:byte;
     b:boolean;
   end;
   TRjad = array [1..40] of byte;
+  PRjad = ^TRjad;
   TBitArray = array [1..40] of boolean;
   TComb = array [1..100000] of TBitArray;
 
@@ -66,8 +68,6 @@ var i, j:integer;
     cr:integer;
     Del:array [1..100000] of boolean;
 begin
-//    GetRjad;
-
     if (glCountRjad = 0) then begin
         glCountRjad:=-1;
         for i:=1 to glLen do glData[i]:=2;
