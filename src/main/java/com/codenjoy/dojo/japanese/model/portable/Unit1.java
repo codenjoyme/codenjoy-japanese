@@ -12,30 +12,27 @@ class Unit1 {
     public Date t; // TODO TdateTime // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     public TPoint PredCoord;
     Form1 Form1 = new Form1();
-    TUpDown udCountX = new TUpDown();
     TButton btCalc = new TButton();
     TCheckBox cbMode = new TCheckBox();
-    TUpDown udCountY = new TUpDown();
     TOpenDialog od = new TOpenDialog();
     TSaveDialog sd = new TSaveDialog();
     TEdit edInput = new TEdit();
     TCheckBox cbRjad = new TCheckBox();
     TCheckBox cbVerEnable = new TCheckBox();
     TCheckBox cbLoadNaklad = new TCheckBox();
-    TLabel Label2 = new TLabel();
-    TLabel Label3 = new TLabel();
-    TLabel Label4 = new TLabel();
-    TLabel Label5 = new TLabel();
-    TMemo Memo1 = new TMemo();
     boolean bDown; // непомню
-    TCurrPt CurrPt;
+    TCurrPt CurrPt = new TCurrPt();
     boolean bChangeLen, bUpDown; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
-    TAllData AllData1, AllData2, AllData3; // масивы данных
+    TAllData AllData1 = new TAllData(); // масивы данных
+    TAllData AllData2 = new TAllData();
+    TAllData AllData3 = new TAllData();
     PAllData pDM, pDT, pDP; // это указаьели на массивы данных
-    TPredpl Predpl; //данные предположения
-    int LenX, LenY; // длинна и высота кроссворда
-    TXYRjad RjadX, RjadY; // тут хранятся цифры рядов
-    TXYCountRjad CountRjadX, CountRjadY; // тут хранятся количества цифер рядов
+    TPredpl Predpl = new TPredpl(); //данные предположения
+    int LenX = 15, LenY = 15; // длинна и высота кроссворда
+    TXYRjad RjadX = new TXYRjad(); // тут хранятся цифры рядов
+    TXYRjad RjadY = new TXYRjad();
+    TXYCountRjad CountRjadX = new TXYCountRjad(); // тут хранятся количества цифер рядов
+    TXYCountRjad CountRjadY = new TXYCountRjad();
     String LoadFileName;
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -108,20 +105,21 @@ class Unit1 {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void FormCreate(Object Sender) {
+    public void FormCreate() {
+        pDM = new PAllData();
+        pDT = new PAllData();
+        pDP = new PAllData();
         pDM.data = AllData1;
         pDT.data = AllData2;
         pDP.data = AllData3;
-        udCountX.Max = MaxLen;
-        udCountY.Max = MaxLen;
         PredCoord = new TPoint(-1, -1);
         CurrPt.xy = true;
         CurrPt.pt = new TPoint(1, 1);
         //    edInput.SetFocus;
         bChangeLen = true;
         bUpDown = false;
-        LenX = udCountX.Position;
-        LenY = udCountY.Position;
+        LenX = 15;
+        LenY = 15;
         bDown = false;
         Predpl.SetDot = false;
         Predpl.B = false;
@@ -129,11 +127,6 @@ class Unit1 {
         ClearData(true);
 
         SetInfo(0, true, false, true, 0);
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void ShowMessage(String message) {
-
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -487,7 +480,7 @@ class Unit1 {
         pt = Check();
         int x0 = Math.abs(pt.x - pt.y);
         if (x0 > 0) {
-            ShowMessage("Ошибка! Несовпадение на " + Integer.toString(x0));
+            System.out.println("Ошибка! Несовпадение на " + Integer.toString(x0));
             btCalc.Click(); // остановка
             return;
         }
@@ -550,7 +543,6 @@ class Unit1 {
         b = false; // для b11
         bErrT = false;
         bErrP = false;
-        Memo1.Clear();
         do {
             if (b && b11) b11 = false;
             b = false;
@@ -586,7 +578,7 @@ class Unit1 {
 //  }
                     if (!Unit2.Calculate()) { // расчет ... если нет ни одной комбины - ошибка
                         if (!cbVerEnable.Checked) {
-                            ShowMessage("Ошибка в кроссворде (строка " + Integer.toString(y) + ").");
+                            System.out.println("Ошибка в кроссворде (строка " + Integer.toString(y) + ").");
                             b9 = true;
                             break;
                         }
@@ -640,7 +632,7 @@ class Unit1 {
                     //}
                     if (!Unit2.Calculate()) {
                         if (!cbVerEnable.Checked) {
-                            ShowMessage("Ошибка в кроссворде (столбец " + Integer.toString(x) + ").");
+                            System.out.println("Ошибка в кроссворде (столбец " + Integer.toString(x) + ").");
                             b9 = true;
                             break;
                         }
@@ -695,7 +687,7 @@ class Unit1 {
                             // ошибка на точке
                             if (bErrP) {
                                 // ошибка на точке и на пустоте - ошибка в кроссворде
-                                ShowMessage("Ошибка в кроссворде.");
+                                System.out.println("Ошибка в кроссворде.");
                                 b9 = true;
                             } else { // ошибка на точке и нет ее на пустоте - значит пустота
                                 ChangeDataArr(false);
@@ -723,7 +715,7 @@ class Unit1 {
                 } else {
                     if (b2) { // ошибка была?
                         // если была ошибка без предположений то в кросворде ошибка
-                        ShowMessage("Ошибка в кроссворде.");
+                        System.out.println("Ошибка в кроссворде.");
                         b9 = true;
                     } else { // еще не предполагали
                         MaxVer1 = 0; // пока вероятности такие
@@ -1000,9 +992,9 @@ class Unit1 {
         AssignFile(F, FileName);
         ReSet(F);
         tstr = ReadLn(F);
-        udCountX.Position = Integer.valueOf(tstr); // ширина
+        LenX = Integer.valueOf(tstr); // ширина
         tstr = ReadLn(F);
-        udCountY.Position = Integer.valueOf(tstr); // высота
+        LenY = Integer.valueOf(tstr); // высота
         for (int y = 1; y <= LenY; y++) {
             tstr = ReadLn(F);
             CountRjadX.arr[y] = Integer.valueOf(tstr); // длинна y строки
@@ -1227,9 +1219,9 @@ class Unit1 {
         AssignFile(F, FileName);
         ReSet(F);
         tstr = ReadLn(F);
-        udCountX.Position = Integer.valueOf(tstr); // ширина
+        LenX = Integer.valueOf(tstr); // ширина
         tstr = ReadLn(F);
-        udCountY.Position = Integer.valueOf(tstr); // высота
+        LenY = Integer.valueOf(tstr); // высота
         for (int x = 1; x <= LenX; x++) {
             for (int y = 1; y <= LenY; y++) {
                 tstr = ReadLn(F);
@@ -1468,19 +1460,19 @@ class Unit1 {
         if (bTimeNow) t = Calendar.getInstance().getTime();
         if (bPredpl) {
             if (bWhoPredpl == 1) {
-                Label2.Caption = "Расчет: предп. т.";
+                System.out.println("Расчет: предп. т.");
             } else {
-                Label2.Caption = "Расчет: предп. п.";
+                System.out.println("Расчет: предп. п.");
             }
         } else {
-            Label2.Caption = "Расчет: точно";
+            System.out.println("Расчет: точно");
         }
         if (bRjadStolb) {
-            Label4.Caption = String.format("Ряд: %s", Rjad);
+            System.out.println(String.format("Ряд: %s", Rjad));
         } else {
-            Label4.Caption = String.format("Столбец: %s", Rjad);
+            System.out.println(String.format("Столбец: %s", Rjad));
         }
-        Label5.Caption = Calendar.getInstance().getTime().toString();
+        System.out.println(Calendar.getInstance().getTime().toString());
         if (bPredpl) return;
         a = 0;
         for (int x = 1; x <= LenX; x++) {
@@ -1490,49 +1482,43 @@ class Unit1 {
                 }
             }
         }
-        Label3.Caption = "Открыто: " + Double.toString(Math.round(1000 * a / (LenX * LenY)) / 10) + "%(" + Integer.toString(a) + ")";
-    }
-
-    static class TApplication {
-        public String Title;
-
-        public void ProcessMessages() {
-
-        }
+        System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (LenX * LenY)) / 10) + "%(" + a + ")");
     }
 
     static class TXYData {
-        public int[][] arr = new int[MaxLen][MaxLen]; // TODO array 1..MaxLen, 1..MaxLen
+        public int[][] arr = new int[MaxLen + 1][MaxLen + 1]; // TODO array 1..MaxLen, 1..MaxLen
     }
 
     static class TXYPustot {
-        public boolean[][] arr = new boolean[MaxLen][MaxLen]; // TODO array 1..MaxLen, 1..MaxLen
+        public boolean[][] arr = new boolean[MaxLen + 1][MaxLen + 1]; // TODO array 1..MaxLen, 1..MaxLen
     }
 
     static class TXYRjad {
-        public int[][] arr = new int[MaxLen][MaxLen]; // TODO array 1..MaxLen, 1..MaxLen
+        public int[][] arr = new int[MaxLen + 1][MaxLen + 1]; // TODO array 1..MaxLen, 1..MaxLen
     }
 
     static class TFinish {
-        public boolean[] arr = new boolean[MaxLen]; // TODO  array 1..MaxLen
+        public boolean[] arr = new boolean[MaxLen + 1]; // TODO  array 1..MaxLen
     }
 
     static class TXYCountRjad {
-        public int[] arr = new int[MaxLen]; // TODO  array 1..MaxLen
+        public int[] arr = new int[MaxLen + 1]; // TODO  array 1..MaxLen
     }
 
     static class TXYVer {
-        public double[][][] arr = new double[MaxLen][MaxLen][2]; // TODO [1..MaxLen, 1..MaxLen, 1..2] of Real;
+        public double[][][] arr = new double[MaxLen + 1][MaxLen + 1][3]; // TODO [1..MaxLen, 1..MaxLen, 1..2] of Real;
     }
 
-
     static class TAllData {
-        public TXYVer Ver;
-        public TFinish FinX, FinY;
-        public TFinish ChX, ChY;
-        public TXYData Data;
-        public TFinish tChX, tChY;
-        public TXYPustot NoSet;
+        public TXYVer Ver = new TXYVer();
+        public TFinish FinX = new TFinish();
+        public TFinish FinY = new TFinish();
+        public TFinish ChX = new TFinish();
+        public TFinish ChY = new TFinish();
+        public TXYData Data = new TXYData();
+        public TFinish tChX = new TFinish();
+        public TFinish tChY = new TFinish();
+        public TXYPustot NoSet = new TXYPustot();
     }
 
     static class PAllData {

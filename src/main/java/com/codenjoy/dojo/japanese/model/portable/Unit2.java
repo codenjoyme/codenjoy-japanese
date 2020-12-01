@@ -422,7 +422,7 @@ class Unit2 {
     }
 
     public static class TData {
-        public int[] arr = new int[MaxLen]; // TODO from 1 to MaxLen
+        public int[] arr = new int[MaxLen + 1]; // TODO from 1 to MaxLen
     }
 
     public static class TRjad10Record {
@@ -431,19 +431,19 @@ class Unit2 {
     }
 
     public static class TRjad10 {
-        public TRjad10Record[] arr = new TRjad10Record[MaxLen]; // TODO from 1 to MaxLen
+        public TRjad10Record[] arr = new TRjad10Record[MaxLen + 1]; // TODO from 1 to MaxLen
     }
 
     public static class TRjad {
-        public int[] arr = new int[MaxLen];     // TODO from 1 to MaxLen
+        public int[] arr = new int[MaxLen + 1];     // TODO from 1 to MaxLen
     }
 
     public static class TBitArray {
-        public boolean[] arr = new boolean[MaxLen];     // TODO from 1 to MaxLen
+        public boolean[] arr = new boolean[MaxLen + 1];     // TODO from 1 to MaxLen
     }
 
     public static class TVerArray {
-        public double[] arr = new double[MaxLen];     // TODO from 1 to MaxLen  TODO of Real
+        public double[] arr = new double[MaxLen + 1];     // TODO from 1 to MaxLen  TODO of Real
     }
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }
