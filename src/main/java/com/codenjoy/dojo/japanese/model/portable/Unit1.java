@@ -18,7 +18,7 @@ class Unit1 {
     TSaveDialog sd = new TSaveDialog();
     TEdit edInput = new TEdit();
     TCheckBox cbRjad = new TCheckBox();
-    TCheckBox cbVerEnable = new TCheckBox();
+    boolean assumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
     boolean bDown; // непомню
     TCurrPt CurrPt = new TCurrPt();
     boolean bChangeLen, bUpDown; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
@@ -558,7 +558,7 @@ class Unit1 {
 //                        System.out.println(("Ряд: " + Integer.toString(y) + " точно");
 //                    }
                     if (!Unit2.calculate()) { // расчет ... если нет ни одной комбины - ошибка
-                        if (!cbVerEnable.Checked) {
+                        if (!assumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
                             b9 = true;
                             break;
@@ -610,7 +610,7 @@ class Unit1 {
 //                        System.out.println(("Ст.: " + Integer.toString(x) + " точно");
 //                    }
                     if (!Unit2.calculate()) {
-                        if (!cbVerEnable.Checked) {
+                        if (!assumption) {
                             System.out.println("Ошибка в кроссворде (столбец " + x + ").");
                             b9 = true;
                             break;
@@ -647,7 +647,7 @@ class Unit1 {
                 b9 = GetFin(pWork); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
 
             if (b7 || b8) b = false; // все конец
-            if ((cbVerEnable.Checked) && (!b) && (!b7) && (!b8) && (!b9)) { // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
+            if ((assumption) && (!b) && (!b7) && (!b8) && (!b9)) { // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
                 if (b11) b11 = false;
 
                 if (Predpl.B) { // предполагали?
