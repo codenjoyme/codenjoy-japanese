@@ -1,6 +1,7 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
 import com.codenjoy.dojo.japanese.model.items.Color;
+import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
@@ -15,14 +16,11 @@ import java.util.stream.Stream;
 import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
-class Unit1 {
+class Unit1 implements BoardReader {
 
     public Unit2 Unit2 = new Unit2();
     public TPoint PredCoord;
     TCheckBox cbMode = new TCheckBox();
-    TOpenDialog od = new TOpenDialog();
-    TSaveDialog sd = new TSaveDialog();
-    TEdit edInput = new TEdit();
     TCheckBox cbRjad = new TCheckBox();
     boolean assumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
     boolean bDown; // непомню
@@ -46,6 +44,11 @@ class Unit1 {
     public String printData() {
         return (String)new PrinterFactoryImpl<>().getPrinter(
                 pDataMain.data.Data, null).print();
+    }
+    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    public String printAll() {
+        return (String)new PrinterFactoryImpl<>().getPrinter(
+                this, null).print();
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void ClearData(boolean all) {
@@ -127,7 +130,6 @@ class Unit1 {
         PredCoord = new TPoint(-1, -1);
         CurrPt.xy = true;
         CurrPt.pt = new TPoint(1, 1);
-        //    edInput.SetFocus;
         bChangeLen = true;
         bUpDown = false;
         LenX = 15;
@@ -145,7 +147,6 @@ class Unit1 {
 //    public void pbMouseDown(TMouseButton Button, TShiftState Shift, int X, int Y) {
 //        int j, k;
 //        Shift.remove(new String[]{ssDouble}); // когда 2 раза нажимаеш возникает и это сообщение, а оно портачит
-//        if (edInput.Enabled) edInput.SetFocus(); // фокус едиту! :)
 //        if ((X < bmpLeft.Width) && (Y < bmpTop.Height)) return; // если кликаем в области SmallBmp то выходим
 //        if (X < bmpLeft.Width) { // тут находится bmpLeft
 //            //        if (cbRjad.Checked) return; // это пока не проработал...
@@ -1240,7 +1241,7 @@ class Unit1 {
         if (Key == ',') Key = '.';
         if (Key == '\u0013') {
             Key = '\u0000';
-            tstr = edInput.Text;
+            tstr = "1.2.3.4.5";
             if (tstr.equals("")) return;
             // убираем дубл. точки
             int i = 2;
@@ -1287,8 +1288,6 @@ class Unit1 {
                 }
                 if ((j + a - 1) > LenY) {
                     CountRjadY.arr[CurrPt.pt.x] = 0;
-                    Beep();
-                    edInput.SelectAll();
                     return;
                 }
                 // прорисовать на поле если надо
@@ -1400,19 +1399,52 @@ class Unit1 {
         System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (LenX * LenY)) / 10) + "%(" + a + ")");
     }
 
+    public int offset() {
+        return 5;
+    }
+
+    @Override
+    public int size() {
+        return LenX + offset();
+    }
+
+    @Override
+    public Iterable<? extends Point> elements() {
+        return new LinkedList<>(){{
+            List<Point> pixels = (List<Point>) pDataMain.data.Data.elements();
+            pixels.forEach(pixel -> pixel.change(pt(offset(), 0)));
+            addAll(pixels);
+
+            int dx = offset(); // горизонтальные циферки вверху, должны быть
+            int dy = LenY;     // потому мы их смещаем туда
+            for (int x = 1; x <= LenX; x++) {
+                for (int y = 1; y <= CountRjadY.arr[x]; y++) {
+                    add(new Number(pt(x - 1 + dx, y - 1 + dy), RjadY.arr[x][y]));
+                }
+            }
+            for (int y = 1; y <= LenY; y++) {
+                for (int x = 1; x <= CountRjadX.arr[y]; x++) {
+                    int dxx = offset() - CountRjadX.arr[y]; // атут надо смещать хитрее
+                    add(new Number(pt(x - 1 + dxx, y - 1), RjadX.arr[x][y]));
+                }
+            }
+        }};
+    }
+
     static class TXYData implements BoardReader {
         public int[][] arr = new int[MAX + 1][MAX + 1];
 
         @Override
         public int size() {
+            if (LenX != LenY) {
+                throw new RuntimeException("Кроссворд не прямоугольный");
+            }
+
             return Unit1.LenX;
         }
 
         @Override
         public Iterable<? extends Point> elements() {
-            if (LenX != LenY) {
-                throw new RuntimeException("Кроссворд не прямоугольный");
-            }
             List<Pixel> result = new LinkedList<>();
             for (int x = 1; x <= LenX; x++) {
                 for (int y = 1; y <= LenY; y++) {
@@ -1473,81 +1505,10 @@ class Unit1 {
         public boolean xy; // ряд / столбец
     }
 
-    static class TEdit {
-        public String Text;
-
-        public void SetFocus() {
-        }
-
-        public void SelectAll() {
-
-        }
-    }
-
-    static class TUpDown {
-        public int Max;
-        public int Position;
-    }
-
-    static class TPaintBox {
-    }
-
-    static class TButton {
-        public int Tag;
-        public String Caption;
-
-        public void Click() {
-
-        }
-    }
-
     static class TCheckBox {
         public boolean Checked;
         public String Caption;
     }
-
-    static class TOpenDialog {
-        public String FileName;
-        public int FilterIndex;
-
-        public boolean Execute() {
-            return true;
-        }
-    }
-
-    static class TSaveDialog {
-        public int FilterIndex;
-        public String FileName;
-
-        public boolean Execute() {
-            return false;
-        }
-    }
-
-    static class TSavePictureDialog {
-    }
-
-    static class TWordApplication {
-
-    }
-
-
-    static class TWordDocument {
-
-    }
-
-    static class TPanel {
-
-    }
-
-    static class TLabel {
-        public String Caption;
-    }
-
-    static class TGroupBox {
-
-    }
-
 
     static class TextFile {
         File file;

@@ -16,13 +16,23 @@ public class Main {
         unit.saveFile(1, folder + "!5.jap");
         unit.saveFile(2, folder + "!5.jdt");
 
+        System.out.println("Поле без цифер");
         String board = unit.printData();
-
-        LevelImpl level = new LevelImpl(board);
-
-        String board2 = printLevel(level);
-
         System.out.println(board);
+        System.out.println();
+        System.out.println();
+
+        System.out.println("Поле с цифрами");
+        String board2 = unit.printAll();
+        System.out.println(board2);
+        System.out.println();
+        System.out.println();
+
+        System.out.println("Поле без цифр загруженное в Level (с пересчетом цифр)");
+        LevelImpl level = new LevelImpl(board);
+        String board3 = printLevel(level);
+        System.out.println(board3);
+
     }
 
     private static String printLevel(LevelImpl level) {
