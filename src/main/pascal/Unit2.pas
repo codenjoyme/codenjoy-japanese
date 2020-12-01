@@ -19,17 +19,19 @@ type
   TRjad = array [1..40] of byte;
   PRjad = ^TRjad;
   TBitArray = array [1..40] of boolean;
-  TComb = array [1..100000] of TBitArray;
+  TComb = array [1..1000000] of TBitArray;
 
 var
     glData:TData;
 
     glComb:TComb;
     glCountComb:integer;
+    glCurrComb:TBitArray;
     glLen:integer;
 
     glRjad:TRjad;
     glCountRjad:integer;
+    Max:integer;
 
     procedure GetRjadFromComb(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
     procedure GetCombFromRjad(var r: TRjad10; var cr:integer; var bits:TBitArray); // тут р€д включает количества чередующихс€ пустых и непустых! €чеек
@@ -37,7 +39,7 @@ var
     function  TestComb(var dt:TData; l:integer; var bits:TBitArray):boolean;
     procedure Calculate;
     procedure GetRjad;
-
+            
 implementation
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure GetRjad;
@@ -66,7 +68,6 @@ var i, j:integer;
     b1, b2:boolean;
     Rjad10:TRjad10;
     cr:integer;
-    Del:array [1..100000] of boolean;
 begin
     if (glCountRjad = 0) then begin
         glCountRjad:=-1;
@@ -75,8 +76,6 @@ begin
     end;
 
     glCountComb:=1;
-
-    for i:=1 to 100000 do Del[i]:=true;
 
     cr:=1; j:=0;
     for i:=1 to glCountRjad do begin
@@ -91,24 +90,30 @@ begin
     if (j > glLen) then cr:=cr - 1;
     if (j < glLen) then Rjad10[cr].c:=Rjad10[cr].c + glLen - j;
 
-    GetCombFromRjad(Rjad10, cr, glComb[glCountComb]);
-    Del[glCountComb]:=TestComb(glData, glLen, glComb[glCountComb]);
+
+    GetCombFromRjad(Rjad10, cr, glCurrComb);
+    if (TestComb(glData, glLen, glCurrComb))
+        then glComb[glCountComb]:=glCurrComb
+        else Dec(glCountComb);
     //-------
     b1:=true;
     while (b1) do begin
         inc(glCountComb);
-        GetRjadFromComb(Rjad10, cr, glComb[glCountComb - 1]);
+        GetRjadFromComb(Rjad10, cr, glCurrComb);
         b1:=ManipuleRjad(Rjad10, cr);
-        GetCombFromRjad(Rjad10, cr, glComb[glCountComb]);
-        Del[glCountComb]:=TestComb(glData, glLen, glComb[glCountComb]);
+        GetCombFromRjad(Rjad10, cr, glCurrComb);
+        if (TestComb(glData, glLen, glCurrComb))
+            then glComb[glCountComb]:=glCurrComb
+            else Dec(glCountComb);
     end;
+    if (glCountComb = 0) then Exit;
+    if (Max < glCountComb) then Max:=glCountComb;
     //-----------
     for i:=1 to glLen do begin
         glData[i]:=0;
         b1:=true;
         b2:=false;
         for j:=1 to glCountComb do begin
-            if (not Del[j]) then Continue;
             b1:=b1 and glComb[j, i];
             b2:=b2 or glComb[j, i];
         end;

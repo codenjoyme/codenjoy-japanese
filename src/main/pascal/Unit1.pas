@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, Unit2;
+  ComCtrls, StdCtrls, ExtCtrls, Unit2, MyUnit;
 
 type
   TXYData = array [1..40, 1..40] of byte;
@@ -24,6 +24,7 @@ type
     od: TOpenDialog;
     sd: TSaveDialog;
     btClear: TButton;
+    edInput: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -36,6 +37,7 @@ type
     procedure btSaveClick(Sender: TObject);
     procedure btLoadClick(Sender: TObject);
     procedure btClearClick(Sender: TObject);
+    procedure edInputKeyPress(Sender: TObject; var Key: Char);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -56,13 +58,17 @@ type
     procedure DrawRight;
     procedure GetRjadX;
     procedure GetRjadY;
+    procedure DataFromRjadX(y:integer);
+    procedure DataFromRjadY(x:integer);
     procedure ClearData;
+    function  Check:integer;
     procedure PrepRjadX(Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
     procedure PrepRjadY(X:integer; var Data:TData; var Rjad:TRjad; var CountRjad:integer);
     procedure SaveRjadToFile(FileName:string);
     procedure LoadRjadFromFile(FileName:string);
     procedure SaveDataToFile(FileName:string);
     procedure LoadDataFromFile(FileName:string);
+
   public
     { Public declarations }
   end;
@@ -240,6 +246,9 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
     PredCoord:=Point(-1, -1);
     PredButt:=[ssLeft];
+    CurrPt.xy:=false;
+    CurrPt.pt:=Point(0, 0);
+
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
     bDown:=false;
@@ -303,6 +312,7 @@ procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShif
 var j, k, tx, ty:integer;
 begin
     Shift:=Shift - [ssDouble];
+    edInput.SetFocus;
     if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit;
     if (X < bmpLeft.Width) then begin
         Y:=Y - bmpTop.Height;
@@ -311,8 +321,26 @@ begin
         X:=(X div wid);
 
         CurrPt.xy:=true;
-        CurrPt.pt.x:=X + 1;
-        CurrPt.pt.y:=Y;
+        CurrPt.pt.y:=X;
+        CurrPt.pt.x:=Y;
+
+        if (Shift = [ssAlt, ssLeft]) then begin
+            
+        end;
+        if (Shift = [ssAlt, ssLeft]) then begin
+            PrepRjadX(Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
+            Unit2.glLen:=LenX;
+            Unit2.Calculate;
+            if (Unit2.glCountComb = 0) then begin
+                ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
+                Exit;
+            end;
+            if (Unit2.glCountRjad = 0) then Exit;
+            for x:=1 to LenX do
+                Form1.Data[x, y]:=Unit2.glData[x];
+            Draw;
+            Exit;
+        end;
 
         j:=((LenX + 1) div 2);
         X:=X - (j - CountRjadX[Y]) + 1;
@@ -356,18 +384,7 @@ begin
             end;
         end;
 
-        if (cbMode.Checked) then begin
-            for tx:=1 to LenX do Data[tx, Y]:=0;
-            k:=1; tx:=1;
-            while (tx <= CountRjadX[Y]) do begin
-                for j:=1 to RjadX[tx, Y] do
-                    Data[k + j - 1, Y]:=1;
-                Data[k + j, Y]:=0;
-                k:=k + j;
-                inc(tx);
-            end;
-            GetRjadY;
-        end;
+        if (cbMode.Checked) then DataFromRjadX(Y);
 
         Draw;
         Exit;
@@ -380,7 +397,22 @@ begin
 
         CurrPt.xy:=false;
         CurrPt.pt.x:=X;
-        CurrPt.pt.y:=Y + 1;
+        CurrPt.pt.y:=Y;
+
+        if (Shift = [ssAlt, ssLeft]) then begin
+            PrepRjadY(X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
+            Unit2.glLen:=LenX;
+            Unit2.Calculate;
+            if (Unit2.glCountComb = 0) then begin
+                ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(X) + ').');
+                Exit;
+            end;
+            if (Unit2.glCountRjad = 0) then Exit;
+            for y:=1 to LenY do
+                Form1.Data[x, y]:=Unit2.glData[y];
+            Draw;
+            Exit;
+        end;
 
         j:=((LenY + 1) div 2);
         Y:=Y - (j - CountRjadY[X]) + 1;
@@ -408,7 +440,7 @@ begin
                 Y:=1;                                                            
                 inc(CountRjadY[X]);
                 RjadY[X, Y]:=0;
-            end;                                                                 
+            end;
             if ((j + CountRjadY[X]) > LenY) then Exit;                           
             RjadY[X, Y]:=RjadY[X, Y] + 1;                                        
         end;                                                                     
@@ -424,24 +456,43 @@ begin
             end;
         end;
 
-        if (cbMode.Checked) then begin
-            for ty:=1 to LenY do Data[X, ty]:=0;
-            k:=1; ty:=1;
-            while (ty <= CountRjadY[X]) do begin
-                for j:=1 to RjadY[X, ty] do
-                    Data[X, k + j - 1]:=1;
-                Data[X, k + j]:=0;
-                k:=k + j;
-                inc(ty);
-            end;
-            GetRjadX;
-        end;
+        if (cbMode.Checked) then DataFromRjadY(X);
 
         Draw;
         Exit;
     end;
     bDown:=true;
-    pbMouseMove(Sender, Shift, X, Y);    
+    pbMouseMove(Sender, Shift, X, Y);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DataFromRjadX(y: integer);
+var k, j, tx:integer;
+begin
+    for tx:=1 to LenX do Data[tx, Y]:=0;
+    k:=1; tx:=1;
+    while (tx <= CountRjadX[Y]) do begin
+        for j:=1 to RjadX[tx, y] do
+            Data[k + j - 1, y]:=1;
+        Data[k + j, y]:=0;
+        k:=k + j;
+        inc(tx);
+    end;
+    GetRjadY;
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.DataFromRjadY(x: integer);
+var k, j, ty:integer;
+begin
+    for ty:=1 to LenY do Data[x, ty]:=0;
+    k:=1; ty:=1;
+    while (ty <= CountRjadY[x]) do begin
+        for j:=1 to RjadY[x, ty] do
+            Data[x, k + j - 1]:=1;
+        Data[x, k + j]:=0;
+        k:=k + j;
+        inc(ty);
+    end;
+    GetRjadX;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbPaint(Sender: TObject);
@@ -450,15 +501,19 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edCountXChange(Sender: TObject);
+var a:integer;
 begin
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
-    ClearData;
-    GetRjadX;
-    GetRjadY;
+//    ClearData;
+//    GetRjadX;
+//    GetRjadY;
     Draw;
+    a:=pb.Height + pb.Top + 30;
+    if (a < 269)
+        then Form1.Height:=269
+        else Form1.Height:=pb.Height + pb.Top + 30;
     Form1.Width:=pb.Width + pb.Left + 10;
-    Form1.Height:=pb.Height + pb.Top + 30;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -513,50 +568,105 @@ begin
     Draw;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function TForm1.Check:integer;
+var x, y, a1, a2:integer;
+begin
+    a1:=0;
+    for x:=1 to LenX do
+        for y:=1 to CountRjadY[x] do a1:=a1 + RjadY[x, y];
+    a2:=0;
+    for y:=1 to LenY do
+        for x:=1 to CountRjadX[y] do a2:=a2 + RjadX[x, y];
+    Result:=Abs(a1 - a2);
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
     b, c:boolean;
     t:TdateTime; h, m, s, ms:word;
 begin
+    if (btCalc.Tag = 0)
+        then begin
+            btCalc.Caption:='&Остановить';
+            btCalc.Tag:=1;
+            udCountX.Enabled:=false;
+            udCountY.Enabled:=false;
+            cbMode.Enabled:=false;
+            btSave.Enabled:=false;
+            btLoad.Enabled:=false;
+            btClear.Enabled:=false;
+            edInput.Enabled:=false;
+        end
+        else begin
+            btCalc.Caption:='&Расчет';
+            btCalc.Tag:=0;
+            udCountX.Enabled:=true;
+            udCountY.Enabled:=true;
+            cbMode.Enabled:=true;
+            btSave.Enabled:=true;
+            btLoad.Enabled:=true;
+            btClear.Enabled:=true;
+            edInput.Enabled:=true;
+            Exit;
+        end;
+
     t:=Now;
+    Unit2.Max:=0;
+    x:=Check;
+    if (x <> 0) then begin
+        ShowMessage('Ошибка! Несовпадение на ' + IntToStr(x));
+        Exit;
+    end;
     repeat
         b:=false;
         for y:=1 to LenY do begin
+            Application.ProcessMessages;
+            if (btCalc.Tag = 0) then Exit;
             if (FinX[y]) then Continue;
             PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenX;
             Unit2.Calculate;
-            if (Unit2.glCountRjad <> 0) then
-                c:=false;
-                for x:=1 to LenX do begin
-                    b:=b or (Form1.Data[x, y] <> Unit2.glData[x]);
-                    Form1.Data[x, y]:=Unit2.glData[x];
-                    c:=c or (Form1.Data[x, y] = 0);
-                end;
-                FinX[y]:=not c;
+            if (Unit2.glCountComb = 0) then begin
+                ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
+                Exit;
+            end;
+            if (Unit2.glCountRjad = 0) then continue;
+            c:=false;
+            for x:=1 to LenX do begin
+                b:=b or (Form1.Data[x, y] <> Unit2.glData[x]);
+                Form1.Data[x, y]:=Unit2.glData[x];
+                c:=c or (Form1.Data[x, y] = 0);
+            end;
+            FinX[y]:=not c;
             Draw;
         end;
-
         for x:=1 to LenX do begin
+            Application.ProcessMessages;
+            if (btCalc.Tag = 0) then Exit;
             if (FinY[x]) then Continue;
             PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
             Unit2.Calculate;
-            if (Unit2.glCountRjad <> 0) then
-                c:=false;
-                for y:=1 to LenY do begin
-                    b:=b or (Form1.Data[x, y] <> Unit2.glData[y]);
-                    Form1.Data[x, y]:=Unit2.glData[y];
-                    c:=c or (Form1.Data[x, y] = 0);
-                end;
-                FinY[x]:=not c;
+            if (Unit2.glCountComb = 0) then begin
+                ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
+                Exit;
+            end;
+            if (Unit2.glCountRjad = 0) then Continue;
+            c:=false;
+            for y:=1 to LenY do begin
+                b:=b or (Form1.Data[x, y] <> Unit2.glData[y]);
+                Form1.Data[x, y]:=Unit2.glData[y];
+                c:=c or (Form1.Data[x, y] = 0);
+            end;
+            FinY[x]:=not c;
             Draw;
         end;
     until (not b);
     DecodeTime(Now - t, h, m, s, ms);
-    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms);
+    Form1.Caption:=IntToStr(m) + '-' + IntToStr(s) + '-' + IntToStr(ms) + '-' + IntToStr(Unit2.Max) ;
     for x:=1 to LenX do FinY[x]:=false;
     for y:=1 to LenY do FinX[y]:=false;
+    btCalc.Click;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.PrepRjadX(Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:integer);
@@ -710,6 +820,65 @@ begin
         GetRjadY;
     end;
     Draw;
+end;
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.edInputKeyPress(Sender: TObject; var Key: Char);
+var i, j, a:integer;
+    tstr:string;
+begin
+    if (Key = #13) then begin
+        tstr:=edInput.Text;
+        if (tstr = '') then Exit;
+        if (tstr[Length(tstr)] <> '.') then tstr:=tstr + '.';
+        a:=DecodeStrToInt(tstr, '.', 0);
+        if (not CurrPt.xy)
+            then begin
+                CountRjadY[CurrPt.pt.x]:=a;
+                for i:=1 to a do
+                    RjadY[CurrPt.pt.x, i]:=DecodeStrToInt(tstr, '.', i);
+
+                j:=0;
+                for i:=1 to a do
+                    j:=j + RjadY[CurrPt.pt.x, i];
+                if ((j + a - 1) > LenY) then begin
+                    CountRjadY[CurrPt.pt.x]:=0;
+                    Beep;
+                    Exit;
+                end;
+                if (cbMode.Checked) then DataFromRjadY(CurrPt.pt.x);
+            end
+            else begin
+                CountRjadX[CurrPt.pt.x]:=a;
+                for i:=1 to a do
+                    RjadX[i, CurrPt.pt.x]:=DecodeStrToInt(tstr, '.', i);
+
+                j:=0;
+                for i:=1 to a do
+                    j:=j + RjadX[i, CurrPt.pt.x];
+                if ((j + a - 1) > LenX) then begin
+                    CountRjadX[CurrPt.pt.x]:=0;
+                    Beep;
+                    Exit;
+                end;
+                if (cbMode.Checked) then DataFromRjadX(CurrPt.pt.x);
+            end;
+        Inc(CurrPt.pt.x);
+        if (CurrPt.xy)
+            then begin
+                if (CurrPt.pt.x > LenY) then begin
+                    CurrPt.xy:=false;
+                    CurrPt.pt.x:=0;
+                end;
+            end
+            else begin
+                if (CurrPt.pt.x > LenX) then begin
+                    CurrPt.xy:=true;
+                    CurrPt.pt.x:=0;
+                end;
+            end;
+        edInput.Text:='';
+        Draw;
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.

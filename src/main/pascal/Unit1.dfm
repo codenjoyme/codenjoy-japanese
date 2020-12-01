@@ -1,10 +1,10 @@
 object Form1: TForm1
-  Left = 75
-  Top = 104
+  Left = 254
+  Top = 144
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Form1'
-  ClientHeight = 536
+  ClientHeight = 242
   ClientWidth = 577
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -52,7 +52,7 @@ object Form1: TForm1
   end
   object btCalc: TButton
     Left = 8
-    Top = 104
+    Top = 88
     Width = 65
     Height = 25
     Caption = '&Расчет'
@@ -61,7 +61,7 @@ object Form1: TForm1
   end
   object cbMode: TCheckBox
     Left = 8
-    Top = 80
+    Top = 64
     Width = 65
     Height = 17
     Caption = 'Расш.'
@@ -92,7 +92,7 @@ object Form1: TForm1
   end
   object btSave: TButton
     Left = 8
-    Top = 136
+    Top = 120
     Width = 65
     Height = 25
     Caption = 'Сохранить'
@@ -101,7 +101,7 @@ object Form1: TForm1
   end
   object btLoad: TButton
     Left = 8
-    Top = 168
+    Top = 152
     Width = 65
     Height = 25
     Caption = 'Загрузить'
@@ -110,12 +110,20 @@ object Form1: TForm1
   end
   object btClear: TButton
     Left = 8
-    Top = 200
+    Top = 184
     Width = 65
     Height = 25
     Caption = 'Очистить'
     TabOrder = 8
     OnClick = btClearClick
+  end
+  object edInput: TEdit
+    Left = 8
+    Top = 216
+    Width = 67
+    Height = 21
+    TabOrder = 9
+    OnKeyPress = edInputKeyPress
   end
   object od: TOpenDialog
     Filter = 'Файлы расшифровщика (*.jap)|*.jap|Файлы редактора (*.jdt)|*.jdt'
