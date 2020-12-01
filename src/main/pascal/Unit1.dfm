@@ -50,7 +50,6 @@ object Form1: TForm1
     Max = 40
     Position = 20
     TabOrder = 2
-    Wrap = False
     OnChangingEx = udCountXChangingEx
   end
   object btCalc: TButton
@@ -109,7 +108,6 @@ object Form1: TForm1
     Max = 40
     Position = 20
     TabOrder = 4
-    Wrap = False
     OnChangingEx = udCountXChangingEx
   end
   object btSave: TButton

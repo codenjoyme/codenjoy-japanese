@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, Unit2, MyUnit, ExtDlgs, Word97, OleServer;
+  ComCtrls, StdCtrls, ExtCtrls, Unit2, MyUnit, ExtDlgs, Word97, OleServer, IniFiles,
+  WordXP;
 
 type
   TXYData = array [1..MaxLen, 1..MaxLen] of byte;
@@ -81,8 +82,7 @@ type
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure CheckBox1Click(Sender: TObject);
-    procedure edInputKeyDown(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
+    procedure edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     t:TdateTime; // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     PredCoord:TPoint; PredButt:TShiftState; //
@@ -96,6 +96,7 @@ type
     LenX, LenY:integer; // длинна и высота кроссворда
     RjadX, RjadY:TXYRjad; // тут хранятся цифры рядов
     CountRjadX, CountRjadY:TXYCountRjad; // тут хранятся количества цифер рядов
+    LoadFileName:string;
     procedure Draw(pt:TPoint); // перерисовка всего кроссворда, строки, столбца или ячейки
     procedure RefreshPole; // полная перерисовка
     procedure DrawPole(pt:TPoint); // перерисовка поля
@@ -123,6 +124,7 @@ type
     procedure SetInfo(Rjad: integer; bRjadStolb, bPredpl, bTimeNow: boolean; bWhoPredpl:byte);
     procedure ChangeActive(pt:TPoint; xy:boolean);
     procedure ActiveNext(c:integer);
+    procedure SaveTime;
   public
     { Public declarations }
   end;
@@ -1207,7 +1209,10 @@ begin
             RefreshPole; // прорисовка поля
             SetInfo(0, true, false, false, 0);
         end
-        else btCalc.Click; // иначе нажимем на кнопку
+        else begin
+            btCalc.Click; // иначе нажимем на кнопку
+            SaveTime; // сохраняем время, за которое решили кроссворд
+        end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.SetPredplDot(bDot: boolean);
@@ -1347,6 +1352,7 @@ var x, y:integer;
     F:TextFile;
     tstr:string;
 begin
+    LoadFileName:=FileName;
     AssignFile(F, FileName);
     ReSet(F);
     ReadLn(F, tstr);
@@ -1377,6 +1383,7 @@ procedure TForm1.SaveRjadToFile(FileName: string);
 var x, y:integer;
     F:TextFile;
 begin
+    LoadFileName:=FileName;
     AssignFile(F, FileName);
     ReWrite(F);
     WriteLn(F, IntToStr(LenX));  // ширина
@@ -1515,6 +1522,7 @@ var x, y:integer;
     F:TextFile;
     tstr:string;
 begin
+    LoadFileName:=FileName;
     AssignFile(F, FileName);
     ReSet(F);
     ReadLn(F, tstr);
@@ -1533,6 +1541,7 @@ procedure TForm1.SaveDataToFile(FileName: string);
 var x, y:integer;
     F:TextFile;
 begin
+    LoadFileName:=FileName;
     AssignFile(F, FileName);
     ReWrite(F);
     WriteLn(F, IntToStr(LenX)); // ширина
@@ -1769,10 +1778,10 @@ begin
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btToWordClick(Sender: TObject);
-var RangeW:Word97.Range;
+var RangeW:WordXP.Range;
     v1, v2, v3:Variant;
     ov1, ov2:OleVariant;
-    Row1:Word97.Row;
+    Row1:WordXP.Row;
     i, y, x, k, ax, ay:integer;
     tstr:string;
 begin
@@ -1820,7 +1829,7 @@ begin
     Row1.Range.Font.Size:=1;
     Row1.Range.InsertParagraphAfter;
     ov1:=' ';
-    Row1.ConvertToText(ov1);    
+    Row1.ConvertToText(ov1, ov1);    
 
     v1:=WordDocument1.Tables.Item(1).Columns;
     for x:=1 to (ax + LenX) do
@@ -1911,6 +1920,24 @@ begin
         for y:=1 to LenY do
             if (pDM^.Data[x, y] > 0) then a:=a + 1;
     Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.SaveTime;
+var ini:TIniFile;
+    tstr, tstr2:string;
+begin
+    if (LoadFileName = '') then begin
+        ShowMessage('Сохраните файл!');
+        Exit;
+    end;
+    ini:=TIniFile.Create(ExtractFileDir(LoadFileName) + '\Time.txt');
+    try
+        tstr:=ExtractFileName(LoadFileName);
+        tstr2:=ini.ReadString(tstr, '_', '');
+        ini.WriteString(tstr, '_', tstr2 + Copy(Label5.Caption, 7, MaxInt) + ', ');
+    finally
+        ini.Free;
+    end;
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
