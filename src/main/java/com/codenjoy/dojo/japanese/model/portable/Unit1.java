@@ -1,7 +1,6 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -448,10 +447,10 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void RefreshPole() {
-
+        System.out.println();
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void btCalcClick() {
+    public void solve() {
         boolean b, b2, b5, b6, b7, b8, b9, b11; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
         int h; 
         double MaxVer1, MaxVer2; 
@@ -948,6 +947,7 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void WriteLn(TextFile f, String text) {
+        f.writeLine(text);
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -962,9 +962,8 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void ReWrite(TextFile f) {
-
+        f.openWrite();
     }
-
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void LoadRjadFromFile(String FileName) {
         TextFile F = new TextFile();
@@ -1039,18 +1038,16 @@ class Unit1 {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void btSaveClick(int FilterIndex, String FileName) {
+    public void saveFile(int FilterIndex, String FileName) {
         switch (FilterIndex) {
-            case 1:
-                SaveRjadToFile(FileName);
-            case 2:
-                SaveDataToFile(FileName);
+            case 1: SaveRjadToFile(FileName); break;
+            case 2: SaveDataToFile(FileName); break;
         }
         System.out.println("Японские головоломки - " + ExtractFileName(FileName));
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void btLoadClick(boolean cbLoadNaklad, String FileName, int FilterIndex) {
+    public void loadFile(boolean cbLoadNaklad, String FileName, int FilterIndex) {
         String tstr, tstr2;
         boolean b; // флаг накладывания
 
@@ -1138,7 +1135,7 @@ class Unit1 {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void SaveDataToFile(String FileName) {
-        TextFile F = null;
+        TextFile F = new TextFile();
         AssignFile(F, FileName);
         ReWrite(F);
         WriteLn(F, Integer.toString(LenX)); // ширина
@@ -1519,6 +1516,7 @@ class Unit1 {
         File file;
         List<String> lines;
         int index;
+        Writer writer;
 
         public void open(String fileName) {
             file = new File(fileName);
@@ -1541,6 +1539,31 @@ class Unit1 {
         public void close() {
             lines.clear();
             index = 0;
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                writer = null;
+            }
+        }
+
+        public void openWrite() {
+            try {
+                writer = new BufferedWriter(new OutputStreamWriter(
+                        new FileOutputStream(file, true), "UTF-8"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void writeLine(String text) {
+            try {
+                writer.write(text + "\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
