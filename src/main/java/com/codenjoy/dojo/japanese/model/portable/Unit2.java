@@ -3,70 +3,25 @@ package com.codenjoy.dojo.japanese.model.portable;
 class Unit2 {
 
     public static final int MaxLen = 150;
-
-    public static class TPoint {
-        public int x;
-        public int y;
-
-        public TPoint(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    public static class TDataPt {
-        public TPoint Pos, Ass;
-        public byte Check; // 0 - пусто 1 - чек 2 - нечек
-    }
-
-    public static class TData {
-        public int[] arr = new int[MaxLen]; // TODO from 1 to MaxLen
-    }
+    public TData glData = new TData();
+    public TVerArray glVer = new TVerArray();
+    public TBitArray glCurrComb = new TBitArray();
 
     // TODO PData = ^TData;
-
-    public static class TRjad10Record {
-        public int c;   // TODO был byte
-        public boolean b;
-    }
-
-    public static class TRjad10 {
-        public TRjad10Record[] arr = new TRjad10Record[MaxLen]; // TODO from 1 to MaxLen
-    }
-
-    public static class TRjad {
-        public int[] arr = new int[MaxLen];     // TODO from 1 to MaxLen
-    }
-
-    // TODO PRjad = ^TRjad;
-
-    public static class TBitArray {
-        public boolean[] arr = new boolean[MaxLen];     // TODO from 1 to MaxLen
-    }
-
-    public static class TVerArray {
-        public double[] arr = new double[MaxLen];     // TODO from 1 to MaxLen  TODO of Real
-    }
-
-    public TData glData = new TData();
-
-    public TVerArray glVer = new TVerArray();
-    public  TBitArray glCurrComb = new TBitArray();
     public int glCombNum;
     public int glLen;
+    public int glCR;
 
-    public  int glCR;
-    public  TRjad10 glRjad10 = new TRjad10();
-
-    public  TRjad glRjad = new TRjad();
+    // TODO PRjad = ^TRjad;
+    public TRjad10 glRjad10 = new TRjad10();
+    public TRjad glRjad = new TRjad();
+    // обрез
+    public int glCutFrom, glCutTo;
+    public int glCutLen;
     int glCountRjad; // byte
 
-    // обрез
-    public  int glCutFrom, glCutTo;
-    public int glCutLen;
-
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean Calculate(){
+    public boolean Calculate() {
         int j, i0, leni;
         boolean b1;
         boolean Result;
@@ -103,7 +58,8 @@ class Unit2 {
         Result = true;
         if (!Cut()) { // TODO что за Cut
             Result = false;
-            glCR = 1; j = 0;
+            glCR = 1;
+            j = 0;
             for (int i = 1; i <= glCountRjad; i++) {
                 glRjad10.arr[glCR].b = true;
                 glRjad10.arr[glCR].c = glRjad.arr[i];
@@ -120,16 +76,15 @@ class Unit2 {
             glCombNum = 0;
             while (b1) {
                 GetCombFromRjad();
-                if (TestComb())
-                    {
-                        glCombNum = glCombNum + 1;
+                if (TestComb()) {
+                    glCombNum = glCombNum + 1;
 
-                        i0 = glCutFrom;
-                        leni = glCutTo;
-                        for (int i = i0; i <= leni; i++)
-                            if (glCurrComb.arr[i])
-                                glVer.arr[i] = glVer.arr[i] + 1;
-                    }
+                    i0 = glCutFrom;
+                    leni = glCutTo;
+                    for (int i = i0; i <= leni; i++)
+                        if (glCurrComb.arr[i])
+                            glVer.arr[i] = glVer.arr[i] + 1;
+                }
                 GetRjadFromComb();
                 b1 = ManipuleRjad();
             }
@@ -155,22 +110,32 @@ class Unit2 {
 
         return Result;
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean TestComb(){
+    public boolean TestComb() {
         boolean Result = true;
         for (int i = glCutFrom; i <= glCutTo; i++) {
             switch (glData.arr[i]) {
-                case 0 : break;                                         // ничего нет
-                case 1 : if (glCurrComb.arr[i] != true); Result = false; break;  // точка
-                case 2 : if (glCurrComb.arr[i] != false); Result = false; break; // пустота
-                case 3 : break;                                         // предполагаемая точка
+                case 0:
+                    break;                                         // ничего нет
+                case 1:
+                    if (glCurrComb.arr[i] != true) ;
+                    Result = false;
+                    break;  // точка
+                case 2:
+                    if (glCurrComb.arr[i] != false) ;
+                    Result = false;
+                    break; // пустота
+                case 3:
+                    break;                                         // предполагаемая точка
             }
             if (!Result) return Result;
         }
         return Result;
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void GetCombFromRjad(){
+    public void GetCombFromRjad() {
         int x;
         x = glCutFrom - 1;
         for (int i = 1; i <= glCR; i++) {
@@ -179,12 +144,14 @@ class Unit2 {
             x = x + glRjad10.arr[i].c;
         }
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void GetRjadFromComb(){
+    public void GetRjadFromComb() {
         int j, cr;
         int leni, i0;
         boolean b = glCurrComb.arr[glCutFrom];
-        j = 1; cr = 1;
+        j = 1;
+        cr = 1;
 
         i0 = (glCutFrom + 1);
         leni = glCutTo;
@@ -204,8 +171,9 @@ class Unit2 {
         }
         glCR = cr;
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean ManipuleRjad(){
+    public boolean ManipuleRjad() {
         int a, a2;
         boolean b, b2 = false; // TODO без инициализации было
         a = glCR;
@@ -291,15 +259,17 @@ class Unit2 {
         }
         return Result;
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void SHLRjad(){
+    public void SHLRjad() {
         for (int j = 2; j <= glCountRjad; j++) {
             glRjad.arr[j - 1] = glRjad.arr[j];
         } // TODO может нижняя строчка тоже
         glCountRjad = glCountRjad - 1;
     }
+
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean Cut(){
+    public boolean Cut() {
         int i, dr, cd; // TODO byte
         boolean b, bDot;
         b = false; // выход из цикла
@@ -310,7 +280,7 @@ class Unit2 {
         glCutFrom = i;
         boolean Result = true;
         do {
-             switch (glData.arr[i]) { //
+            switch (glData.arr[i]) { //
                 case 0: { // ничего
                     if (bDot) { // предидущая точка?
                         // ничего после точки - надо заканчивать ряд
@@ -334,8 +304,9 @@ class Unit2 {
                             b = true; // иначе выходим
                         }
                     }
-                } break;
-                case 1:  { // точка
+                }
+                break;
+                case 1: { // точка
                     if (!bDot) {
                         dr = dr + 1;
                         cd = 0;
@@ -343,20 +314,22 @@ class Unit2 {
                     }
                     glVer.arr[i] = 1; // потом тут будет точка
                     cd = cd + 1; // точек стало больше
-                } break;
-                case 2:  { // пустота
-                        if (bDot) { // предидущая - точка ?
-                            // да
-                            if (cd != glRjad.arr[dr]) {
-                                Result = false;
-                                return Result;
-                            }
-                            bDot = false; // теперь точки нет
-                            SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
-                            dr = dr - 1; // из за смещения
+                }
+                break;
+                case 2: { // пустота
+                    if (bDot) { // предидущая - точка ?
+                        // да
+                        if (cd != glRjad.arr[dr]) {
+                            Result = false;
+                            return Result;
                         }
-                        glVer.arr[i] = 0; // пустота
-                } break;
+                        bDot = false; // теперь точки нет
+                        SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
+                        dr = dr - 1; // из за смещения
+                    }
+                    glVer.arr[i] = 0; // пустота
+                }
+                break;
             }
             i++; // TODO inc(i);
             if ((!b) && (i > glLen) || (glCountRjad == 0)) { // достигли конца
@@ -375,28 +348,28 @@ class Unit2 {
             switch (glData.arr[i]) { //
                 case 0: { // ничего
                     if (bDot) // предидущая точка?
-                        { // ничего после точки - надо заканчивать ряд
-                            if (cd < glRjad.arr[dr]) { // dr - ый ряд закончили?
-                                // незакончили
-                                cd = cd + 1; // количество точек
-                                glVer.arr[i] = 1; // потом тут будет точка
-                                bDot = true;  // поставили точку
-                            } else { // закончили ряд
-                                cd = 0; // новы ряд еще не начали
-                                glVer.arr[i] = 0; // потом тут будет пустота
-                                glCountRjad = glCountRjad - 1;
-                                bDot = false; // поставили пустоту
-                            }
-                        } else { // ничего после пустоты - выходим вообшето
-                            if (glCountRjad == 0) { // в этом ряде ничего больше делать нечего
-                                glVer.arr[i] = 0; // канчаем его:)
-                            }
-                            else {
-                                glCutTo = i;
-                                b = true; // иначе выходим
-                            }
+                    { // ничего после точки - надо заканчивать ряд
+                        if (cd < glRjad.arr[dr]) { // dr - ый ряд закончили?
+                            // незакончили
+                            cd = cd + 1; // количество точек
+                            glVer.arr[i] = 1; // потом тут будет точка
+                            bDot = true;  // поставили точку
+                        } else { // закончили ряд
+                            cd = 0; // новы ряд еще не начали
+                            glVer.arr[i] = 0; // потом тут будет пустота
+                            glCountRjad = glCountRjad - 1;
+                            bDot = false; // поставили пустоту
                         }
-                } break;
+                    } else { // ничего после пустоты - выходим вообшето
+                        if (glCountRjad == 0) { // в этом ряде ничего больше делать нечего
+                            glVer.arr[i] = 0; // канчаем его:)
+                        } else {
+                            glCutTo = i;
+                            b = true; // иначе выходим
+                        }
+                    }
+                }
+                break;
                 case 1: { // точка
                     if (!bDot) {
                         dr = dr - 1;
@@ -405,7 +378,8 @@ class Unit2 {
                     }
                     glVer.arr[i] = 1; // потом тут будет точка
                     cd = cd + 1; // точек стало больше
-                } break;
+                }
+                break;
                 case 2: { // пустота
                     if (bDot) { // предидущая - точка ?
                         // да
@@ -417,7 +391,8 @@ class Unit2 {
                         glCountRjad = glCountRjad - 1;
                     }
                     glVer.arr[i] = 0; // пустота
-                } break;
+                }
+                break;
             }
             i--; // TODO dec(i);
             if ((!b) && (i < 1) || (glCountRjad == 0)) { // достигли конца
@@ -429,6 +404,46 @@ class Unit2 {
         glCutLen = glCutTo - glCutFrom + 1;
         Result = ((glCutFrom > glCutTo) || (glCountRjad == 0));
         return Result;
+    }
+
+    public static class TPoint {
+        public int x;
+        public int y;
+
+        public TPoint(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public static class TDataPt {
+        public TPoint Pos, Ass;
+        public byte Check; // 0 - пусто 1 - чек 2 - нечек
+    }
+
+    public static class TData {
+        public int[] arr = new int[MaxLen]; // TODO from 1 to MaxLen
+    }
+
+    public static class TRjad10Record {
+        public int c;   // TODO был byte
+        public boolean b;
+    }
+
+    public static class TRjad10 {
+        public TRjad10Record[] arr = new TRjad10Record[MaxLen]; // TODO from 1 to MaxLen
+    }
+
+    public static class TRjad {
+        public int[] arr = new int[MaxLen];     // TODO from 1 to MaxLen
+    }
+
+    public static class TBitArray {
+        public boolean[] arr = new boolean[MaxLen];     // TODO from 1 to MaxLen
+    }
+
+    public static class TVerArray {
+        public double[] arr = new double[MaxLen];     // TODO from 1 to MaxLen  TODO of Real
     }
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }
