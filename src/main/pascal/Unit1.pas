@@ -44,7 +44,7 @@ type
     cbRjad: TCheckBox;
     btSaveBitmap: TButton;
     spd: TSavePictureDialog;
-    Button1: TButton;
+    btToWord: TButton;
     WordApplication1: TWordApplication;
     WordDocument1: TWordDocument;
     Panel1: TPanel;
@@ -73,7 +73,7 @@ type
     procedure cbRjadClick(Sender: TObject);
     procedure btSaveBitmapClick(Sender: TObject);
     procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure Button1Click(Sender: TObject);
+    procedure btToWordClick(Sender: TObject);
     procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure CheckBox1Click(Sender: TObject);
@@ -872,8 +872,11 @@ begin
             cbLoadNaklad.Enabled:=true;
             cbVerEnable.Enabled:=false;
             btClear.Enabled:=false;
+            btToWord.Enabled:=false;
             btSaveBitmap.Enabled:=false;
             edInput.Enabled:=false;
+            edCountX.Enabled:=false;
+            edCountY.Enabled:=false;
         end
         else begin
             btCalc.Caption:='&–асчет    ';
@@ -886,7 +889,10 @@ begin
             cbLoadNaklad.Enabled:=true;
             cbVerEnable.Enabled:=true;
             btClear.Enabled:=true;
+            btToWord.Enabled:=true;
             btSaveBitmap.Enabled:=true;
+            edCountX.Enabled:=true;
+            edCountY.Enabled:=true;
             edInput.Enabled:=true;
             edInput.SetFocus;
             RefreshPole; // прорисовка пол€
@@ -996,9 +1002,14 @@ begin
                     pWork^.Ver[x, y, 1]:=Unit2.glVer[x];
                     if (pWork^.Data[x, y] <> Unit2.glData[x]) then begin
                         pWork^.Data[x, y]:=Unit2.glData[x];
-                        b:=true;
-                        pWork^.ChY[x]:=true;
-                        if (Predpl.B) then pWork^.tChY[x]:=true
+                        if (not b)
+                            then b:=true;
+                        if (not pWork^.ChY[x])
+                            then pWork^.ChY[x]:=true;
+                        if (Predpl.B)
+                            then
+                                if (not pWork^.tChY[x])
+                                    then pWork^.tChY[x]:=true
                     end;
                 end;
                 pWork^.ChX[y]:=false;
@@ -1039,10 +1050,15 @@ begin
                 for y:=1 to LenY do begin
                     pWork^.Ver[x, y, 2]:=Unit2.glVer[y];
                     if (pWork^.Data[x, y] <> Unit2.glData[y]) then begin
-                        b:=true;
                         pWork^.Data[x, y]:=Unit2.glData[y];
-                        pWork^.ChX[y]:=true;
-                        if (Predpl.B) then pWork^.tChY[x]:=true
+                        if (not b)
+                            then b:=true;
+                        if (not pWork^.ChX[y])
+                            then pWork^.ChX[y]:=true;
+                        if (Predpl.B)
+                            then
+                                if (not pWork^.tChY[x])
+                                    then pWork^.tChY[x]:=true
                     end;
                 end;
                 pWork^.ChY[x]:=false
@@ -1279,22 +1295,28 @@ begin
     for y:=1 to LenY do begin
         c:=false; // флаг закончености строки
         for x:=1 to LenX do  // по строке
-            c:=c or (pDM^.Data[x, y] = 0); // если заполнено
+            c:=c or (p^.Data[x, y] = 0); // если заполнено
         c2:=c2 and (not c);
-        if (Predpl.B)  // массив флагов заполнености
-            then pDT^.FinX[y]:=not c
-            else pDM^.FinX[y]:=not c;
+        p^.FinX[y]:=not c
+//        if (Predpl.B)  // массив флагов заполнености
+//            then pDT^.FinX[y]:=not c
+//            else pDM^.FinX[y]:=not c;
     end;
     for x:=1 to LenX do begin
         c:=false; // флаг закончености строки
         for y:=1 to LenY do  // по строке
-            c:=c or (pDM^.Data[x, y] = 0); // если заполнено
+            c:=c or (p^.Data[x, y] = 0); // если заполнено
         c2:=c2 and (not c);
-        if (Predpl.B) // массив флагов заполнености
-            then pDT^.FinY[x]:=not c
-            else pDM^.FinY[x]:=not c;
+        p^.FinY[x]:=not c
+//        if (Predpl.B) // массив флагов заполнености
+//            then pDT^.FinY[x]:=not c
+//            else pDM^.FinY[x]:=not c;
     end;
     Result:=c2;
+    if (Result) then begin
+        if (p = pDM) then Exit;
+        ChangeDataArr((p = pDT));
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.PrepRjadX(p:PAllData; Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
@@ -1695,7 +1717,7 @@ begin
 //    PlaySound(nil, 0, 0);
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.btToWordClick(Sender: TObject);
 var RangeW:Word97.Range;
     v1, v2, v3:Variant;
     ov1, ov2:OleVariant;
