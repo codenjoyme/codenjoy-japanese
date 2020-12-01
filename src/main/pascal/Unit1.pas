@@ -28,9 +28,9 @@ type
     SetDot:boolean;
     B:boolean;
   end;
-  TCurrPt = record // текущий ряд (для редактирования)
-    pt:TPoint; // координаты
-    xy:boolean; // ряд / столбец
+  TCurrPt = record // С‚РµРєСѓС‰РёР№ СЂСЏРґ (РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ)
+    pt:TPoint; // РєРѕРѕСЂРґРёРЅР°С‚С‹
+    xy:boolean; // СЂСЏРґ / СЃС‚РѕР»Р±РµС†
   end;
   TForm1 = class(TForm)
     edCountX: TEdit;
@@ -84,32 +84,32 @@ type
     procedure CheckBox1Click(Sender: TObject);
     procedure edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
-    t:TdateTime; // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
+    t:TdateTime; // С‚СѓС‚ С…СЂР°РЅРёС‚СЃСЏ РІСЂРµРјСЏ РЅР°С‡Р°Р»Р° СЂР°Р·РіР°РґС‹РІР°РЅРёСЏ РєСЂРѕСЃСЃРІРѕСЂРґР°, СЃ РїРѕРјРѕС‰СЊСЋ РЅРµРµ РІС‹С‡РёСЃР»СЏРµС‚СЃСЏ РІСЂРµРјСЏ СЂР°СЃС‡РµС‚Р°
     PredCoord:TPoint; PredButt:TShiftState; //
-    bDown:boolean; // непомню
-    Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap; // битмапы для подготовки изображения
+    bDown:boolean; // РЅРµРїРѕРјРЅСЋ
+    Buf, bmpTop, bmpLeft, bmpPole, bmpSmall:TBitMap; // Р±РёС‚РјР°РїС‹ РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
     CurrPt:TCurrPt;
-    bChangeLen, bUpDown:boolean; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
-    AllData1, AllData2, AllData3:TAllData; // масивы данных
-    pDM, pDT, pDP:PAllData; // это указаьели на массивы данных
-    Predpl:TPredpl; //данные предположения
-    LenX, LenY:integer; // длинна и высота кроссворда
-    RjadX, RjadY:TXYRjad; // тут хранятся цифры рядов
-    CountRjadX, CountRjadY:TXYCountRjad; // тут хранятся количества цифер рядов
+    bChangeLen, bUpDown:boolean; // С„Р»Р°Рі РёР·РјРµРЅРµРЅРёСЏ СЂР°Р·РјРµСЂР° РєСЂРѕСЃСЃРІРѕСЂРґР°, С„Р»Р°Рі РїРѕРєР°Р·С‹РІР°СЋС‰РёР№ СѓРІРµР»РёС‡РёР»СЃСЏ РёР»Рё СѓРјРµРЅС€РёР»СЃСЏ РєСЂРѕСЃСЃРІРѕСЂРґ
+    AllData1, AllData2, AllData3:TAllData; // РјР°СЃРёРІС‹ РґР°РЅРЅС‹С…
+    pDM, pDT, pDP:PAllData; // СЌС‚Рѕ СѓРєР°Р·Р°СЊРµР»Рё РЅР° РјР°СЃСЃРёРІС‹ РґР°РЅРЅС‹С…
+    Predpl:TPredpl; //РґР°РЅРЅС‹Рµ РїСЂРµРґРїРѕР»РѕР¶РµРЅРёСЏ
+    LenX, LenY:integer; // РґР»РёРЅРЅР° Рё РІС‹СЃРѕС‚Р° РєСЂРѕСЃСЃРІРѕСЂРґР°
+    RjadX, RjadY:TXYRjad; // С‚СѓС‚ С…СЂР°РЅСЏС‚СЃСЏ С†РёС„СЂС‹ СЂСЏРґРѕРІ
+    CountRjadX, CountRjadY:TXYCountRjad; // С‚СѓС‚ С…СЂР°РЅСЏС‚СЃСЏ РєРѕР»РёС‡РµСЃС‚РІР° С†РёС„РµСЂ СЂСЏРґРѕРІ
     LoadFileName:string;
-    procedure Draw(pt:TPoint); // перерисовка всего кроссворда, строки, столбца или ячейки
-    procedure RefreshPole; // полная перерисовка
-    procedure DrawPole(pt:TPoint); // перерисовка поля
-    procedure DrawSmall; // перерисовка
-    procedure DrawLeft(yy:integer); // перерисовка всех (одной строки) цифер слева
-    procedure DrawTop(xx:integer); // перерисовка всех (одного столбца) цифер сверху
-    procedure GetRjadX; // получение ряда из данных
-    procedure GetRjadY; // получение ряда из данных
-    procedure DataFromRjadX(y:integer); // получение данных из ряда
-    procedure DataFromRjadY(x:integer); // получение данных из ряда
-    procedure ClearData(all:boolean = true); // очистка данных
-    function  GetFin(p:PAllData):boolean; // получение закончености рядов и всего кроссворда
-    function  Check:TPoint; // проверка на правильность
+    procedure Draw(pt:TPoint); // РїРµСЂРµСЂРёСЃРѕРІРєР° РІСЃРµРіРѕ РєСЂРѕСЃСЃРІРѕСЂРґР°, СЃС‚СЂРѕРєРё, СЃС‚РѕР»Р±С†Р° РёР»Рё СЏС‡РµР№РєРё
+    procedure RefreshPole; // РїРѕР»РЅР°СЏ РїРµСЂРµСЂРёСЃРѕРІРєР°
+    procedure DrawPole(pt:TPoint); // РїРµСЂРµСЂРёСЃРѕРІРєР° РїРѕР»СЏ
+    procedure DrawSmall; // РїРµСЂРµСЂРёСЃРѕРІРєР°
+    procedure DrawLeft(yy:integer); // РїРµСЂРµСЂРёСЃРѕРІРєР° РІСЃРµС… (РѕРґРЅРѕР№ СЃС‚СЂРѕРєРё) С†РёС„РµСЂ СЃР»РµРІР°
+    procedure DrawTop(xx:integer); // РїРµСЂРµСЂРёСЃРѕРІРєР° РІСЃРµС… (РѕРґРЅРѕРіРѕ СЃС‚РѕР»Р±С†Р°) С†РёС„РµСЂ СЃРІРµСЂС…Сѓ
+    procedure GetRjadX; // РїРѕР»СѓС‡РµРЅРёРµ СЂСЏРґР° РёР· РґР°РЅРЅС‹С…
+    procedure GetRjadY; // РїРѕР»СѓС‡РµРЅРёРµ СЂСЏРґР° РёР· РґР°РЅРЅС‹С…
+    procedure DataFromRjadX(y:integer); // РїРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… РёР· СЂСЏРґР°
+    procedure DataFromRjadY(x:integer); // РїРѕР»СѓС‡РµРЅРёРµ РґР°РЅРЅС‹С… РёР· СЂСЏРґР°
+    procedure ClearData(all:boolean = true); // РѕС‡РёСЃС‚РєР° РґР°РЅРЅС‹С…
+    function  GetFin(p:PAllData):boolean; // РїРѕР»СѓС‡РµРЅРёРµ Р·Р°РєРѕРЅС‡РµРЅРѕСЃС‚Рё СЂСЏРґРѕРІ Рё РІСЃРµРіРѕ РєСЂРѕСЃСЃРІРѕСЂРґР°
+    function  Check:TPoint; // РїСЂРѕРІРµСЂРєР° РЅР° РїСЂР°РІРёР»СЊРЅРѕСЃС‚СЊ
     function  GetMaxCountRjadX:integer;
     function  GetMaxCountRjadY:integer;
     procedure PrepRjadX(p:PAllData; Y:integer; var Data:TData; var Rjad:TRjad; var CountRjad:byte);
@@ -565,81 +565,81 @@ end;
 procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var j, k, tx, ty:integer;
 begin
-    Shift:=Shift - [ssDouble]; // когда 2 раза нажимаеш возникает и это сообщение, а оно портачит
-    if (edInput.Enabled) then edInput.SetFocus; // фокус едиту! :)
-    if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit; // если кликаем в области SmallBmp то выходим
-    if (X < bmpLeft.Width) then begin // тут находится bmpLeft
-//        if (cbRjad.Checked) then Exit; // это пока не проработал...
-        Y:=Y - bmpTop.Height; // получаем координаты начала bmpLeft
+    Shift:=Shift - [ssDouble]; // РєРѕРіРґР° 2 СЂР°Р·Р° РЅР°Р¶РёРјР°РµС€ РІРѕР·РЅРёРєР°РµС‚ Рё СЌС‚Рѕ СЃРѕРѕР±С‰РµРЅРёРµ, Р° РѕРЅРѕ РїРѕСЂС‚Р°С‡РёС‚
+    if (edInput.Enabled) then edInput.SetFocus; // С„РѕРєСѓСЃ РµРґРёС‚Сѓ! :)
+    if ((X < bmpLeft.Width) and (Y < bmpTop.Height)) then Exit; // РµСЃР»Рё РєР»РёРєР°РµРј РІ РѕР±Р»Р°СЃС‚Рё SmallBmp С‚Рѕ РІС‹С…РѕРґРёРј
+    if (X < bmpLeft.Width) then begin // С‚СѓС‚ РЅР°С…РѕРґРёС‚СЃСЏ bmpLeft
+//        if (cbRjad.Checked) then Exit; // СЌС‚Рѕ РїРѕРєР° РЅРµ РїСЂРѕСЂР°Р±РѕС‚Р°Р»...
+        Y:=Y - bmpTop.Height; // РїРѕР»СѓС‡Р°РµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ РЅР°С‡Р°Р»Р° bmpLeft
         X:=X;
-        Y:=(Y div wid) + 1; // теперь номер ячейки
+        Y:=(Y div wid) + 1; // С‚РµРїРµСЂСЊ РЅРѕРјРµСЂ СЏС‡РµР№РєРё
         X:=(X div wid);
 
-        ChangeActive(Point(Y, 0), true); // записываем номер ячейки
+        ChangeActive(Point(Y, 0), true); // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
 
-        if (Shift = [ssAlt, ssLeft]) then begin // если нужно расчитать этот ряд
-            PrepRjadX(pDM, Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка ряда
-            Unit2.glLen:=LenX; // длинна
-            if (not Unit2.Calculate) then begin // расчет - если не получился ...
-                ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
-                RefreshPole; // обновляем поле
-                Exit; // выходим
+        if (Shift = [ssAlt, ssLeft]) then begin // РµСЃР»Рё РЅСѓР¶РЅРѕ СЂР°СЃС‡РёС‚Р°С‚СЊ СЌС‚РѕС‚ СЂСЏРґ
+            PrepRjadX(pDM, Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // РїРѕРґРіРѕС‚РѕРІРєР° СЂСЏРґР°
+            Unit2.glLen:=LenX; // РґР»РёРЅРЅР°
+            if (not Unit2.Calculate) then begin // СЂР°СЃС‡РµС‚ - РµСЃР»Рё РЅРµ РїРѕР»СѓС‡РёР»СЃСЏ ...
+                ShowMessage('РћС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ (СЃС‚СЂРѕРєР° ' + IntToStr(Y) + ').');
+                RefreshPole; // РѕР±РЅРѕРІР»СЏРµРј РїРѕР»Рµ
+                Exit; // РІС‹С…РѕРґРёРј
             end;
-            for x:=1 to LenX do begin// тут обновляем ряд
+            for x:=1 to LenX do begin// С‚СѓС‚ РѕР±РЅРѕРІР»СЏРµРј СЂСЏРґ
                 Form1.pDM^.Data[x, y]:=Unit2.glData[x];
                 pDM^.Ver[x, y, 1]:=Unit2.glVer[x];
             end;
 //            GetFin;
-            RefreshPole; // и выводим его на екран
-            Exit; // выходим
+            RefreshPole; // Рё РІС‹РІРѕРґРёРј РµРіРѕ РЅР° РµРєСЂР°РЅ
+            Exit; // РІС‹С…РѕРґРёРј
         end;
-        {пересчет для координат для рядов}
+        {РїРµСЂРµСЃС‡РµС‚ РґР»СЏ РєРѕРѕСЂРґРёРЅР°С‚ РґР»СЏ СЂСЏРґРѕРІ}
         if (cbRjad.Checked)
             then X:=X + 1 - (GetMaxCountRjadX - CountRjadX[Y])
             else X:=X - (((LenX + 1) div 2) - CountRjadX[Y]) + 1;
 
-        if (Shift = [ssCtrl, ssLeft]) then begin // сдвиг рядов чисел
+        if (Shift = [ssCtrl, ssLeft]) then begin // СЃРґРІРёРі СЂСЏРґРѕРІ С‡РёСЃРµР»
             for ty:=(Y + 1) to LenY do begin
                 CountRjadX[ty - 1]:=CountRjadX[ty];
                 for tx:=1 to CountRjadX[ty] do RjadX[tx, ty - 1]:=RjadX[tx, ty];
             end;
             CountRjadX[LenY]:=0;
         end;
-        if (Shift = [ssCtrl, ssRight]) then begin // то же но в другую сторону
-            for ty:=(LenY) downto Y do begin    // а возможен глюк
+        if (Shift = [ssCtrl, ssRight]) then begin // С‚Рѕ Р¶Рµ РЅРѕ РІ РґСЂСѓРіСѓСЋ СЃС‚РѕСЂРѕРЅСѓ
+            for ty:=(LenY) downto Y do begin    // Р° РІРѕР·РјРѕР¶РµРЅ РіР»СЋРє
                 CountRjadX[ty]:=CountRjadX[ty - 1];
                 for tx:=1 to CountRjadX[ty] do RjadX[tx, ty]:=RjadX[tx, ty - 1];
             end;
             CountRjadX[Y]:=0;
         end;
-        if (Shift = [ssLeft]) then begin // добавляем еще одну точку
-            {получаем сумму всех точек, включая пустые промежутки из длинной в 1}
+        if (Shift = [ssLeft]) then begin // РґРѕР±Р°РІР»СЏРµРј РµС‰Рµ РѕРґРЅСѓ С‚РѕС‡РєСѓ
+            {РїРѕР»СѓС‡Р°РµРј СЃСѓРјРјСѓ РІСЃРµС… С‚РѕС‡РµРє, РІРєР»СЋС‡Р°СЏ РїСѓСЃС‚С‹Рµ РїСЂРѕРјРµР¶СѓС‚РєРё РёР· РґР»РёРЅРЅРѕР№ РІ 1}
             j:=0;
             for tx:=1 to CountRjadX[Y] do
                 j:=j + RjadX[tx, Y];
-            if (X <= 0) then begin // добавление новой
-                if ((j + CountRjadX[Y]) > (LenX - 1)) then Exit; // если выходим при добавлении за граници, то выходим
-                for tx:=CountRjadX[Y] downto 1 do RjadX[tx + 1, Y]:=RjadX[tx, Y]; // смещаем все цифры ряда для добавления 1
-                X:=1; // позиция добавления 
-                inc(CountRjadX[Y]); // длинна ряда увеличилась
-                RjadX[X, Y]:=0; // пока ноль...
+            if (X <= 0) then begin // РґРѕР±Р°РІР»РµРЅРёРµ РЅРѕРІРѕР№
+                if ((j + CountRjadX[Y]) > (LenX - 1)) then Exit; // РµСЃР»Рё РІС‹С…РѕРґРёРј РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё Р·Р° РіСЂР°РЅРёС†Рё, С‚Рѕ РІС‹С…РѕРґРёРј
+                for tx:=CountRjadX[Y] downto 1 do RjadX[tx + 1, Y]:=RjadX[tx, Y]; // СЃРјРµС‰Р°РµРј РІСЃРµ С†РёС„СЂС‹ СЂСЏРґР° РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ 1
+                X:=1; // РїРѕР·РёС†РёСЏ РґРѕР±Р°РІР»РµРЅРёСЏ 
+                inc(CountRjadX[Y]); // РґР»РёРЅРЅР° СЂСЏРґР° СѓРІРµР»РёС‡РёР»Р°СЃСЊ
+                RjadX[X, Y]:=0; // РїРѕРєР° РЅРѕР»СЊ...
             end;
-            if ((j + CountRjadX[Y]) > LenX) then Exit; // если превышаем длинну - то выходим 
-            RjadX[X, Y]:=RjadX[X, Y] + 1; // увеличиваем на 1
+            if ((j + CountRjadX[Y]) > LenX) then Exit; // РµСЃР»Рё РїСЂРµРІС‹С€Р°РµРј РґР»РёРЅРЅСѓ - С‚Рѕ РІС‹С…РѕРґРёРј 
+            RjadX[X, Y]:=RjadX[X, Y] + 1; // СѓРІРµР»РёС‡РёРІР°РµРј РЅР° 1
         end;
-        {тут уменьшаем на 1}
+        {С‚СѓС‚ СѓРјРµРЅСЊС€Р°РµРј РЅР° 1}
         if (Shift = [ssRight]) then begin
-            if (CountRjadX[Y] = 0) then Exit; // если ряд пуст то выходим
-            if (X <= 0) then X:=1; // если нажали на пустую ячейку, то удалять будем первый
-            RjadX[X, Y]:=RjadX[X, Y] - 1; // удаляем
-            if (RjadX[X, Y] = 0) then begin // если там ноль получился
-                if (X <> CountRjadX[Y]) then // и этот ноль не в конце  
-                    for tx:=X to CountRjadX[Y] do // то сдвигаем
+            if (CountRjadX[Y] = 0) then Exit; // РµСЃР»Рё СЂСЏРґ РїСѓСЃС‚ С‚Рѕ РІС‹С…РѕРґРёРј
+            if (X <= 0) then X:=1; // РµСЃР»Рё РЅР°Р¶Р°Р»Рё РЅР° РїСѓСЃС‚СѓСЋ СЏС‡РµР№РєСѓ, С‚Рѕ СѓРґР°Р»СЏС‚СЊ Р±СѓРґРµРј РїРµСЂРІС‹Р№
+            RjadX[X, Y]:=RjadX[X, Y] - 1; // СѓРґР°Р»СЏРµРј
+            if (RjadX[X, Y] = 0) then begin // РµСЃР»Рё С‚Р°Рј РЅРѕР»СЊ РїРѕР»СѓС‡РёР»СЃСЏ
+                if (X <> CountRjadX[Y]) then // Рё СЌС‚РѕС‚ РЅРѕР»СЊ РЅРµ РІ РєРѕРЅС†Рµ  
+                    for tx:=X to CountRjadX[Y] do // С‚Рѕ СЃРґРІРёРіР°РµРј
                         RjadX[tx, Y]:=RjadX[tx + 1, Y];
-                dec(CountRjadX[Y]); // уменьшаем на 1 количество
+                dec(CountRjadX[Y]); // СѓРјРµРЅСЊС€Р°РµРј РЅР° 1 РєРѕР»РёС‡РµСЃС‚РІРѕ
             end;
         end;
-        {тут прорисовка}
+        {С‚СѓС‚ РїСЂРѕСЂРёСЃРѕРІРєР°}
         if (cbMode.Checked) then begin
             DataFromRjadX(Y);
             DrawPole(Point(0, Y));
@@ -651,20 +651,20 @@ begin
         Draw(Point(-1, -1));
         Exit;
     end;
-    // далее то же, но только с рядами в bmpTop
+    // РґР°Р»РµРµ С‚Рѕ Р¶Рµ, РЅРѕ С‚РѕР»СЊРєРѕ СЃ СЂСЏРґР°РјРё РІ bmpTop
     if (Y < bmpTop.Height) then begin
         Y:=Y;
         X:=X - bmpLeft.Width;
         Y:=(Y div wid);
         X:=(X div wid) + 1;
 
-        ChangeActive(Point(X, 0), false); // записываем номер ячейки
+        ChangeActive(Point(X, 0), false); // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
 
         if (Shift = [ssAlt, ssLeft]) then begin
             PrepRjadY(pDM, X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
             if (not Unit2.Calculate) then begin
-                ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(X) + ').');
+                ShowMessage('РћС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ (СЃС‚РѕР»Р±РµС† ' + IntToStr(X) + ').');
                 RefreshPole;
                 Exit;
             end;
@@ -688,7 +688,7 @@ begin
             CountRjadY[LenX]:=0;
         end;
         if (Shift = [ssCtrl, ssRight]) then begin
-            for tx:=(LenX) downto X do begin    // аозможен глюк
+            for tx:=(LenX) downto X do begin    // Р°РѕР·РјРѕР¶РµРЅ РіР»СЋРє
                 CountRjadY[tx]:=CountRjadY[tx - 1];
                 for ty:=1 to CountRjadY[tx] do RjadY[tx, ty]:=RjadY[tx - 1, ty];
             end;
@@ -733,7 +733,7 @@ begin
         Exit;
     end;
     bDown:=true;
-    pbMouseMove(Sender, Shift, X, Y); // а тут если на поле попали
+    pbMouseMove(Sender, Shift, X, Y); // Р° С‚СѓС‚ РµСЃР»Рё РЅР° РїРѕР»Рµ РїРѕРїР°Р»Рё
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.DataFromRjadX(y: integer);
@@ -775,7 +775,7 @@ procedure TForm1.edCountXChange(Sender: TObject);
 var a:integer;
 begin
     bChangeLen:=true;
-    ChangeActive(Point(1, 1), true); // записываем номер ячейки
+    ChangeActive(Point(1, 1), true); // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
     Draw(Point(0, 0));
@@ -835,7 +835,7 @@ procedure TForm1.cbModeClick(Sender: TObject);
 begin
     btCalc.Enabled:=not cbMode.Checked;
     cbVerEnable.Enabled:=btCalc.Enabled;
-    if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
+    if (cbMode.Checked) then cbMode.Caption:='Р РµРґР°РєС‚РѕСЂ' else cbMode.Caption:='Р Р°СЃС€.';
     if (cbMode.Checked) then begin
         GetRjadX;
         GetRjadY;
@@ -854,12 +854,12 @@ begin
     a2:=0;
     for y:=1 to LenY do
         for x:=1 to CountRjadX[y] do a2:=a2 + RjadX[x, y];
-    Result:=Point(a1, a2);  // разница рядов
+    Result:=Point(a1, a2);  // СЂР°Р·РЅРёС†Р° СЂСЏРґРѕРІ
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btCalcClick(Sender: TObject);
 var x, y:integer;
-    b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
+    b, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, c:boolean; // b - РїСЂРѕРёР·РѕС€Р»Рё Р»Рё РёР·РјРµРЅРµРЅРёСЏ, b2 - Р±С‹Р»Р° Р»Рё РѕС€РёР±РєР°, b3 - , b4 - , b5 - РїСЂРµРґРїРѕР»Р°РіР°С‚СЊ РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё СЃ СѓС‡РµС‚РѕРј РјР°СЃСЃРёРІР° NoSet, b6 - РµСЃР»Рё С‚РѕС‡РєР° СЃ РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЊСЋ Р±С‹Р»Р° РЅР°Р№РґРµРЅР°, b7 - РїРѕСЃР»РµРґРЅРёР№ РїСЂРѕРіРѕРЅ РґР»СЏ РЅРѕСЂРјР°Р»СЊРЅРѕРіРѕ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№, b8 - РµСЃР»Рё РЅР°Р¶Р°Р»Рё РѕСЃС‚Р°РЅРѕРІРёС‚СЊ, b9 - РµСЃР»Рё РѕСЃС‚Р°РЅРѕРІРєР° РїРѕ РѕС€РёР±РєРµ, b11 - РЅСѓРґРЅРѕ РґР»СЏ РїСЂРѕРїСѓСЃРєР° РїСЂРѕРіРѕРЅР° РїРѕ Сѓ РµСЃР»Рё LenX Р±РѕР»СЊС€Рµ LenY
     h, m, s, ms:word;
     MaxVer1, MaxVer2:Real;
     a1, a2:real;
@@ -868,9 +868,9 @@ var x, y:integer;
     bErrT, bErrP:boolean;
     p:^byte;
 begin
-    if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
+    if (btCalc.Tag = 0) // РёРЅС‚РµСЂС„РµР№СЃРЅС‹Рµ РёР·РјРµРЅРµРЅРёРµ РћСЃС‚Р°РЅРѕРІРёС‚СЊ-Р Р°СЃС‡РµС‚
         then begin
-            btCalc.Caption:='&Стоп      ';
+            btCalc.Caption:='&РЎС‚РѕРї      ';
             btCalc.Tag:=1;
             udCountX.Enabled:=false;
             udCountY.Enabled:=false;
@@ -887,7 +887,7 @@ begin
             edCountY.Enabled:=false;
         end
         else begin
-            btCalc.Caption:='&Расчет    ';
+            btCalc.Caption:='&Р Р°СЃС‡РµС‚    ';
             btCalc.Tag:=0;
             udCountX.Enabled:=true;
             udCountY.Enabled:=true;
@@ -903,23 +903,23 @@ begin
             edCountY.Enabled:=true;
             edInput.Enabled:=true;
             edInput.SetFocus;
-            RefreshPole; // прорисовка поля
+            RefreshPole; // РїСЂРѕСЂРёСЃРѕРІРєР° РїРѕР»СЏ
             SetInfo(0, true, false, false, 0);
-            Exit; // сразу выходим
+            Exit; // СЃСЂР°Р·Сѓ РІС‹С…РѕРґРёРј
         end;
 
     t:=Now; //
 
-    // проверка на совпадение рядов
+    // РїСЂРѕРІРµСЂРєР° РЅР° СЃРѕРІРїР°РґРµРЅРёРµ СЂСЏРґРѕРІ
     pt:=Check;
     x:=abs(pt.x - pt.y);
     if (x > 0) then begin
-        ShowMessage('Ошибка! Несовпадение на ' + IntToStr(x));
-        btCalc.Click; // остановка
+        ShowMessage('РћС€РёР±РєР°! РќРµСЃРѕРІРїР°РґРµРЅРёРµ РЅР° ' + IntToStr(x));
+        btCalc.Click; // РѕСЃС‚Р°РЅРѕРІРєР°
         Exit;
     end;
     //-----------------------------
-    // сам рачсет
+    // СЃР°Рј СЂР°С‡СЃРµС‚
 {    for x:=1 to LenX do begin
         h:=0;
         for y:=1 to CountRjadX[x] do h:=h + RjadX[x, y];
@@ -951,8 +951,8 @@ begin
     b7:=false;
     b8:=false;
     b9:=false;
-    // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
-    b11:=(LenX > LenY); // нужно для пропуска прогона
+    // РґР»СЏ РїСЂРѕРїСѓСЃРєР° РїСЂРѕРіРѕРЅР° РїРѕ Сѓ РµСЃР»Рё РІ РіСЂСѓРїРїРµ x Рё С‡РёСЃРµР» РјРµРЅСЊС€Рµ (Р·РЅР°С‡РµРЅРёСЏ Р±РѕР»СЊС€Рµ) Рё РґР»РёРЅРЅР° СЃС‚СЂРѕРєРё (РіСЂСѓРїРїС‹) РјРµРЅСЊС€Рµ, СЌС‚Рѕ РІСЃРµ РґР»СЏ СѓСЃРєРѕСЂРµРЅРёСЏ
+    b11:=(LenX > LenY); // РЅСѓР¶РЅРѕ РґР»СЏ РїСЂРѕРїСѓСЃРєР° РїСЂРѕРіРѕРЅР°
     a1:=0;
     for x:=1 to LenX do
         a1:=a1 + CountRjadY[x];
@@ -962,7 +962,7 @@ begin
     b11:=(a1/LenY > a2/LenX);
     //----------------------------------------------------------
     Predpl.B:=false;
-    b:=false; // для b11
+    b:=false; // РґР»СЏ b11
     bErrT:=false;
     bErrP:=false;
     Memo1.Clear;
@@ -970,7 +970,7 @@ begin
         if (b and b11) then b11:=false;
         b:=false;
         b2:=false;
-        // с каким указателем работаем
+        // СЃ РєР°РєРёРј СѓРєР°Р·Р°С‚РµР»РµРј СЂР°Р±РѕС‚Р°РµРј
         if (Predpl.B)
             then begin
                 if (Predpl.SetDot)
@@ -979,31 +979,31 @@ begin
             end
             else pWork:=pDM;
 
-        if (not (b5  or b11)) then begin // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
+        if (not (b5  or b11)) then begin // РїСЂРё РїРѕРёСЃРєСѓ РґСЂСѓРіРѕР№ С‚РѕС‡РєРё, РёР»Рё РµСЃР»Рё LenX Р±РѕР»СЊС€Рµ LenY (РІ РЅР°С‡Р°Р»Рµ) РїСЂРѕРїСѓСЃРєР°РµРј СЌС‚РѕС‚ С€Р°Рі
             for y:=1 to LenY do begin
 //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
-                Application.ProcessMessages;  // передышка
-                b8:=(btCalc.Tag = 0); // остановка
+                Application.ProcessMessages;  // РїРµСЂРµРґС‹С€РєР°
+                b8:=(btCalc.Tag = 0); // РѕСЃС‚Р°РЅРѕРІРєР°
                 if (b8) then break;
                 if (pWork^.FinX[y]) then Continue;
                 if (not pWork^.ChX[y]) then Continue;
-                PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
-                Unit2.glLen:=LenX; // длинна строки
+                PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // РїРѕРґРіРѕС‚РѕРІРєР° СЃС‚СЂРѕРєРё
+                Unit2.glLen:=LenX; // РґР»РёРЅРЅР° СЃС‚СЂРѕРєРё
 //if (bPredpl)
 //then begin
 //    if (Predpl.SetDot = 1)
-//        then Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' предп. т')
-//        else Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' предп. п');
+//        then Memo1.Lines.Add('Р СЏРґ: ' + IntToStr(y) + ' РїСЂРµРґРї. С‚')
+//        else Memo1.Lines.Add('Р СЏРґ: ' + IntToStr(y) + ' РїСЂРµРґРї. Рї');
 //end
-//else Memo1.Lines.Add('Ряд: ' + IntToStr(y) + ' точно');
-                if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
+//else Memo1.Lines.Add('Р СЏРґ: ' + IntToStr(y) + ' С‚РѕС‡РЅРѕ');
+                if (not Unit2.Calculate) then begin // СЂР°СЃС‡РµС‚ ... РµСЃР»Рё РЅРµС‚ РЅРё РѕРґРЅРѕР№ РєРѕРјР±РёРЅС‹ - РѕС€РёР±РєР°
                     if (not cbVerEnable.Checked) then begin
-                        ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
+                        ShowMessage('РћС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ (СЃС‚СЂРѕРєР° ' + IntToStr(y) + ').');
                         b9:=true;
                         break;
                     end;
-                    b:=false; // изменений нету
-                    b2:=true; // ошибка была
+                    b:=false; // РёР·РјРµРЅРµРЅРёР№ РЅРµС‚Сѓ
+                    b2:=true; // РѕС€РёР±РєР° Р±С‹Р»Р°
                     break;
                 end;
                 for x:=1 to LenX do begin
@@ -1024,16 +1024,16 @@ begin
                 end;
                 pWork^.ChX[y]:=false;
             end;
-            if (not Predpl.B) then RefreshPole; // прорисовка поля только в случае точного расчета
+            if (not Predpl.B) then RefreshPole; // РїСЂРѕСЂРёСЃРѕРІРєР° РїРѕР»СЏ С‚РѕР»СЊРєРѕ РІ СЃР»СѓС‡Р°Рµ С‚РѕС‡РЅРѕРіРѕ СЂР°СЃС‡РµС‚Р°
         end;
         if (not b9)
-            then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
+            then b9:=GetFin(pWork); // РµСЃР»Рё РЅРµР±С‹Р»Рѕ РѕС€РёР±РєРё, С‚Рѕ РµСЃР»Рё СЃР»РѕР¶РёР»Рё РІСЃРµ b9:=GetFin; РІС‹С…РѕРґРёРј РєР°Рє РµСЃР»Рё Р±С‹Р»Р° Р±С‹ РѕС€РёР±РєР°
 
-        if ((not b2) and (not b5) and (not b8) and (not b9)) then begin // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
-            for x:=1 to LenX do begin // дальше то же только для столбцов
+        if ((not b2) and (not b5) and (not b8) and (not b9)) then begin // РµСЃР»Рё Р±С‹Р»Р° РѕС€РёР±РєР° (b2) РёР»Рё РЅР°РґРѕ РЅР°Р№С‚Рё РґСЂСѓРіСѓСЋ С‚РѕС‡РєСѓ (b5) РёР»Рё РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ Р·Р°РєР°РЅС‡РёРІР°РµРј (b8) РёР»Рё Р±С‹Р»Р° РѕС€РёР±РєР° (b9) С‚Рѕ РїСЂРѕРїСѓСЃРєР°РµРј СЌС‚РѕС‚ С€Р°Рі
+            for x:=1 to LenX do begin // РґР°Р»СЊС€Рµ С‚Рѕ Р¶Рµ С‚РѕР»СЊРєРѕ РґР»СЏ СЃС‚РѕР»Р±С†РѕРІ
 //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
                 Application.ProcessMessages;
-                b8:=(btCalc.Tag = 0); // остановка
+                b8:=(btCalc.Tag = 0); // РѕСЃС‚Р°РЅРѕРІРєР°
                 if (b8) then break;
                 if (pWork^.FinY[x]) then Continue;
                 if (not pWork^.ChY[x]) then Continue;
@@ -1042,18 +1042,18 @@ begin
 //if (bPredpl)
 //then begin
 //    if (Predpl.SetDot = 1)
-//        then Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' предп. т')
-//        else Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' предп. п');
+//        then Memo1.Lines.Add('РЎС‚.: ' + IntToStr(x) + ' РїСЂРµРґРї. С‚')
+//        else Memo1.Lines.Add('РЎС‚.: ' + IntToStr(x) + ' РїСЂРµРґРї. Рї');
 //end
-//else Memo1.Lines.Add('Ст.: ' + IntToStr(x) + ' точно');
+//else Memo1.Lines.Add('РЎС‚.: ' + IntToStr(x) + ' С‚РѕС‡РЅРѕ');
                 if (not Unit2.Calculate) then begin
                     if (not cbVerEnable.Checked) then begin
-                        ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
+                        ShowMessage('РћС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ (СЃС‚РѕР»Р±РµС† ' + IntToStr(x) + ').');
                         b9:=true;
                         break;
                     end;
-                    b:=false; // изменений нету
-                    b2:=true; // ошибка была
+                    b:=false; // РёР·РјРµРЅРµРЅРёР№ РЅРµС‚Сѓ
+                    b2:=true; // РѕС€РёР±РєР° Р±С‹Р»Р°
                     break;
                 end;
                 c:=false;
@@ -1075,75 +1075,75 @@ begin
                 end;
                 pWork^.ChY[x]:=false
             end;
-            if (not Predpl.B) then RefreshPole;// прорисовка поля
-            if (b11) then b:=true; // чтобы после прогона по х пошел прогон по у
+            if (not Predpl.B) then RefreshPole;// РїСЂРѕСЂРёСЃРѕРІРєР° РїРѕР»СЏ
+            if (b11) then b:=true; // С‡С‚РѕР±С‹ РїРѕСЃР»Рµ РїСЂРѕРіРѕРЅР° РїРѕ С… РїРѕС€РµР» РїСЂРѕРіРѕРЅ РїРѕ Сѓ
         end;
         if (not b9)
-            then b9:=GetFin(pWork); // если небыло ошибки, то если сложили все b9:=GetFin; выходим как если была бы ошибка
+            then b9:=GetFin(pWork); // РµСЃР»Рё РЅРµР±С‹Р»Рѕ РѕС€РёР±РєРё, С‚Рѕ РµСЃР»Рё СЃР»РѕР¶РёР»Рё РІСЃРµ b9:=GetFin; РІС‹С…РѕРґРёРј РєР°Рє РµСЃР»Рё Р±С‹Р»Р° Р±С‹ РѕС€РёР±РєР°
 
-        if (b7 or b8) then b:=false; // все конец
-        if ((cbVerEnable.Checked) and (not b) and (not b7) and (not b8) and (not b9)) then begin // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
+        if (b7 or b8) then b:=false; // РІСЃРµ РєРѕРЅРµС†
+        if ((cbVerEnable.Checked) and (not b) and (not b7) and (not b8) and (not b9)) then begin // РµСЃР»Рё РЅРёС‡РµРіРѕ РЅРµ РїРѕР»СѓС‡Р°РµС‚СЃСЏ СЂРµС€РёС‚СЊ С‚РѕС‡РЅРѕ (b) Рё РІРєР»СЋС‡РµРЅРѕ РїСЂРµРґРїРѕР»РѕР¶РµРЅРёРµ (cbVerEnable.Checked) Рё РїРѕСЃР»РµРґРЅРµРіРѕ РїСЂРѕРіРѕРЅР° РЅРµС‚ (b7) Рё РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ РЅРµР·Р°РІРµСЂС€Р°Р»Рё (b8) Рё РѕС€РёР±РєРё РЅРµС‚Сѓ
             if (b11) then b11:=false;
 
-            if (Predpl.B) // предполагали?
-                then begin // да
-                    if (Predpl.SetDot) // запоминаем ошибки
+            if (Predpl.B) // РїСЂРµРґРїРѕР»Р°РіР°Р»Рё?
+                then begin // РґР°
+                    if (Predpl.SetDot) // Р·Р°РїРѕРјРёРЅР°РµРј РѕС€РёР±РєРё
                         then bErrT:=b2
                         else bErrP:=b2;
-                    if (b2) then b2:=false; // была
-                    if (Predpl.SetDot) // что было
+                    if (b2) then b2:=false; // Р±С‹Р»Р°
+                    if (Predpl.SetDot) // С‡С‚Рѕ Р±С‹Р»Рѕ
                         then begin
-                            SavePustot(Predpl.SetTo, false); //была точка, теперь пустота
-                            b:=true; // произошли изменения
+                            SavePustot(Predpl.SetTo, false); //Р±С‹Р»Р° С‚РѕС‡РєР°, С‚РµРїРµСЂСЊ РїСѓСЃС‚РѕС‚Р°
+                            b:=true; // РїСЂРѕРёР·РѕС€Р»Рё РёР·РјРµРЅРµРЅРёСЏ
                         end
-                        else begin // путота, значит будем определять что нам записывать
+                        else begin // РїСѓС‚РѕС‚Р°, Р·РЅР°С‡РёС‚ Р±СѓРґРµРј РѕРїСЂРµРґРµР»СЏС‚СЊ С‡С‚Рѕ РЅР°Рј Р·Р°РїРёСЃС‹РІР°С‚СЊ
                             if (bErrT)
-                                then begin // ошибка на точке
+                                then begin // РѕС€РёР±РєР° РЅР° С‚РѕС‡РєРµ
                                     if (bErrP)
-                                        then begin // ошибка на точке и на пустоте - ошибка в кроссворде
-                                            ShowMessage('Ошибка в кроссворде.');
+                                        then begin // РѕС€РёР±РєР° РЅР° С‚РѕС‡РєРµ Рё РЅР° РїСѓСЃС‚РѕС‚Рµ - РѕС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ
+                                            ShowMessage('РћС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ.');
                                             b9:=true;
                                         end
-                                        else begin // ошибка на точке и нет ее на пустоте - значит пустота
+                                        else begin // РѕС€РёР±РєР° РЅР° С‚РѕС‡РєРµ Рё РЅРµС‚ РµРµ РЅР° РїСѓСЃС‚РѕС‚Рµ - Р·РЅР°С‡РёС‚ РїСѓСЃС‚РѕС‚Р°
                                             ChangeDataArr(false);
                                             RefreshPole;
-                                            b5:=true; // дальше предполагаем
-                                            b:=true; // продолжаем дальше
+                                            b5:=true; // РґР°Р»СЊС€Рµ РїСЂРµРґРїРѕР»Р°РіР°РµРј
+                                            b:=true; // РїСЂРѕРґРѕР»Р¶Р°РµРј РґР°Р»СЊС€Рµ
                                         end;
                                 end
-                                else begin  // нет ошибки на точке
+                                else begin  // РЅРµС‚ РѕС€РёР±РєРё РЅР° С‚РѕС‡РєРµ
                                     if (bErrP)
-                                        then begin // нету на точке и есть на пустоте - значит точка
+                                        then begin // РЅРµС‚Сѓ РЅР° С‚РѕС‡РєРµ Рё РµСЃС‚СЊ РЅР° РїСѓСЃС‚РѕС‚Рµ - Р·РЅР°С‡РёС‚ С‚РѕС‡РєР°
                                             ChangeDataArr(true);
                                             RefreshPole;
-                                            b5:=true; // дальше предполагаем
-                                            b:=true; // продолжаем дальше
+                                            b5:=true; // РґР°Р»СЊС€Рµ РїСЂРµРґРїРѕР»Р°РіР°РµРј
+                                            b:=true; // РїСЂРѕРґРѕР»Р¶Р°РµРј РґР°Р»СЊС€Рµ
                                         end
-                                        else begin // нет ни там ни там - значит неизвестно, это потом сохранять будем
+                                        else begin // РЅРµС‚ РЅРё С‚Р°Рј РЅРё С‚Р°Рј - Р·РЅР°С‡РёС‚ РЅРµРёР·РІРµСЃС‚РЅРѕ, СЌС‚Рѕ РїРѕС‚РѕРј СЃРѕС…СЂР°РЅСЏС‚СЊ Р±СѓРґРµРј
                                             pt:=Predpl.SetTo;
                                             pDM^.NoSet[pt.x, pt.y]:=true;
                                             pDM^.Data[pt.x, pt.y]:=0;
                                             Draw(pt);
-                                            b5:=true; // дальше предполагаем
-                                            b:=true; // продолжаем дальше
+                                            b5:=true; // РґР°Р»СЊС€Рµ РїСЂРµРґРїРѕР»Р°РіР°РµРј
+                                            b:=true; // РїСЂРѕРґРѕР»Р¶Р°РµРј РґР°Р»СЊС€Рµ
                                         end;
                                 end;
                             Predpl.B:=false;
                         end;
                 end
                 else begin
-                    if (b2) // ошибка была?
-                        then begin // если была ошибка без предположений то в кросворде ошибка
-                            ShowMessage('Ошибка в кроссворде.');
+                    if (b2) // РѕС€РёР±РєР° Р±С‹Р»Р°?
+                        then begin // РµСЃР»Рё Р±С‹Р»Р° РѕС€РёР±РєР° Р±РµР· РїСЂРµРґРїРѕР»РѕР¶РµРЅРёР№ С‚Рѕ РІ РєСЂРѕСЃРІРѕСЂРґРµ РѕС€РёР±РєР°
+                            ShowMessage('РћС€РёР±РєР° РІ РєСЂРѕСЃСЃРІРѕСЂРґРµ.');
                             b9:=true;
                         end
-                        else begin // еще не предполагали
-                            MaxVer1:=0; // пока вероятности такие
+                        else begin // РµС‰Рµ РЅРµ РїСЂРµРґРїРѕР»Р°РіР°Р»Рё
+                            MaxVer1:=0; // РїРѕРєР° РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё С‚Р°РєРёРµ
                             MaxVer2:=0;
                             b6:=false;
-                            for x:=1 to LenX do  // по всему полю
+                            for x:=1 to LenX do  // РїРѕ РІСЃРµРјСѓ РїРѕР»СЋ
                                 for y:=1 to LenY do begin
-                                    if ((MaxVer1 <= pDM^.Ver[x, y, 1]) and (MaxVer2 <= pDM^.Ver[x, y, 2]) and (pDM^.Ver[x, y, 1] < 1) and (pDM^.Ver[x, y, 2] < 1)) then begin // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                    if ((MaxVer1 <= pDM^.Ver[x, y, 1]) and (MaxVer2 <= pDM^.Ver[x, y, 2]) and (pDM^.Ver[x, y, 1] < 1) and (pDM^.Ver[x, y, 2] < 1)) then begin // РёС‰РµРј РЅР°РёР±РѕР»РµРµ РІРµСЂРѕСЏС‚РЅСѓСЋ С‚РѕС‡РєСѓ, РЅРѕ РЅРµ СЃ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЊСЋ 1 Рё 0
                                         if (pDM^.NoSet[x, y]) then continue;
                                         MaxVer1:=pDM^.Ver[x, y, 1];
                                         MaxVer2:=pDM^.Ver[x, y, 2];
@@ -1152,24 +1152,24 @@ begin
                                     end;
                                 end;
 
-                            b6:=b6 and ((MaxVer1 > 0) or (MaxVer2 > 0)); // критерий отбора
-                            if (b6) // нашли точку?
-                                then begin // да
+                            b6:=b6 and ((MaxVer1 > 0) or (MaxVer2 > 0)); // РєСЂРёС‚РµСЂРёР№ РѕС‚Р±РѕСЂР°
+                            if (b6) // РЅР°С€Р»Рё С‚РѕС‡РєСѓ?
+                                then begin // РґР°
                                     if (not b5) then begin
                                         Predpl.B:=true;
-                                        SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
+                                        SavePustot(pt, true); // СЃРѕС…СЂР°РЅСЏРµРјСЃСЏ С‚РѕР»СЊРєРѕ РµСЃР»Рё РёСЃРєР°Р»Рё РјР°РєСЃ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЊ Р±РµР· СѓС‡РµС‚Р° РјР°СЃСЃРёРІР° NoSet
                                     end;
                                     pDM^.Data[pt.x, pt.y]:=3;
                                     Draw(pt);
-//Memo1.Lines.Add('Предп. в ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
-                                    b:=true; // произошли изменения
+//Memo1.Lines.Add('РџСЂРµРґРї. РІ ' + IntToStr(pt.y) + ', ' + IntToStr(pt.x));
+                                    b:=true; // РїСЂРѕРёР·РѕС€Р»Рё РёР·РјРµРЅРµРЅРёСЏ
                                 end
-                                else begin // нет
+                                else begin // РЅРµС‚
                                     if (b5) then begin
                                         Predpl.B:=false;
                                         RefreshPole; //
                                     end;
-                                    b:=true; // изменений нету
+                                    b:=true; // РёР·РјРµРЅРµРЅРёР№ РЅРµС‚Сѓ
                                     for x:=1 to LenX do begin
                                         pDM^.FinY[x]:=false;
                                         pDM^.ChY[x]:=true;
@@ -1178,15 +1178,15 @@ begin
                                         pDM^.FinX[y]:=false;
                                         pDM^.ChX[y]:=true;
                                     end;
-                                    b7:=true; // последний прогон для нормального отображения вероятностей
+                                    b7:=true; // РїРѕСЃР»РµРґРЅРёР№ РїСЂРѕРіРѕРЅ РґР»СЏ РЅРѕСЂРјР°Р»СЊРЅРѕРіРѕ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµСЂРѕСЏС‚РЅРѕСЃС‚РµР№
                                 end;
                             b5:=false;
                         end;
                 end;
         end;
-        if (b9) then b:=false; // все конец
+        if (b9) then b:=false; // РІСЃРµ РєРѕРЅРµС†
     until (not b);
-    // очистка массивв флагов заполнености
+    // РѕС‡РёСЃС‚РєР° РјР°СЃСЃРёРІРІ С„Р»Р°РіРѕРІ Р·Р°РїРѕР»РЅРµРЅРѕСЃС‚Рё
     for x:=1 to LenX do begin
         pDM^.ChY[x]:=true;
         pDM^.FinY[x]:=false;
@@ -1209,15 +1209,15 @@ begin
             end;
         end;
     if (b8)
-        then begin// если нажали остановить
+        then begin// РµСЃР»Рё РЅР°Р¶Р°Р»Рё РѕСЃС‚Р°РЅРѕРІРёС‚СЊ
             if (Predpl.B) then pDM^.Data[Predpl.SetTo.x, Predpl.SetTo.y]:=0;
             Predpl.B:=false;
-            RefreshPole; // прорисовка поля
+            RefreshPole; // РїСЂРѕСЂРёСЃРѕРІРєР° РїРѕР»СЏ
             SetInfo(0, true, false, false, 0);
         end
         else begin
-            btCalc.Click; // иначе нажимем на кнопку
-            SaveTime; // сохраняем время, за которое решили кроссворд
+            btCalc.Click; // РёРЅР°С‡Рµ РЅР°Р¶РёРјРµРј РЅР° РєРЅРѕРїРєСѓ
+            SaveTime; // СЃРѕС…СЂР°РЅСЏРµРј РІСЂРµРјСЏ, Р·Р° РєРѕС‚РѕСЂРѕРµ СЂРµС€РёР»Рё РєСЂРѕСЃСЃРІРѕСЂРґ
         end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1225,24 +1225,24 @@ procedure TForm1.SetPredplDot(bDot: boolean);
 var pt:TPoint;
     pWork:PAllData;
 begin
-    if (bDot) // что предполагаем?
-        then pWork:=pDT // точку
-        else pWork:=pDP; // путоту
+    if (bDot) // С‡С‚Рѕ РїСЂРµРґРїРѕР»Р°РіР°РµРј?
+        then pWork:=pDT // С‚РѕС‡РєСѓ
+        else pWork:=pDP; // РїСѓС‚РѕС‚Сѓ
     pt:=Predpl.SetTo;
     if (bDot)
         then begin
             pWork.Data[pt.x, pt.y]:=1;
-            // меняем вероятности
+            // РјРµРЅСЏРµРј РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
             pWork.Ver[pt.x, pt.y, 1]:=1;
             pWork.Ver[pt.x, pt.y, 2]:=1;
         end
         else begin
             pWork.Data[pt.x, pt.y]:=2;
-            // меняем вероятности
+            // РјРµРЅСЏРµРј РІРµСЂРѕСЏС‚РЅРѕСЃС‚Рё
             pWork.Ver[pt.x, pt.y, 1]:=0;
             pWork.Ver[pt.x, pt.y, 2]:=0;
         end;
-    // строка и солбец, содержащие эту точку пересчитать
+    // СЃС‚СЂРѕРєР° Рё СЃРѕР»Р±РµС†, СЃРѕРґРµСЂР¶Р°С‰РёРµ СЌС‚Сѓ С‚РѕС‡РєСѓ РїРµСЂРµСЃС‡РёС‚Р°С‚СЊ
     pWork.ChX[pt.y]:=true;
     pWork.ChY[pt.x]:=true;
     pWork.FinX[pt.y]:=false;
@@ -1271,21 +1271,21 @@ var x, y:integer;
     b, b2:boolean;
     pWork:PAllData;
 begin
-    if (bDot) // что предполагаем?
-        then pWork:=pDT // точку
-        else pWork:=pDP; // путоту
-    for x:=1 to LenX do // по всему полю
+    if (bDot) // С‡С‚Рѕ РїСЂРµРґРїРѕР»Р°РіР°РµРј?
+        then pWork:=pDT // С‚РѕС‡РєСѓ
+        else pWork:=pDP; // РїСѓС‚РѕС‚Сѓ
+    for x:=1 to LenX do // РїРѕ РІСЃРµРјСѓ РїРѕР»СЋ
         for y:=1 to LenY do begin
             pWork^.Data[x, y]:=pDM^.Data[x, y];
             pWork^.Ver[x, y, 1]:=pDM^.Ver[x, y, 1];
             pWork^.Ver[x, y, 2]:=pDM^.Ver[x, y, 2];
-            b:=(pDM^.Data[x, y] = 0); // пусто?
+            b:=(pDM^.Data[x, y] = 0); // РїСѓСЃС‚Рѕ?
             if (b)
-                then begin // пусто
-                    if (pWork.tChY[x] and pWork.tChX[y]) //если производились изменения
-                        then pWork.NoSet[x, y]:=false; // ставить можна
+                then begin // РїСѓСЃС‚Рѕ
+                    if (pWork.tChY[x] and pWork.tChX[y]) //РµСЃР»Рё РїСЂРѕРёР·РІРѕРґРёР»РёСЃСЊ РёР·РјРµРЅРµРЅРёСЏ
+                        then pWork.NoSet[x, y]:=false; // СЃС‚Р°РІРёС‚СЊ РјРѕР¶РЅР°
                 end
-                else pWork.NoSet[x, y]:=true; // непусто - сюда ставить нельзя
+                else pWork.NoSet[x, y]:=true; // РЅРµРїСѓСЃС‚Рѕ - СЃСЋРґР° СЃС‚Р°РІРёС‚СЊ РЅРµР»СЊР·СЏ
         end;
     for x:=1 to LenX do begin
         pWork.ChY[x]:=pDM^.ChY[x];
@@ -1306,25 +1306,25 @@ function TForm1.GetFin(p:PAllData):boolean;
 var c, c2:boolean;
     x, y:integer;
 begin
-    // заполнение поля
+    // Р·Р°РїРѕР»РЅРµРЅРёРµ РїРѕР»СЏ
     c2:=true;
     for y:=1 to LenY do begin
-        c:=false; // флаг закончености строки
-        for x:=1 to LenX do  // по строке
-            c:=c or (p^.Data[x, y] = 0); // если заполнено
+        c:=false; // С„Р»Р°Рі Р·Р°РєРѕРЅС‡РµРЅРѕСЃС‚Рё СЃС‚СЂРѕРєРё
+        for x:=1 to LenX do  // РїРѕ СЃС‚СЂРѕРєРµ
+            c:=c or (p^.Data[x, y] = 0); // РµСЃР»Рё Р·Р°РїРѕР»РЅРµРЅРѕ
         c2:=c2 and (not c);
         p^.FinX[y]:=not c
-//        if (Predpl.B)  // массив флагов заполнености
+//        if (Predpl.B)  // РјР°СЃСЃРёРІ С„Р»Р°РіРѕРІ Р·Р°РїРѕР»РЅРµРЅРѕСЃС‚Рё
 //            then pDT^.FinX[y]:=not c
 //            else pDM^.FinX[y]:=not c;
     end;
     for x:=1 to LenX do begin
-        c:=false; // флаг закончености строки
-        for y:=1 to LenY do  // по строке
-            c:=c or (p^.Data[x, y] = 0); // если заполнено
+        c:=false; // С„Р»Р°Рі Р·Р°РєРѕРЅС‡РµРЅРѕСЃС‚Рё СЃС‚СЂРѕРєРё
+        for y:=1 to LenY do  // РїРѕ СЃС‚СЂРѕРєРµ
+            c:=c or (p^.Data[x, y] = 0); // РµСЃР»Рё Р·Р°РїРѕР»РЅРµРЅРѕ
         c2:=c2 and (not c);
         p^.FinY[x]:=not c
-//        if (Predpl.B) // массив флагов заполнености
+//        if (Predpl.B) // РјР°СЃСЃРёРІ С„Р»Р°РіРѕРІ Р·Р°РїРѕР»РЅРµРЅРѕСЃС‚Рё
 //            then pDT^.FinY[x]:=not c
 //            else pDM^.FinY[x]:=not c;
     end;
@@ -1338,19 +1338,19 @@ end;
 procedure TForm1.PrepRjadX(p:PAllData; Y: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
 var x:integer;
 begin
-    // подготовка строки
-    for x:=1 to LenX do Data[x]:=p^.Data[x, Y]; // данные
-    CountRjad:=CountRjadX[Y]; // длинна ряда
-    for x:=1 to CountRjadX[Y] do Rjad[x]:=Form1.RjadX[x, Y];  // сам ряд
+    // РїРѕРґРіРѕС‚РѕРІРєР° СЃС‚СЂРѕРєРё
+    for x:=1 to LenX do Data[x]:=p^.Data[x, Y]; // РґР°РЅРЅС‹Рµ
+    CountRjad:=CountRjadX[Y]; // РґР»РёРЅРЅР° СЂСЏРґР°
+    for x:=1 to CountRjadX[Y] do Rjad[x]:=Form1.RjadX[x, Y];  // СЃР°Рј СЂСЏРґ
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.PrepRjadY(p:PAllData; X: integer; var Data: TData; var Rjad:TRjad; var CountRjad:byte);
 var y:integer;
 begin
-    // подготовка столбца
-    for y:=1 to LenY do Data[y]:=p^.Data[X, y];  // данные
-    CountRjad:=CountRjadY[X]; // длинна ряда
-    for y:=1 to CountRjadY[X] do Rjad[y]:=Form1.RjadY[X, y]; // сам ряд
+    // РїРѕРґРіРѕС‚РѕРІРєР° СЃС‚РѕР»Р±С†Р°
+    for y:=1 to LenY do Data[y]:=p^.Data[X, y];  // РґР°РЅРЅС‹Рµ
+    CountRjad:=CountRjadY[X]; // РґР»РёРЅРЅР° СЂСЏРґР°
+    for y:=1 to CountRjadY[X] do Rjad[y]:=Form1.RjadY[X, y]; // СЃР°Рј СЂСЏРґ
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.LoadRjadFromFile(FileName: string);
@@ -1362,24 +1362,24 @@ begin
     AssignFile(F, FileName);
     ReSet(F);
     ReadLn(F, tstr);
-    udCountX.Position:=StrToInt(tstr); // ширина
+    udCountX.Position:=StrToInt(tstr); // С€РёСЂРёРЅР°
     ReadLn(F, tstr);
-    udCountY.Position:=StrToInt(tstr); // высота
+    udCountY.Position:=StrToInt(tstr); // РІС‹СЃРѕС‚Р°
     for y:=1 to LenY do begin
         ReadLn(F, tstr);
-        CountRjadX[y]:=StrToInt(tstr); // длинна y строки
+        CountRjadX[y]:=StrToInt(tstr); // РґР»РёРЅРЅР° y СЃС‚СЂРѕРєРё
         for x:=1 to CountRjadX[y] do begin
             ReadLn(F, tstr);
-            RjadX[x, y]:=StrToInt(tstr); // числа y строки
+            RjadX[x, y]:=StrToInt(tstr); // С‡РёСЃР»Р° y СЃС‚СЂРѕРєРё
         end;
     end;
 
     for x:=1 to LenX do begin
         ReadLn(F, tstr);
-        CountRjadY[x]:=StrToInt(tstr);       // длинна х столбца
+        CountRjadY[x]:=StrToInt(tstr);       // РґР»РёРЅРЅР° С… СЃС‚РѕР»Р±С†Р°
         for y:=1 to CountRjadY[x] do begin
             ReadLn(F, tstr);
-            RjadY[x, y]:=StrToInt(tstr);   // числа х столбца
+            RjadY[x, y]:=StrToInt(tstr);   // С‡РёСЃР»Р° С… СЃС‚РѕР»Р±С†Р°
         end;
     end;
     CloseFile(F);
@@ -1392,18 +1392,18 @@ begin
     LoadFileName:=FileName;
     AssignFile(F, FileName);
     ReWrite(F);
-    WriteLn(F, IntToStr(LenX));  // ширина
-    WriteLn(F, IntToStr(LenY));  // высота
+    WriteLn(F, IntToStr(LenX));  // С€РёСЂРёРЅР°
+    WriteLn(F, IntToStr(LenY));  // РІС‹СЃРѕС‚Р°
     for y:=1 to LenY do begin
-        WriteLn(F, IntToStr(CountRjadX[y])); // длинна y строки
+        WriteLn(F, IntToStr(CountRjadX[y])); // РґР»РёРЅРЅР° y СЃС‚СЂРѕРєРё
         for x:=1 to CountRjadX[y] do
-            WriteLn(F, IntToStr(RjadX[x, y])); // числа y строки
+            WriteLn(F, IntToStr(RjadX[x, y])); // С‡РёСЃР»Р° y СЃС‚СЂРѕРєРё
     end;
 
     for x:=1 to LenX do begin
-        WriteLn(F, IntToStr(CountRjadY[x]));  // длинна х столбца
+        WriteLn(F, IntToStr(CountRjadY[x]));  // РґР»РёРЅРЅР° С… СЃС‚РѕР»Р±С†Р°
         for y:=1 to CountRjadY[x] do
-            WriteLn(F, IntToStr(RjadY[x, y]));  // числа х столбца
+            WriteLn(F, IntToStr(RjadY[x, y]));  // С‡РёСЃР»Р° С… СЃС‚РѕР»Р±С†Р°
     end;
     CloseFile(F);
 end;
@@ -1411,7 +1411,7 @@ end;
 procedure TForm1.btSaveClick(Sender: TObject);
 var tstr, ext:string;
 begin
-    if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
+    if (cbMode.Checked) // СЂР°СЃС€РёСЂРµРЅРёРµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ (2 - С„Р°Р№Р»Рѕ СЂРµРґР°РєС‚РѕСЂР°)
         then sd.FilterIndex:=2
         else sd.FilterIndex:=1;
     case (sd.FilterIndex) of
@@ -1421,30 +1421,30 @@ begin
     if (sd.FileName <> '') then sd.FileName:=ChangeFileExt(sd.FileName, ext);
     if (not sd.Execute) then begin
         edInput.SetFocus;
-        Exit; // запуск диалога
+        Exit; // Р·Р°РїСѓСЃРє РґРёР°Р»РѕРіР°
     end;
-    tstr:=ExtractFileExt(sd.FileName); // расширение
+    tstr:=ExtractFileExt(sd.FileName); // СЂР°СЃС€РёСЂРµРЅРёРµ
     case (sd.FilterIndex) of
         1:ext:='.jap';
         2:ext:='.jdt';
     end;
-    if (tstr <> ext) // если не те расширения ...
-        then sd.FileName:=ChangeFileExt(sd.FileName, ext); //... то по умолчанию
-    // грузим файл
+    if (tstr <> ext) // РµСЃР»Рё РЅРµ С‚Рµ СЂР°СЃС€РёСЂРµРЅРёСЏ ...
+        then sd.FileName:=ChangeFileExt(sd.FileName, ext); //... С‚Рѕ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+    // РіСЂСѓР·РёРј С„Р°Р№Р»
     od.FileName:=sd.FileName;
     case (sd.FilterIndex) of
         1: SaveRjadToFile(sd.FileName);
         2: SaveDataToFile(sd.FileName);
     end;
-    Form1.Caption:='Японские головоломки - ' + ExtractFileName(sd.FileName);
+    Form1.Caption:='РЇРїРѕРЅСЃРєРёРµ РіРѕР»РѕРІРѕР»РѕРјРєРё - ' + ExtractFileName(sd.FileName);
     edInput.SetFocus;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btLoadClick(Sender: TObject);
 var tstr, tstr2, ext:string;
-    b:boolean; // флаг накладывания
+    b:boolean; // С„Р»Р°Рі РЅР°РєР»Р°РґС‹РІР°РЅРёСЏ
 begin
-    if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
+    if (cbMode.Checked) // СЂР°СЃС€РёСЂРµРЅРёРµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ (2 - С„Р°Р№Р»Рѕ СЂРµРґР°РєС‚РѕСЂР°)
         then od.FilterIndex:=2
         else od.FilterIndex:=1;
     case (od.FilterIndex) of
@@ -1454,15 +1454,15 @@ begin
     if (od.FileName <> '') then od.FileName:=ChangeFileExt(od.FileName, ext);
     if (not od.Execute) then begin
         edInput.SetFocus;
-        Exit; // запуск диалога
+        Exit; // Р·Р°РїСѓСЃРє РґРёР°Р»РѕРіР°
     end;
-    tstr:=ExtractFileExt(od.FileName); // имя файла
+    tstr:=ExtractFileExt(od.FileName); // РёРјСЏ С„Р°Р№Р»Р°
     case (od.FilterIndex) of
         1:ext:='.jap';
         2:ext:='.jdt';
     end;
-    if (tstr <> ext) // если не те расширения ...
-        then od.FileName:=ChangeFileExt(od.FileName, ext); //... то по умолчанию
+    if (tstr <> ext) // РµСЃР»Рё РЅРµ С‚Рµ СЂР°СЃС€РёСЂРµРЅРёСЏ ...
+        then od.FileName:=ChangeFileExt(od.FileName, ext); //... С‚Рѕ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
     if (not FileExists(od.FileName)) then begin
         edInput.SetFocus;
         Exit;
@@ -1474,49 +1474,49 @@ begin
         tstr2:=ChangeFileExt(od.FileName, '.jdt');
         if (FileExists(tstr) and FileExists(tstr2)) then begin
             cbMode.Checked:=false;
-            cbMode.Caption:='Расш.';
-            LoadRjadFromFile(tstr); // грузим файл
-            LoadDataFromFile(tstr2);  // грузим файл
+            cbMode.Caption:='Р Р°СЃС€.';
+            LoadRjadFromFile(tstr); // РіСЂСѓР·РёРј С„Р°Р№Р»
+            LoadDataFromFile(tstr2);  // РіСЂСѓР·РёРј С„Р°Р№Р»
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            Form1.Caption:='Японские головоломки - ' + ExtractFileName(tstr) + ', ' + ExtractFileName(tstr2);
+            Form1.Caption:='РЇРїРѕРЅСЃРєРёРµ РіРѕР»РѕРІРѕР»РѕРјРєРё - ' + ExtractFileName(tstr) + ', ' + ExtractFileName(tstr2);
             SetInfo(0, true, false, true, 0);
             Exit;
         end;
     end;
     b:=(cbLoadNaklad.Checked and (cbMode.Checked xor (od.FilterIndex = 2)));
     case (od.FilterIndex) of
-        1: begin // файл расшифровщика
+        1: begin // С„Р°Р№Р» СЂР°СЃС€РёС„СЂРѕРІС‰РёРєР°
             if (not b) then begin
-                // перекл режим
+                // РїРµСЂРµРєР» СЂРµР¶РёРј
                 cbMode.Checked:=false;
-                if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
-                ClearData; // очищаем поле
+                if (cbMode.Checked) then cbMode.Caption:='Р РµРґР°РєС‚РѕСЂ' else cbMode.Caption:='Р Р°СЃС€.';
+                ClearData; // РѕС‡РёС‰Р°РµРј РїРѕР»Рµ
             end;
-            LoadRjadFromFile(od.FileName); // грузим файл
+            LoadRjadFromFile(od.FileName); // РіСЂСѓР·РёРј С„Р°Р№Р»
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+            Form1.Caption:='РЇРїРѕРЅСЃРєРёРµ РіРѕР»РѕРІРѕР»РѕРјРєРё - ' + ExtractFileName(od.FileName);
             SetInfo(0, true, false, false, 0);
             if (not b) then btCalc.Click;
         end;
-        2: begin // файл редактора
+        2: begin // С„Р°Р№Р» СЂРµРґР°РєС‚РѕСЂР°
             if (not b) then begin
-                // перекл режим
+                // РїРµСЂРµРєР» СЂРµР¶РёРј
                 cbMode.Checked:=true;
-                if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
+                if (cbMode.Checked) then cbMode.Caption:='Р РµРґР°РєС‚РѕСЂ' else cbMode.Caption:='Р Р°СЃС€.';
             end;
-            LoadDataFromFile(od.FileName);  // грузим файл
+            LoadDataFromFile(od.FileName);  // РіСЂСѓР·РёРј С„Р°Р№Р»
             if (not b) then begin
-                GetRjadX; // получаем ряды
+                GetRjadX; // РїРѕР»СѓС‡Р°РµРј СЂСЏРґС‹
                 GetRjady;
             end;
             bChangeLen:=true;
             bUpDown:=true;
             Draw(Point(0, 0));
-            Form1.Caption:='Японские головоломки - ' + ExtractFileName(od.FileName);
+            Form1.Caption:='РЇРїРѕРЅСЃРєРёРµ РіРѕР»РѕРІРѕР»РѕРјРєРё - ' + ExtractFileName(od.FileName);
             SetInfo(0, true, false, true, 0);
         end;
     end;
@@ -1532,13 +1532,13 @@ begin
     AssignFile(F, FileName);
     ReSet(F);
     ReadLn(F, tstr);
-    udCountX.Position:=StrToInt(tstr); // ширина
+    udCountX.Position:=StrToInt(tstr); // С€РёСЂРёРЅР°
     ReadLn(F, tstr);
-    udCountY.Position:=StrToInt(tstr); // высота
+    udCountY.Position:=StrToInt(tstr); // РІС‹СЃРѕС‚Р°
     for x:=1 to LenX do
         for y:=1 to LenY do begin
             ReadLn(F, tstr);
-            pDM^.Data[x ,y]:=StrToInt(tstr); // поле
+            pDM^.Data[x ,y]:=StrToInt(tstr); // РїРѕР»Рµ
         end;
     CloseFile(F);
 end;
@@ -1550,19 +1550,19 @@ begin
     LoadFileName:=FileName;
     AssignFile(F, FileName);
     ReWrite(F);
-    WriteLn(F, IntToStr(LenX)); // ширина
-    WriteLn(F, IntToStr(LenY)); // высора
+    WriteLn(F, IntToStr(LenX)); // С€РёСЂРёРЅР°
+    WriteLn(F, IntToStr(LenY)); // РІС‹СЃРѕСЂР°
     for x:=1 to LenX do
         for y:=1 to LenY do
-            WriteLn(F, IntToStr(pDM^.Data[x, y])); // поле
+            WriteLn(F, IntToStr(pDM^.Data[x, y])); // РїРѕР»Рµ
     CloseFile(F);
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btClearClick(Sender: TObject);
 begin
-    ClearData(cbMode.Checked); // очищаем поле
-    ChangeActive(Point(1, 1), true); // записываем номер ячейки
-    Draw(Point(0, 0)); // прорисовка
+    ClearData(cbMode.Checked); // РѕС‡РёС‰Р°РµРј РїРѕР»Рµ
+    ChangeActive(Point(1, 1), true); // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
+    Draw(Point(0, 0)); // РїСЂРѕСЂРёСЃРѕРІРєР°
     SetInfo(0, true, false, true, 0);
     edInput.SetFocus;
 end;
@@ -1574,42 +1574,42 @@ begin
             if (c < 0)
                 then begin
                     if ((CurrPt.pt.x + c) <= 0)
-                        then ChangeActive(Point(LenX, 1), false) // записываем номер ячейки
-                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+                        then ChangeActive(Point(LenX, 1), false) // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //СЃР»РµРґСѓСЋС‰Р°СЏ СЏС‡РµР№РєР°
                 end
                 else begin
                     if ((CurrPt.pt.x + c) > LenY)
-                        then ChangeActive(Point(1, 1), false) // записываем номер ячейки
-                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+                        then ChangeActive(Point(1, 1), false) // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //СЃР»РµРґСѓСЋС‰Р°СЏ СЏС‡РµР№РєР°
                 end;
         end
         else begin
             if (c < 0)
                 then begin
                     if ((CurrPt.pt.x + c) <= 0)
-                        then ChangeActive(Point(LenY, 1), true) // записываем номер ячейки
-                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+                        then ChangeActive(Point(LenY, 1), true) // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //СЃР»РµРґСѓСЋС‰Р°СЏ СЏС‡РµР№РєР°
                 end
                 else begin
                     if ((CurrPt.pt.x + c) > LenX)
-                        then ChangeActive(Point(1, 1), true) // записываем номер ячейки
-                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
+                        then ChangeActive(Point(1, 1), true) // Р·Р°РїРёСЃС‹РІР°РµРј РЅРѕРјРµСЂ СЏС‡РµР№РєРё
+                        else ChangeActive(Point(CurrPt.pt.x + c, 1), CurrPt.xy); //СЃР»РµРґСѓСЋС‰Р°СЏ СЏС‡РµР№РєР°
                 end;
         end;
-    // делаем текст в едите выделенным
+    // РґРµР»Р°РµРј С‚РµРєСЃС‚ РІ РµРґРёС‚Рµ РІС‹РґРµР»РµРЅРЅС‹Рј
     edInput.SelectAll;
-//    edInput.Text:=''; // очищаем едит
+//    edInput.Text:=''; // РѕС‡РёС‰Р°РµРј РµРґРёС‚
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edInputKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
     case (Key) of
-        38:begin // вверх
+        38:begin // РІРІРµСЂС…
             ActiveNext(-1);
             Key:=0;
         end;
         39:;
-        40:begin // вниз
+        40:begin // РІРЅРёР·
             ActiveNext(1);
             Key:=0;
         end;
@@ -1630,7 +1630,7 @@ begin
         Key:=#0;
         tstr:=edInput.Text;
         if (tstr = '') then Exit;
-        // убираем дубл. точки
+        // СѓР±РёСЂР°РµРј РґСѓР±Р». С‚РѕС‡РєРё
         i:=2;
         repeat
             if ((tstr[i - 1] = '.') and (tstr[i] = '.'))
@@ -1638,18 +1638,18 @@ begin
                 else inc(i);
             a:=Length(tstr);
         until (i > a);
-        // убираем точку спереди, добавляем в зад 
+        // СѓР±РёСЂР°РµРј С‚РѕС‡РєСѓ СЃРїРµСЂРµРґРё, РґРѕР±Р°РІР»СЏРµРј РІ Р·Р°Рґ 
         if (tstr[Length(tstr)] <> '.') then tstr:=tstr + '.';
         if (tstr[1] = '.') then tstr:=copy(tstr, 2, Length(tstr) - 1);
-        if (tstr = '') then Exit; // выходим если пусто
-        a:=DecodeStrToInt(tstr, '.', 0); // количество цифер
+        if (tstr = '') then Exit; // РІС‹С…РѕРґРёРј РµСЃР»Рё РїСѓСЃС‚Рѕ
+        a:=DecodeStrToInt(tstr, '.', 0); // РєРѕР»РёС‡РµСЃС‚РІРѕ С†РёС„РµСЂ
         if (not CurrPt.xy)
-            then begin // столбцы
-                {заполнение}
+            then begin // СЃС‚РѕР»Р±С†С‹
+                {Р·Р°РїРѕР»РЅРµРЅРёРµ}
                 CountRjadY[CurrPt.pt.x]:=a;
                 for i:=1 to a do
                     RjadY[CurrPt.pt.x, i]:=DecodeStrToInt(tstr, '.', i);
-                {проверка на ввод нулей - они не нужны}
+                {РїСЂРѕРІРµСЂРєР° РЅР° РІРІРѕРґ РЅСѓР»РµР№ - РѕРЅРё РЅРµ РЅСѓР¶РЅС‹}
                 i:=1;
                 while (i <= a) do
                     if (RjadY[CurrPt.pt.x, i] = 0)
@@ -1664,7 +1664,7 @@ begin
                         end
                         else inc(i);
                 if (CountRjadY[CurrPt.pt.x] = 0) then Exit;
-                {проверка на ввод чила большего чем ширина}
+                {РїСЂРѕРІРµСЂРєР° РЅР° РІРІРѕРґ С‡РёР»Р° Р±РѕР»СЊС€РµРіРѕ С‡РµРј С€РёСЂРёРЅР°}
                 j:=0;
                 for i:=1 to a do
                     j:=j + RjadY[CurrPt.pt.x, i];
@@ -1674,15 +1674,15 @@ begin
                     edInput.SelectAll;
                     Exit;
                 end;
-                {прорисовать на поле если надо}
+                {РїСЂРѕСЂРёСЃРѕРІР°С‚СЊ РЅР° РїРѕР»Рµ РµСЃР»Рё РЅР°РґРѕ}
                 if (cbMode.Checked) then DataFromRjadY(CurrPt.pt.x);
             end
-            else begin // строки
-                {заполнение}
+            else begin // СЃС‚СЂРѕРєРё
+                {Р·Р°РїРѕР»РЅРµРЅРёРµ}
                 CountRjadX[CurrPt.pt.x]:=a;
                 for i:=1 to a do
                     RjadX[i, CurrPt.pt.x]:=DecodeStrToInt(tstr, '.', i);
-                {проверка на ввод нулей - они не нужны}
+                {РїСЂРѕРІРµСЂРєР° РЅР° РІРІРѕРґ РЅСѓР»РµР№ - РѕРЅРё РЅРµ РЅСѓР¶РЅС‹}
                 i:=1;
                 while (i <= a) do
                     if (RjadX[i, CurrPt.pt.x] = 0)
@@ -1697,7 +1697,7 @@ begin
                         end
                         else inc(i);
                 if (CountRjadX[CurrPt.pt.x] = 0) then Exit;
-                {проверка на ввод чила большего чем ширина}
+                {РїСЂРѕРІРµСЂРєР° РЅР° РІРІРѕРґ С‡РёР»Р° Р±РѕР»СЊС€РµРіРѕ С‡РµРј С€РёСЂРёРЅР°}
                 j:=0;
                 for i:=1 to a do
                     j:=j + RjadX[i, CurrPt.pt.x];
@@ -1706,7 +1706,7 @@ begin
                     Beep;
                     Exit;
                 end;
-                {прорисовать на поле если надо}
+                {РїСЂРѕСЂРёСЃРѕРІР°С‚СЊ РЅР° РїРѕР»Рµ РµСЃР»Рё РЅР°РґРѕ}
                 if (cbMode.Checked) then DataFromRjadX(CurrPt.pt.x);
             end;
 
@@ -1759,9 +1759,9 @@ begin
         Exit;
     end;
     cbRjad.Checked:=true;
-    tstr:=ExtractFileExt(spd.FileName); // расширение
-    if (tstr = '') then spd.FileName:=spd.FileName + '.bmp'; // если нет разрешения то разрешение по умолчанию
-    if (tstr <> '.bmp') then spd.FileName:=ChangeFileExt(spd.FileName, '.bmp'); //если не те расширения то по умолчанию
+    tstr:=ExtractFileExt(spd.FileName); // СЂР°СЃС€РёСЂРµРЅРёРµ
+    if (tstr = '') then spd.FileName:=spd.FileName + '.bmp'; // РµСЃР»Рё РЅРµС‚ СЂР°Р·СЂРµС€РµРЅРёСЏ С‚Рѕ СЂР°Р·СЂРµС€РµРЅРёРµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+    if (tstr <> '.bmp') then spd.FileName:=ChangeFileExt(spd.FileName, '.bmp'); //РµСЃР»Рё РЅРµ С‚Рµ СЂР°СЃС€РёСЂРµРЅРёСЏ С‚Рѕ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
     Buf.SaveToFile(spd.FileName);
     cbRjad.Checked:=false;
     edInput.SetFocus;
@@ -1771,15 +1771,15 @@ procedure TForm1.edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: 
 begin
     if (Shift <> [ssLeft, ssAlt, ssCtrl, ssShift]) then Exit;
 //    PlaySound(PChar('BUNGA'), Hinstance, SND_RESOURCE or SND_ASYNC or SND_LOOP);
-    ShowMessage('Эту программу создал СанЁк (Gerda).' + #$0D + #$0A +
-                'Ксюша, если ты сейчас читаешь это сообщение, знай - я Тебя очень сильно люблю, жить без Тебя не могу, Ты у меня самая-самая.' + #$0D + #$0A +
-                'Твой на веки.' + #$0D + #$0A + 'Саша.' + #$0D + #$0A + '24 января 2005 года.' + #$0D + #$0A +
-                'З.Ы. Хочу, воспользовавшись моментом, передать привет, конечно же, моей женушке Ксюне, мамам, ксюшиному папе, хочу вспомнить своего папу,' + #$0D + #$0A +
-                'без которого небыло бы меня, со всеми вытекающими последствиями, сестре Ире и Дане, друзьям Илюхе (Raze), Сопе, Ваську,' + #$0D + #$0A +
-                'Вадиму, Олегу, Игорю, Димку, Андрюхе (Хмелу), Ваську (Гуз), Саше,' + #$0D + #$0A + 'пол-групе нормальных человек: Игорю (Юк), Коле, Серому (Толстый),' + #$0D + #$0A +
-                'Дене (ЛСД), Веталю, коллективу Укртелеком: Леше, Диме, Лиле, Саше, Шурику, Юле, Ире, однокласникам: Жене, Серому (Попеску), Серому (Шляпе),' + #$0D + #$0A +
-                'Оле, Наде, Наташе, Саше (Буля), компьютерке "Компьютер+": Руслану, Вове и Толику, которые собираль мой комп, 5 и 9 школе где я долго зависал в компьютерных классах,' + #$0D + #$0A +
-                'и всем всем, кто меня знает и уважает, но кого я не смог вспомнить... Пользуйтесь программой на здоровье, я буду только рад...');
+    ShowMessage('Р­С‚Сѓ РїСЂРѕРіСЂР°РјРјСѓ СЃРѕР·РґР°Р» РЎР°РЅРЃРє (Gerda).' + #$0D + #$0A +
+                'РљСЃСЋС€Р°, РµСЃР»Рё С‚С‹ СЃРµР№С‡Р°СЃ С‡РёС‚Р°РµС€СЊ СЌС‚Рѕ СЃРѕРѕР±С‰РµРЅРёРµ, Р·РЅР°Р№ - СЏ РўРµР±СЏ РѕС‡РµРЅСЊ СЃРёР»СЊРЅРѕ Р»СЋР±Р»СЋ, Р¶РёС‚СЊ Р±РµР· РўРµР±СЏ РЅРµ РјРѕРіСѓ, РўС‹ Сѓ РјРµРЅСЏ СЃР°РјР°СЏ-СЃР°РјР°СЏ.' + #$0D + #$0A +
+                'РўРІРѕР№ РЅР° РІРµРєРё.' + #$0D + #$0A + 'РЎР°С€Р°.' + #$0D + #$0A + '24 СЏРЅРІР°СЂСЏ 2005 РіРѕРґР°.' + #$0D + #$0A +
+                'Р—.Р«. РҐРѕС‡Сѓ, РІРѕСЃРїРѕР»СЊР·РѕРІР°РІС€РёСЃСЊ РјРѕРјРµРЅС‚РѕРј, РїРµСЂРµРґР°С‚СЊ РїСЂРёРІРµС‚, РєРѕРЅРµС‡РЅРѕ Р¶Рµ, РјРѕРµР№ Р¶РµРЅСѓС€РєРµ РљСЃСЋРЅРµ, РјР°РјР°Рј, РєСЃСЋС€РёРЅРѕРјСѓ РїР°РїРµ, С…РѕС‡Сѓ РІСЃРїРѕРјРЅРёС‚СЊ СЃРІРѕРµРіРѕ РїР°РїСѓ,' + #$0D + #$0A +
+                'Р±РµР· РєРѕС‚РѕСЂРѕРіРѕ РЅРµР±С‹Р»Рѕ Р±С‹ РјРµРЅСЏ, СЃРѕ РІСЃРµРјРё РІС‹С‚РµРєР°СЋС‰РёРјРё РїРѕСЃР»РµРґСЃС‚РІРёСЏРјРё, СЃРµСЃС‚СЂРµ РСЂРµ Рё Р”Р°РЅРµ, РґСЂСѓР·СЊСЏРј РР»СЋС…Рµ (Raze), РЎРѕРїРµ, Р’Р°СЃСЊРєСѓ,' + #$0D + #$0A +
+                'Р’Р°РґРёРјСѓ, РћР»РµРіСѓ, РРіРѕСЂСЋ, Р”РёРјРєСѓ, РђРЅРґСЂСЋС…Рµ (РҐРјРµР»Сѓ), Р’Р°СЃСЊРєСѓ (Р“СѓР·), РЎР°С€Рµ,' + #$0D + #$0A + 'РїРѕР»-РіСЂСѓРїРµ РЅРѕСЂРјР°Р»СЊРЅС‹С… С‡РµР»РѕРІРµРє: РРіРѕСЂСЋ (Р®Рє), РљРѕР»Рµ, РЎРµСЂРѕРјСѓ (РўРѕР»СЃС‚С‹Р№),' + #$0D + #$0A +
+                'Р”РµРЅРµ (Р›РЎР”), Р’РµС‚Р°Р»СЋ, РєРѕР»Р»РµРєС‚РёРІСѓ РЈРєСЂС‚РµР»РµРєРѕРј: Р›РµС€Рµ, Р”РёРјРµ, Р›РёР»Рµ, РЎР°С€Рµ, РЁСѓСЂРёРєСѓ, Р®Р»Рµ, РСЂРµ, РѕРґРЅРѕРєР»Р°СЃРЅРёРєР°Рј: Р–РµРЅРµ, РЎРµСЂРѕРјСѓ (РџРѕРїРµСЃРєСѓ), РЎРµСЂРѕРјСѓ (РЁР»СЏРїРµ),' + #$0D + #$0A +
+                'РћР»Рµ, РќР°РґРµ, РќР°С‚Р°С€Рµ, РЎР°С€Рµ (Р‘СѓР»СЏ), РєРѕРјРїСЊСЋС‚РµСЂРєРµ "РљРѕРјРїСЊСЋС‚РµСЂ+": Р СѓСЃР»Р°РЅСѓ, Р’РѕРІРµ Рё РўРѕР»РёРєСѓ, РєРѕС‚РѕСЂС‹Рµ СЃРѕР±РёСЂР°Р»СЊ РјРѕР№ РєРѕРјРї, 5 Рё 9 С€РєРѕР»Рµ РіРґРµ СЏ РґРѕР»РіРѕ Р·Р°РІРёСЃР°Р» РІ РєРѕРјРїСЊСЋС‚РµСЂРЅС‹С… РєР»Р°СЃСЃР°С…,' + #$0D + #$0A +
+                'Рё РІСЃРµРј РІСЃРµРј, РєС‚Рѕ РјРµРЅСЏ Р·РЅР°РµС‚ Рё СѓРІР°Р¶Р°РµС‚, РЅРѕ РєРѕРіРѕ СЏ РЅРµ СЃРјРѕРі РІСЃРїРѕРјРЅРёС‚СЊ... РџРѕР»СЊР·СѓР№С‚РµСЃСЊ РїСЂРѕРіСЂР°РјРјРѕР№ РЅР° Р·РґРѕСЂРѕРІСЊРµ, СЏ Р±СѓРґСѓ С‚РѕР»СЊРєРѕ СЂР°Рґ...');
 //    PlaySound(nil, 0, 0);
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1791,16 +1791,16 @@ var RangeW:WordXP.Range;
     i, y, x, k, ax, ay:integer;
     tstr:string;
 begin
-    WordApplication1.Connect; // запускаем ворд
-    WordApplication1.Visible:=true; // невидимый
-    WordDocument1.Activate;  // новый документ
+    WordApplication1.Connect; // Р·Р°РїСѓСЃРєР°РµРј РІРѕСЂРґ
+    WordApplication1.Visible:=true; // РЅРµРІРёРґРёРјС‹Р№
+    WordDocument1.Activate;  // РЅРѕРІС‹Р№ РґРѕРєСѓРјРµРЅС‚
 
     ay:=((LenY + 1) div 2);
     ax:=((LenX + 1) div 2);
-    for y:=1 to (LenY + ay) do begin // по всем строкам
+    for y:=1 to (LenY + ay) do begin // РїРѕ РІСЃРµРј СЃС‚СЂРѕРєР°Рј
         tstr:='';
         if (y <= ay)
-            then begin // ряды bmpTop
+            then begin // СЂСЏРґС‹ bmpTop
                 for x:=1 to ax do tstr:=tstr + ' ' + #9;
                 for x:=1 to LenX do begin
                     k:=y - ay + CountRjadY[x];
@@ -1809,15 +1809,15 @@ begin
                         else tstr:=tstr + ' ' + #9;
                 end;
             end
-            else begin // ряды bmpLeft и само поле
-                for x:=1 to (LenX + ax) do begin // по всей строке
+            else begin // СЂСЏРґС‹ bmpLeft Рё СЃР°РјРѕ РїРѕР»Рµ
+                for x:=1 to (LenX + ax) do begin // РїРѕ РІСЃРµР№ СЃС‚СЂРѕРєРµ
                     if (x <= ax)
-                        then begin // ряды bmpLeft
+                        then begin // СЂСЏРґС‹ bmpLeft
                             if (x <= (ax - CountRjadX[y - ay]))
                                 then tstr:=tstr + ' ' + #9
                                 else tstr:=tstr + IntToStr(RjadX[x - (ax - CountRjadX[y - ay]), y - ay]) + #9;
                         end
-                        else begin // поле
+                        else begin // РїРѕР»Рµ
                             tstr:=tstr + ' ' + #9;
                         end;
                 end;
@@ -1880,8 +1880,8 @@ begin
 
     WordDocument1.Tables.Item(1).Columns.Borders.OutsideLineStyle:=7;
 
-    WordApplication1.Visible:=true; // видимый
-    WordApplication1.Disconnect; // отсоеденячемся от ворда
+    WordApplication1.Visible:=true; // РІРёРґРёРјС‹Р№
+    WordApplication1.Disconnect; // РѕС‚СЃРѕРµРґРµРЅСЏС‡РµРјСЃСЏ РѕС‚ РІРѕСЂРґР°
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
@@ -1911,21 +1911,21 @@ begin
     if (bPredpl)
         then begin
             if (bWhoPredpl = 1)
-                then Label2.Caption:='Расчет: предп. т.'
-                else Label2.Caption:='Расчет: предп. п.';
+                then Label2.Caption:='Р Р°СЃС‡РµС‚: РїСЂРµРґРї. С‚.'
+                else Label2.Caption:='Р Р°СЃС‡РµС‚: РїСЂРµРґРї. Рї.';
         end
-        else Label2.Caption:='Расчет: точно';
+        else Label2.Caption:='Р Р°СЃС‡РµС‚: С‚РѕС‡РЅРѕ';
     if (bRjadStolb)
-        then Label4.Caption:=Format('Ряд: %d', [Rjad])
-        else Label4.Caption:=Format('Столбец: %d', [Rjad]);
+        then Label4.Caption:=Format('Р СЏРґ: %d', [Rjad])
+        else Label4.Caption:=Format('РЎС‚РѕР»Р±РµС†: %d', [Rjad]);
     DecodeTime(Now - t, h, m, s, ms);  //
-    Label5.Caption:=Format('Время: %d-%d-%d', [(h*60) + m, s, ms]);
+    Label5.Caption:=Format('Р’СЂРµРјСЏ: %d-%d-%d', [(h*60) + m, s, ms]);
     if (bPredpl) then Exit;
     a:=0;
     for x:=1 to LenX do
         for y:=1 to LenY do
             if (pDM^.Data[x, y] > 0) then a:=a + 1;
-    Label3.Caption:='Открыто: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
+    Label3.Caption:='РћС‚РєСЂС‹С‚Рѕ: ' + FloatToStr(Round(1000*a/(LenX*LenY))/10) + '%(' + IntToStr(a) + ')';
 end;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.SaveTime;
@@ -1933,7 +1933,7 @@ var ini:TIniFile;
     tstr, tstr2:string;
 begin
     if (LoadFileName = '') then begin
-        ShowMessage('Сохраните файл!');
+        ShowMessage('РЎРѕС…СЂР°РЅРёС‚Рµ С„Р°Р№Р»!');
         Exit;
     end;
     ini:=TIniFile.Create(ExtractFileDir(LoadFileName) + '\Time.txt');
