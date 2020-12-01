@@ -12,7 +12,6 @@ import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
 class Unit1 {
 
     public Unit2 Unit2 = new Unit2();
-    public Date t; // TODO TdateTime // тут хранится время начала разгадывания кроссворда, с помощью нее вычисляется время расчета
     public TPoint PredCoord;
     TCheckBox cbMode = new TCheckBox();
     TOpenDialog od = new TOpenDialog();
@@ -125,7 +124,7 @@ class Unit1 {
 
         ClearData(true);
 
-        SetInfo(0, true, false, true, 0);
+        SetInfo(0, true, false, 0);
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -461,8 +460,6 @@ class Unit1 {
         PAllData pWork;
         boolean bErrT, bErrP;
 
-        t = Calendar.getInstance().getTime(); //
-
         // проверка на совпадение рядов
         pt = Check();
         int x0 = Math.abs(pt.x - pt.y);
@@ -549,7 +546,7 @@ class Unit1 {
 //                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
                     if (pWork.data.FinX.arr[y]) continue;
                     if (!pWork.data.ChX.arr[y]) continue;
-                    Unit2.glCountRjad = PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
+                    Unit2.glCountRjad = PrepRjadX(pWork, y, Unit2.glData, Unit2.glRjad); // подготовка строки
                     Unit2.glLen = LenX; // длинна строки
 //                    if (bPredpl) {
 //                        if (Predpl.SetDot == 1) {
@@ -560,9 +557,9 @@ class Unit1 {
 //                    } else {
 //                        System.out.println(("Ряд: " + Integer.toString(y) + " точно");
 //                    }
-                    if (!Unit2.Calculate()) { // расчет ... если нет ни одной комбины - ошибка
+                    if (!Unit2.calculate()) { // расчет ... если нет ни одной комбины - ошибка
                         if (!cbVerEnable.Checked) {
-                            System.out.println("Ошибка в кроссворде (строка " + Integer.toString(y) + ").");
+                            System.out.println("Ошибка в кроссворде (строка " + y + ").");
                             b9 = true;
                             break;
                         }
@@ -570,7 +567,7 @@ class Unit1 {
                         b2 = true; // ошибка была
                         break;
                     }
-                    for (int x = 1; x < LenX; x++) {
+                    for (int x = 1; x <= LenX; x++) {
                         pWork.data.Ver.arr[x][y][1] = Unit2.glVer.arr[x];
 
                         if (pWork.data.Data.arr[x][y] != Unit2.glData.arr[x]) {
@@ -597,11 +594,11 @@ class Unit1 {
             }
 
             if ((!b2) && (!b5) && (!b8) && (!b9)) { // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
-                for (int x = 1; x < LenX; x++) { // дальше то же только для столбцов
+                for (int x = 1; x <= LenX; x++) { // дальше то же только для столбцов
                     //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
                     if (pWork.data.FinY.arr[x]) continue;
                     if (!pWork.data.ChY.arr[x]) continue;
-                    Unit2.glCountRjad = PrepRjadY(pWork, x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
+                    Unit2.glCountRjad = PrepRjadY(pWork, x, Unit2.glData, Unit2.glRjad);
                     Unit2.glLen = LenY;
 //                    if (bPredpl) {
 //                        if (Predpl.SetDot == 1) {
@@ -612,9 +609,9 @@ class Unit1 {
 //                    } else {
 //                        System.out.println(("Ст.: " + Integer.toString(x) + " точно");
 //                    }
-                    if (!Unit2.Calculate()) {
+                    if (!Unit2.calculate()) {
                         if (!cbVerEnable.Checked) {
-                            System.out.println("Ошибка в кроссворде (столбец " + Integer.toString(x) + ").");
+                            System.out.println("Ошибка в кроссворде (столбец " + x + ").");
                             b9 = true;
                             break;
                         }
@@ -782,13 +779,13 @@ class Unit1 {
             }
             Predpl.B = false;
             RefreshPole(); // прорисовка поля
-            SetInfo(0, true, false, false, 0);
+            SetInfo(0, true, false, 0);
         } else {
             // решили кроссворд!
         }
 
         RefreshPole(); // прорисовка поля
-        SetInfo(0, true, false, false, 0);
+        SetInfo(0, true, false, 0);
     }
 
     private void Draw(TPoint pt) {
@@ -914,27 +911,27 @@ class Unit1 {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public int PrepRjadX(PAllData p, int Y, TData Data, TRjad Rjad, int CountRjad) {
+    public int PrepRjadX(PAllData p, int y, TData Data, TRjad Rjad) {
         // подготовка строки
         for (int x = 1; x <= LenX; x++) {
-            Data.arr[x] = p.data.Data.arr[x][Y]; // данные
+            Data.arr[x] = p.data.Data.arr[x][y]; // данные
         }
-        int result = CountRjadX.arr[Y]; // длинна ряда
-        for (int x = 1; x <= CountRjadX.arr[Y]; x++) {
-            Rjad.arr[x] = RjadX.arr[x][Y];  // сам ряд
+        int result = CountRjadX.arr[y]; // длинна ряда
+        for (int x = 1; x <= CountRjadX.arr[y]; x++) {
+            Rjad.arr[x] = RjadX.arr[x][y];  // сам ряд
         }
         return result;
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public int PrepRjadY(PAllData p, int X, TData Data, TRjad Rjad, int CountRjad) {
+    public int PrepRjadY(PAllData p, int x, TData Data, TRjad Rjad) {
         // подготовка столбца
         for (int y = 1; y <= LenY; y++) {
-            Data.arr[y] = p.data.Data.arr[X][y];  // данные
+            Data.arr[y] = p.data.Data.arr[x][y];  // данные
         }
-        int result = CountRjadY.arr[X]; // длинна ряда
-        for (int y = 1; y <= CountRjadY.arr[X]; y++) {
-            Rjad.arr[y] = RjadY.arr[X][y]; // сам ряд
+        int result = CountRjadY.arr[x]; // длинна ряда
+        for (int y = 1; y <= CountRjadY.arr[x]; y++) {
+            Rjad.arr[y] = RjadY.arr[x][y]; // сам ряд
         }
         return result;
     }
@@ -1070,7 +1067,7 @@ class Unit1 {
                 bUpDown = true;
                 Draw(new TPoint(0, 0));
                 System.out.println("Японские головоломки - " + ExtractFileName(tstr) + ", " + ExtractFileName(tstr2));
-                SetInfo(0, true, false, true, 0);
+                SetInfo(0, true, false, 0);
                 return;
             }
         }
@@ -1092,7 +1089,7 @@ class Unit1 {
                 bUpDown = true;
                 Draw(new TPoint(0, 0));
                 System.out.println("Японские головоломки - " + ExtractFileName(FileName));
-                SetInfo(0, true, false, false, 0);
+                SetInfo(0, true, false, 0);
             }
             break;
             case 2: { // файл редактора
@@ -1114,7 +1111,7 @@ class Unit1 {
                 bUpDown = true;
                 Draw(new TPoint(0, 0));
                 System.out.println("Японские головоломки - " + ExtractFileName(FileName));
-                SetInfo(0, true, false, true, 0);
+                SetInfo(0, true, false, 0);
             }
             break;
         }
@@ -1159,7 +1156,7 @@ class Unit1 {
         ClearData(cbMode.Checked); // очищаем поле
         ChangeActive(new TPoint(1, 1), true); // записываем номер ячейки
         Draw(new TPoint(0, 0)); // прорисовка
-        SetInfo(0, true, false, true, 0);
+        SetInfo(0, true, false, 0);
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1362,9 +1359,8 @@ class Unit1 {
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void SetInfo(int Rjad, boolean bRjadStolb, boolean bPredpl, boolean bTimeNow, int bWhoPredpl) {
+    public void SetInfo(int Rjad, boolean bRjadStolb, boolean bPredpl, int bWhoPredpl) {
         int a;
-        if (bTimeNow) t = Calendar.getInstance().getTime();
         if (bPredpl) {
             if (bWhoPredpl == 1) {
                 System.out.println("Расчет: предп. т.");

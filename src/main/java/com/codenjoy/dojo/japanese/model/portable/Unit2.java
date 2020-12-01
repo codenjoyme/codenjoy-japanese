@@ -20,20 +20,20 @@ class Unit2 {
     public int glCountRjad;
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean Calculate() {
+    public boolean calculate() {
         int j, i0, leni;
         boolean b1;
-        boolean Result;
+        boolean result;
         if (glCountRjad == 0) {
-            Result = true;
+            result = true;
             for (int i = 1; i <= glLen; i++) {
                 if (glData.arr[i] == 1) {
-                    Result = false;
+                    result = false;
                 } else {
                     glData.arr[i] = 2;
                 }
             }
-            return Result;
+            return result;
         }
         //-----------
 //        b1 = false;
@@ -45,8 +45,8 @@ class Unit2 {
 //            j = 0;
 //            for (int i = 1; i <= glCountRjad; i++) j = j + glRjad.arr[i];
 //            if (j < (glLen / 2)) {
-//                Result = true;
-//                return Result;
+//                result = true;
+//                return result;
 //            }
 //        }
         //-----------
@@ -54,9 +54,9 @@ class Unit2 {
             glVer.arr[i] = 0;
         }
         //-----------
-        Result = true;
+        result = true;
         if (!Cut()) {
-            Result = false;
+            result = false;
             glCR = 1;
             j = 0;
             for (int i = 1; i <= glCountRjad; i++) {
@@ -96,9 +96,9 @@ class Unit2 {
                 }
             }
             if (glCombNum == 0) {
-                return Result;
+                return result;
             } else {
-                Result = true;
+                result = true;
             }
         }
         //-----------
@@ -107,7 +107,7 @@ class Unit2 {
             if (glVer.arr[i] == 0) glData.arr[i] = 2;
         }
 
-        return Result;
+        return result;
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -228,7 +228,7 @@ class Unit2 {
                 if ((a - 2) <= 0) {
                     if (a < 1) break;
                     glCR++;
-                    for (int i = (glCR - 1); i >= 1; i++) { // TODO downto
+                    for (int i = (glCR - 1); i >= 1; i--) { // TODO downto
                         glRjad10.arr[i + 1].c = glRjad10.arr[i].c;
                         glRjad10.arr[i + 1].b = glRjad10.arr[i].b;
                     }
@@ -277,7 +277,7 @@ class Unit2 {
         dr = 0; // первый ряд точек
         cd = 0; // количество точек
         glCutFrom = i;
-        boolean Result = true;
+        boolean result;
         do {
             switch (glData.arr[i]) { //
                 case 0: { // ничего
@@ -316,11 +316,11 @@ class Unit2 {
                 }
                 break;
                 case 2: { // пустота
-                    if (bDot) { // предидущая - точка ?
+                    if (bDot) { // предыдущая - точка ?
                         // да
                         if (cd != glRjad.arr[dr]) {
-                            Result = false;
-                            return Result;
+                            result = false;
+                            return result;
                         }
                         bDot = false; // теперь точки нет
                         SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
@@ -332,8 +332,8 @@ class Unit2 {
             }
             i++;
             if ((!b) && (i > glLen) || (glCountRjad == 0)) { // достигли конца
-                Result = true;
-                return Result;
+                result = true;
+                return result;
             }
         } while (b);
 
@@ -383,8 +383,8 @@ class Unit2 {
                     if (bDot) { // предидущая - точка ?
                         // да
                         if (cd != glRjad.arr[dr]) {
-                            Result = false;
-                            return Result;
+                            result = false;
+                            return result;
                         }
                         bDot = false; // теперь точки нет
                         glCountRjad = glCountRjad - 1;
@@ -395,14 +395,14 @@ class Unit2 {
             }
             i--;
             if ((!b) && (i < 1) || (glCountRjad == 0)) { // достигли конца
-                Result = true;
-                return Result;
+                result = true;
+                return result;
             }
         } while (b);
 
         glCutLen = glCutTo - glCutFrom + 1;
-        Result = ((glCutFrom > glCutTo) || (glCountRjad == 0));
-        return Result;
+        result = ((glCutFrom > glCutTo) || (glCountRjad == 0));
+        return result;
     }
 
     public static class TPoint {
