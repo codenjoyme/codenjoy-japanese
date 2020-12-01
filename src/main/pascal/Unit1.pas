@@ -43,8 +43,7 @@ type
     procedure edInputKeyPress(Sender: TObject; var Key: Char);
     procedure cbRjadClick(Sender: TObject);
     procedure btSaveBimapClick(Sender: TObject);
-    procedure edInputMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -91,19 +90,19 @@ implementation
 procedure TForm1.ClearData;
 var x, y:integer;
 begin
-    for x:=1 to LenX do
-        for y:=1 to LenY do
+    for x:=1 to MaxLen do
+        for y:=1 to MaxLen do
             Data[x, y]:=0;
-    for x:=1 to LenX do FinY[x]:=false;
-    for y:=1 to LenY do FinX[y]:=false;         
+    for x:=1 to MaxLen do FinY[x]:=false;
+    for y:=1 to MaxLen do FinX[y]:=false;         
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetRjadX;
 var x, y, a:integer;
 begin
-    for y:=1 to LenY do begin
+    for y:=1 to {LenY}MaxLen do begin
         a:=0; CountRjadX[y]:=1;
-        for x:=1 to LenX do begin
+        for x:=1 to {LenX}MaxLen do begin
             if (Data[x, y] = 1)
                 then inc(a)
                 else
@@ -124,9 +123,9 @@ end;
 procedure TForm1.GetRjadY;
 var x, y, a:integer;
 begin
-    for x:=1 to LenX do begin
+    for x:=1 to {LenX}MaxLen do begin
         a:=0; CountRjadY[x]:=1;
-        for y:=1 to LenY do begin
+        for y:=1 to {LenY}MaxLen do begin
             if (Data[x, y] = 1)
                 then inc(a)
                 else
@@ -384,8 +383,7 @@ begin
         if (Shift = [ssAlt, ssLeft]) then begin
             PrepRjadX(Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenX;
-            Unit2.Calculate;
-            if (Unit2.glCountComb = 0) then begin
+            if (not Unit2.Calculate) then begin
                 ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(Y) + ').');
                 Exit;
             end;
@@ -457,9 +455,8 @@ begin
 
         if (Shift = [ssAlt, ssLeft]) then begin
             PrepRjadY(X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
-            Unit2.glLen:=LenX;
-            Unit2.Calculate;
-            if (Unit2.glCountComb = 0) then begin
+            Unit2.glLen:=LenY;
+            if (not Unit2.Calculate) then begin
                 ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(X) + ').');
                 Exit;
             end;
@@ -634,7 +631,7 @@ var x, y:integer;
     b, c:boolean;
     t:TdateTime; h, m, s, ms:word;
 begin
-    if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет               
+    if (btCalc.Tag = 0) // интерфейсные изменение Остановить-Расчет
         then begin
             btCalc.Caption:='&Остановить';
             btCalc.Tag:=1;
@@ -656,6 +653,8 @@ begin
             btLoad.Enabled:=true;
             btClear.Enabled:=true;
             edInput.Enabled:=true;
+            edInput.SetFocus;
+            Draw;
             Exit; // сразу выходим
         end;
 
@@ -676,7 +675,7 @@ begin
             if (btCalc.Tag = 0) then Exit; // если остановили
 
             if (FinX[y]) then Continue; // если строка закончена
-            PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки 
+            PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
             Unit2.glLen:=LenX; // длинна строки
             if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
                 ShowMessage('Ошибка в кроссворде (строка ' + IntToStr(y) + ').');
@@ -696,7 +695,7 @@ begin
         // дальше то же только для столбцов
         for x:=1 to LenX do begin
             Application.ProcessMessages;
-            if (btCalc.Tag = 0) then Exit;
+            if (btCalc.Tag = 0) then edInput.SetFocus;
             if (FinY[x]) then Continue;
             PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
@@ -736,7 +735,8 @@ procedure TForm1.PrepRjadY(X: integer; var Data: TData; var Rjad:TRjad; var Coun
 var y:integer;
 begin
     // подготовка столбца
-    for y:=1 to LenY do Data[y]:=Form1.Data[X, y];  // данные
+    for y:=1 to LenY do
+        Data[y]:=Form1.Data[X, y];  // данные
     CountRjad:=CountRjadY[X]; // длинна ряда
     for y:=1 to CountRjadY[X] do Rjad[y]:=Form1.RjadY[X, y]; // сам ряд
 end;
@@ -806,16 +806,21 @@ begin
             sd.FilterIndex:=1;
             ext:='.jap';
         end;
-    if (not sd.Execute) then Exit; // запуск диалога
+    if (not sd.Execute) then begin
+        edInput.SetFocus;
+        Exit; // запуск диалога
+    end;
     tstr:=ExtractFileExt(sd.FileName); // расширение
     if (tstr = '') then sd.FileName:=sd.FileName + ext; // если нет разрешения то разрешение по умолчанию
     if ((tstr <> '.jap') and ((tstr <> '.jdt'))) // если не те расширения ...
         then sd.FileName:=ChangeFileExt(sd.FileName, ext); //... то по умолчанию
     // грузим файл
+    od.FileName:=sd.FileName;
     case (sd.FilterIndex) of
         1: SaveRjadToFile(sd.FileName);
         2: SaveDataToFile(sd.FileName);
     end;
+    edInput.SetFocus;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btLoadClick(Sender: TObject);
@@ -830,12 +835,19 @@ begin
             od.FilterIndex:=1;
             ext:='.jap';
         end;
-    if (not od.Execute) then Exit; // запуск диалога
+    if (not od.Execute) then begin
+        edInput.SetFocus;
+        Exit; // запуск диалога
+    end;
     tstr:=ExtractFileExt(od.FileName); // имя файла
     if (tstr = '') then od.FileName:=od.FileName + ext;// если нет разрешения то разрешение по умолчанию
     if ((tstr <> '.jap') and ((tstr <> '.jdt'))) // если не те расширения ...
         then od.FileName:=ChangeFileExt(od.FileName, ext); //... то по умолчанию
-    if (not FileExists(od.FileName)) then Exit;
+    if (not FileExists(od.FileName)) then begin
+        edInput.SetFocus;
+        Exit;
+    end;
+    sd.FileName:=od.FileName;
     case (od.FilterIndex) of
         1: begin // файл расшифровщика
             // перекл режим
@@ -854,6 +866,7 @@ begin
         end;
     end;
     Draw;
+    edInput.SetFocus;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.LoadDataFromFile(FileName: string);
@@ -899,6 +912,7 @@ begin
         GetRjadY;
     end;
     Draw; // прорисовка
+    edInput.SetFocus;    
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edInputKeyPress(Sender: TObject; var Key: Char);
@@ -1016,13 +1030,17 @@ end;
 procedure TForm1.btSaveBimapClick(Sender: TObject);
 var tstr:string;
 begin
-    if (not spd.Execute) then Exit;
+    if (not spd.Execute) then begin
+        edInput.SetFocus;
+        Exit;
+    end;
     cbRjad.Checked:=true;
     tstr:=ExtractFileExt(spd.FileName); // расширение
     if (tstr = '') then spd.FileName:=spd.FileName + '.bmp'; // если нет разрешения то разрешение по умолчанию
     if (tstr <> '.bmp') then spd.FileName:=ChangeFileExt(spd.FileName, '.bmp'); //если не те расширения то по умолчанию
     Buf.SaveToFile(spd.FileName);
     cbRjad.Checked:=false;
+    edInput.SetFocus;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
