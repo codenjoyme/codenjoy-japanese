@@ -1,11 +1,9 @@
 object Form1: TForm1
   Left = 245
   Top = 144
-  BorderIcons = [biSystemMenu, biMinimize]
-  BorderStyle = bsSingle
+  Width = 583
+  Height = 266
   Caption = #1071#1087#1086#1085#1089#1082#1080#1077' '#1075#1086#1083#1086#1074#1086#1083#1086#1084#1082#1080
-  ClientHeight = 242
-  ClientWidth = 574
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,16 +16,6 @@ object Form1: TForm1
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
-  object pb: TPaintBox
-    Left = 80
-    Top = 8
-    Width = 489
-    Height = 227
-    OnMouseDown = pbMouseDown
-    OnMouseMove = pbMouseMove
-    OnMouseUp = pbMouseUp
-    OnPaint = pbPaint
-  end
   object edCountX: TEdit
     Left = 4
     Top = 8
@@ -55,6 +43,7 @@ object Form1: TForm1
     Position = 20
     TabOrder = 2
     Wrap = False
+    OnChangingEx = udCountXChangingEx
   end
   object btCalc: TButton
     Left = 8
@@ -113,6 +102,7 @@ object Form1: TForm1
     Position = 20
     TabOrder = 4
     Wrap = False
+    OnChangingEx = udCountXChangingEx
   end
   object btSave: TButton
     Left = 8
@@ -181,20 +171,19 @@ object Form1: TForm1
     Height = 17
     Caption = 'cbRjad'
     TabOrder = 11
-    Visible = False
     OnClick = cbRjadClick
   end
-  object btSaveBimap: TButton
+  object btSaveBitmap: TButton
     Left = 8
     Top = 188
     Width = 65
     Height = 25
     Caption = #1056'&'#1080#1089#1091#1085#1086#1082
     TabOrder = 10
-    OnClick = btSaveBimapClick
+    OnClick = btSaveBitmapClick
   end
   object Button1: TButton
-    Left = 16
+    Left = 32
     Top = 192
     Width = 63
     Height = 25
@@ -203,19 +192,37 @@ object Form1: TForm1
     Visible = False
     OnClick = Button1Click
   end
+  object Panel1: TPanel
+    Left = 88
+    Top = 8
+    Width = 481
+    Height = 225
+    BevelOuter = bvNone
+    TabOrder = 13
+    object pb: TPaintBox
+      Left = 1
+      Top = 1
+      Width = 479
+      Height = 223
+      OnMouseDown = pbMouseDown
+      OnMouseMove = pbMouseMove
+      OnMouseUp = pbMouseUp
+      OnPaint = pbPaint
+    end
+  end
   object od: TOpenDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
-    Left = 56
+    Left = 80
     Top = 136
   end
   object sd: TSaveDialog
     Filter = #1060#1072#1081#1083#1099' '#1088#1072#1089#1096#1080#1092#1088#1086#1074#1097#1080#1082#1072' (*.jap)|*.jap|'#1060#1072#1081#1083#1099' '#1088#1077#1076#1072#1082#1090#1086#1088#1072' (*.jdt)|*.jdt'
-    Left = 56
+    Left = 80
     Top = 112
   end
   object spd: TSavePictureDialog
     Filter = 'Bitmaps (*.bmp)|*.bmp'
-    Left = 56
+    Left = 80
     Top = 184
   end
   object WordApplication1: TWordApplication

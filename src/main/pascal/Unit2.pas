@@ -5,7 +5,7 @@ interface
 uses
   Windows, Classes;
 
-Const MaxLen = 50;
+Const MaxLen = 150;
 
 type
   TDataPt = record

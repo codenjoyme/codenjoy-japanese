@@ -26,11 +26,12 @@ type
     btClear: TButton;
     edInput: TEdit;
     cbRjad: TCheckBox;
-    btSaveBimap: TButton;
+    btSaveBitmap: TButton;
     spd: TSavePictureDialog;
     Button1: TButton;
     WordApplication1: TWordApplication;
     WordDocument1: TWordDocument;
+    Panel1: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure pbMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -45,9 +46,10 @@ type
     procedure btClearClick(Sender: TObject);
     procedure edInputKeyPress(Sender: TObject; var Key: Char);
     procedure cbRjadClick(Sender: TObject);
-    procedure btSaveBimapClick(Sender: TObject);
+    procedure btSaveBitmapClick(Sender: TObject);
     procedure edInputMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure Button1Click(Sender: TObject);
+    procedure udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
   private
     PredCoord:TPoint; PredButt:TShiftState;
     bDown:boolean;
@@ -56,7 +58,7 @@ type
         pt:TPoint;
         xy:boolean;
     end;
-    bChangeLen:boolean;
+    bChangeLen, bUpDown:boolean;
     FinX, FinY:TFinish;
     ChX, ChY:TFinish;
     Data:TXYData;
@@ -73,7 +75,7 @@ type
     procedure GetRjadY;
     procedure DataFromRjadX(y:integer);
     procedure DataFromRjadY(x:integer);
-    procedure ClearData;
+    procedure ClearData(all:boolean = true);
     procedure GetFin;
     function  Check:integer;
     function  GetMaxCountRjadX:integer;
@@ -90,21 +92,29 @@ type
 
 var Form1: TForm1;
 const wid = 14;
-      fs = 7;  
+      fs = 7;
 implementation
 
 {$R *.DFM}
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.ClearData;
+procedure TForm1.ClearData(all:boolean = true);
 var x, y:integer;
 begin
-    for x:=1 to MaxLen do
-        for y:=1 to MaxLen do
+    for x:=1 to MaxLen do begin
+        for y:=1 to MaxLen do begin
             Data[x, y]:=0;
-    for x:=1 to MaxLen do FinY[x]:=false;
-    for y:=1 to MaxLen do FinX[y]:=false;
-    for x:=1 to MaxLen do ChY[x]:=true;
-    for y:=1 to MaxLen do ChX[y]:=true;
+//            RjadX[x, y]:=0;
+//            RjadY[x, y]:=0;
+        end;
+        if (all) then begin
+            CountRjadX[x]:=0;
+            CountRjadY[x]:=0;
+        end;
+        FinY[x]:=false;
+        FinX[x]:=false;
+        ChY[x]:=true;
+        ChX[x]:=true;
+    end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetRjadX;
@@ -173,6 +183,34 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.Draw(pt:TPoint);
 var w, h, a:integer;
+    b:boolean;
+    //----
+    procedure ResPanel;
+    begin
+        h:=pb.Height + 2;
+        w:=pb.Width + 2;
+        if (Panel1.Height <> h) then Panel1.Height:=h;
+        if (Panel1.Width <> w) then Panel1.Width:=w;
+    end;
+    //----
+    procedure ResForm;
+    begin
+        h:=pb.Height + Panel1.Top + 30 + 15;
+        a:=edInput.Top + edInput.Height + 30;
+        if (h < a) then h:=a;
+        w:=pb.Width + Panel1.Left + 11 + 15;
+        Form1.Constraints.MinHeight:=0;
+        Form1.Constraints.MinWidth:=0;
+        if (w < (Screen.Width - 50)) then begin
+            if (b) then Form1.Width:=w;
+            Form1.Constraints.MinWidth:=w;
+        end;
+        if (h < (Screen.Height - 100)) then begin
+            if (b) then Form1.Height:=h;
+            Form1.Constraints.MinHeight:=h;
+        end;
+    end;
+    //----
 begin
     if (not cbRjad.Checked) then DrawSmall;
     if (pt.x <> -1) then begin
@@ -182,7 +220,7 @@ begin
     end;
     Buf.Width:=bmpLeft.Width + bmpPole.Width;
     Buf.Height:=bmpTop.Height + bmpPole.Height;
-    Buf.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpTop.Height);
+    Buf.Canvas.Rectangle(0, 0, Buf.Width, Buf.Height);
     Buf.Canvas.Draw(0,             bmpTop.Height, bmpLeft);
     Buf.Canvas.Draw(bmpLeft.Width, 0,             bmpTop);
     Buf.Canvas.Draw(bmpLeft.Width, bmpTop.Height, bmpPole);
@@ -193,14 +231,33 @@ begin
     pb.Width:=Buf.Width;
     pbPaint(Self);
 
-    if (not bChangeLen) then Exit; 
-    h:=pb.Height + pb.Top + 30;
-    a:=edInput.Top + edInput.Height + 30; 
-    if (h < a) then h:=a;
-    w:=pb.Width + pb.Left + 10;
+    b:=(Form1.WindowState <> wsMaximized);
 
-    if (Form1.Height <> h) then Form1.Height:=h;
-    if (Form1.Width <> w)  then Form1.Width:=w;
+    if (not bChangeLen) then Exit;
+
+    if (bUpDown)
+        then begin
+            ResForm;
+            ResPanel;
+        end
+        else begin
+            ResPanel;
+            ResForm;
+        end;
+
+{    if (Form1.VertScrollBar.Visible) then begin
+        Form1.Width:=Form1.Width + 15;
+        if (not Form1.VertScrollBar.Visible) then Form1.Width:=Form1.Width - 15;
+    end;
+    if (Form1.HorzScrollBar.Visible) then begin
+        Form1.Height:=Form1.Height + 15;
+        if (not Form1.HorzScrollBar.Visible) then Form1.Height:=Form1.Height - 15;
+    end;
+}
+    if (b) then begin
+        Form1.Left:=(Screen.Width - Form1.Width) div 2;
+        Form1.Top:=(Screen.Height - Form1.Height) div 2;
+    end;
     bChangeLen:=false;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -210,10 +267,19 @@ var x, y, tx, ty, a, d, px, w, yy1, yy2:integer;
 begin
     w:= wid - 1;
     if (cbRjad.Checked)
-        then a:=GetMaxCountRjadX
+        then begin
+            d:=(bmpLeft.Width - 1) div wid;
+            a:=GetMaxCountRjadX;
+            if (a <> d) then yy:=0;
+        end
         else a:=((LenX + 1) div 2);
     bmpLeft.Width:=a*wid + 1;
     bmpLeft.Height:=LenY*wid + 1;
+    if (yy = 0) then begin
+        bmpLeft.Canvas.pen.Color:=clWhite;
+        bmpLeft.Canvas.Rectangle(0, 0, bmpLeft.Width, bmpLeft.Height);
+        bmpLeft.Canvas.pen.Color:=clBlack;
+    end;
     if (yy = 0)
         then begin
             yy1:=1;
@@ -242,10 +308,19 @@ var x, y, tx, ty, a, d, py, xx1, xx2:integer;
     tstr:string;
 begin
     if (cbRjad.Checked)
-        then a:=GetMaxCountRjadY
+        then begin
+            d:=(bmpTop.Height - 1) div wid;
+            a:=GetMaxCountRjadY;
+            if (a <> d) then xx:=0;
+        end
         else a:=((LenY + 1) div 2);
     bmpTop.Width:=LenX*wid + 1;
     bmpTop.Height:=a*wid + 1;
+    if (xx = 0) then begin
+        bmpTop.Canvas.pen.Color:=clWhite;
+        bmpTop.Canvas.Rectangle(0, 0, bmpTop.Width, bmpTop.Height);
+        bmpTop.Canvas.pen.Color:=clBlack;
+    end;
     if (xx = 0)
         then begin
             xx1:=1;
@@ -286,6 +361,12 @@ var x, y, d1, d2, tx1, ty1, tx2, ty2:integer;
 begin
     bmpPole.Width:=LenX*wid + 1;
     bmpPole.Height:=LenY*wid + 1;
+
+    if ((pt.x = 0) and (pt.y = 0)) then begin
+        bmpPole.Canvas.pen.Color:=clWhite;
+        bmpPole.Canvas.Rectangle(0, 0, bmpPole.Width, bmpPole.Height);
+        bmpPole.Canvas.pen.Color:=clBlack;
+    end;
     if (pt.x = 0)
         then begin
             pt1.x:=1;
@@ -365,7 +446,7 @@ begin
     CurrPt.pt:=Point(1, 1);
 //    edInput.SetFocus;    
     bChangeLen:=true;
-
+    bUpDown:=false;
     LenX:=udCountX.Position;
     LenY:=udCountY.Position;
     bDown:=false;
@@ -508,7 +589,9 @@ begin
             DrawPole(Point(0, Y));
             DrawTop(0);
         end;
-        DrawLeft(Y);
+        if ((Shift = [ssCtrl, ssLeft]) or (Shift = [ssCtrl, ssRight]))
+            then DrawLeft(0)
+            else DrawLeft(Y);
         Draw(Point(-1, -1));
         Exit;
     end;
@@ -557,7 +640,7 @@ begin
             CountRjadY[X]:=0;
         end;
         if (Shift = [ssLeft]) then begin
-            j:=0;                                                                
+            j:=0;
             for ty:=1 to CountRjadY[X] do                                        
                 j:=j + RjadY[X, ty];                                             
             if (Y <= 0) then begin                                               
@@ -568,7 +651,7 @@ begin
                 RjadY[X, Y]:=0;
             end;
             if ((j + CountRjadY[X]) > LenY) then Exit;                           
-            RjadY[X, Y]:=RjadY[X, Y] + 1;                                        
+            RjadY[X, Y]:=RjadY[X, Y] + 1;
         end;                                                                     
         if (Shift = [ssRight]) then begin
             if (CountRjadY[X] = 0) then Exit;
@@ -587,7 +670,9 @@ begin
             DrawPole(Point(X, 0));
             DrawLeft(0);
         end;
-        DrawTop(X);
+        if ((Shift = [ssCtrl, ssLeft]) or (Shift = [ssCtrl, ssRight]))
+            then DrawTop(0)
+            else DrawTop(X);
         Draw(Point(-1, -1));
 
         Exit;
@@ -641,12 +726,6 @@ begin
     LenY:=udCountY.Position;
     Draw(Point(0, 0));
     Exit; 
-
-    DrawLeft(0);
-    DrawTop(0);
-    DrawPole(Point(LenX, 0));
-    DrawPole(Point(0, LenY));
-    Draw(Point(-1, -1));
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -731,6 +810,7 @@ begin
             btSave.Enabled:=false;
             btLoad.Enabled:=false;
             btClear.Enabled:=false;
+            btSaveBitmap.Enabled:=false;
             edInput.Enabled:=false;
         end
         else begin
@@ -742,6 +822,7 @@ begin
             btSave.Enabled:=true;
             btLoad.Enabled:=true;
             btClear.Enabled:=true;
+            btSaveBitmap.Enabled:=true;
             edInput.Enabled:=true;
             edInput.SetFocus;
             RefreshPole;
@@ -913,13 +994,14 @@ begin
     if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
         then sd.FilterIndex:=2
         else sd.FilterIndex:=1;
+    case (sd.FilterIndex) of
+        1:ext:='.jap';
+        2:ext:='.jdt';
+    end;
+    if (sd.FileName <> '') then sd.FileName:=ChangeFileExt(sd.FileName, ext);
     if (not sd.Execute) then begin
         edInput.SetFocus;
         Exit; // запуск диалога
-    end;
-    case (sd.FilterIndex) of 
-        1:ext:='.jap';
-        2:ext:='.jdt';
     end;
     tstr:=ExtractFileExt(sd.FileName); // расширение
     if (tstr = '') then sd.FileName:=sd.FileName + ext; // если нет разрешения то разрешение по умолчанию
@@ -940,13 +1022,14 @@ begin
     if (cbMode.Checked) // расширение по умолчанию (2 - файло редактора)
         then od.FilterIndex:=2
         else od.FilterIndex:=1;
-    if (not od.Execute) then begin
-        edInput.SetFocus;
-        Exit; // запуск диалога
-    end;
     case (od.FilterIndex) of 
         1:ext:='.jap';
         2:ext:='.jdt';
+    end;
+    if (od.FileName <> '') then od.FileName:=ChangeFileExt(od.FileName, ext);
+    if (not od.Execute) then begin
+        edInput.SetFocus;
+        Exit; // запуск диалога
     end;
     tstr:=ExtractFileExt(od.FileName); // имя файла
     if (tstr = '') then od.FileName:=od.FileName + ext;// если нет разрешения то разрешение по умолчанию
@@ -957,13 +1040,16 @@ begin
         Exit;
     end;
     sd.FileName:=od.FileName;
+    cbRjad.Checked:=true;
     case (od.FilterIndex) of
         1: begin // файл расшифровщика
             // перекл режим
             cbMode.Checked:=false;
             if (cbMode.Checked) then cbMode.Caption:='Редактор' else cbMode.Caption:='Расш.';
-            LoadRjadFromFile(od.FileName); // грузим файл
             ClearData; // очищаем проле
+            LoadRjadFromFile(od.FileName); // грузим файл
+            bChangeLen:=true;
+            bUpDown:=true;
             Draw(Point(0, 0));
             btCalc.Click;
         end;
@@ -974,6 +1060,8 @@ begin
             LoadDataFromFile(od.FileName);  // грузим файл
             GetRjadX; // получаем ряды
             GetRjady;
+            bChangeLen:=true;
+            bUpDown:=true;
             Draw(Point(0, 0));
         end;
     end;
@@ -1015,13 +1103,9 @@ end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.btClearClick(Sender: TObject);
 begin
-    ClearData; // очищаем поле
+    ClearData(cbMode.Checked); // очищаем поле
     CurrPt.xy:=true;
     CurrPt.pt:=Point(1, 1);
-    if (cbMode.Checked) then begin // если редактор
-        GetRjadX; // то очищаем и цифры
-        GetRjadY;
-    end;
     Draw(Point(0, 0)); // прорисовка
     edInput.SetFocus;
 end;
@@ -1079,6 +1163,7 @@ begin
                 if ((j + a - 1) > LenY) then begin
                     CountRjadY[CurrPt.pt.x]:=0;
                     Beep;
+                    edInput.SelectAll;
                     Exit;
                 end;
                 {прорисовать на поле если надо}
@@ -1150,8 +1235,9 @@ begin
                     CurrPt.pt.x:=1;
                 end;
             end;
-        // очищаем едит
-        edInput.Text:='';
+        // делаем текст в едите выделенным 
+        edInput.SelectAll;
+//        edInput.Text:=''; // очищаем едит
     end;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1161,7 +1247,7 @@ begin
     edCountXChange(Self);
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure TForm1.btSaveBimapClick(Sender: TObject);
+procedure TForm1.btSaveBitmapClick(Sender: TObject);
 var tstr:string;
 begin
     if (not spd.Execute) then begin
@@ -1294,4 +1380,12 @@ begin
     WordApplication1.Disconnect; // отсоеденячемся от ворда
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure TForm1.udCountXChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint; Direction: TUpDownDirection);
+begin
+    case Direction of
+        updUp:bUpDown:=true;
+        updDown:bUpDown:=false;
+    end;
+end;
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end.
