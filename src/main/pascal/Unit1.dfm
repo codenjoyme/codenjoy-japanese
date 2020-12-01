@@ -193,15 +193,6 @@ object Form1: TForm1
     TabOrder = 10
     OnClick = btSaveBimapClick
   end
-  object Button1: TButton
-    Left = 64
-    Top = 48
-    Width = 9
-    Height = 17
-    Caption = 'Button1'
-    TabOrder = 12
-    OnClick = Button1Click
-  end
   object od: TOpenDialog
     Filter = 'װאיכû נאסרטפנמגשטךא (*.jap)|*.jap|װאיכû נוהאךעמנא (*.jdt)|*.jdt'
     Left = 56
