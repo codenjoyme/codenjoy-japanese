@@ -55,6 +55,7 @@ type
         xy:boolean;
     end;
     FinX, FinY:TFinish;
+    ChX, ChY:TFinish;
     Data:TXYData;
     LenX, LenY:integer;
     RjadX, RjadY:TXYRjad;
@@ -98,7 +99,9 @@ begin
         for y:=1 to MaxLen do
             Data[x, y]:=0;
     for x:=1 to MaxLen do FinY[x]:=false;
-    for y:=1 to MaxLen do FinX[y]:=false;         
+    for y:=1 to MaxLen do FinX[y]:=false;
+    for x:=1 to MaxLen do ChY[x]:=true;
+    for y:=1 to MaxLen do ChX[y]:=true;
 end;
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure TForm1.GetRjadX;
@@ -695,8 +698,8 @@ begin
         for y:=1 to LenY do begin
             Application.ProcessMessages;  // передышка
             if (btCalc.Tag = 0) then Exit; // если остановили
-
             if (FinX[y]) then Continue; // если строка закончена
+            if (not ChX[y]) then Continue; // если строка небыла изменена
             PrepRjadX(y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка строки
             Unit2.glLen:=LenX; // длинна строки
             if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
@@ -708,7 +711,9 @@ begin
                 if (Data[x, y] <> Unit2.glData[x]) then begin
                     Data[x, y]:=Unit2.glData[x];
                     b:=true;
+                    ChY[x]:=true;
                 end;
+            ChX[y]:=false;
         end;
         GetFin;
         RefreshPole; // прорисовка поля
@@ -716,20 +721,23 @@ begin
         for x:=1 to LenX do begin
             Application.ProcessMessages;
             if (btCalc.Tag = 0) then edInput.SetFocus;
-
             if (FinY[x]) then Continue;
+            if (not ChY[x]) then Continue;
             PrepRjadY(x, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
             Unit2.glLen:=LenY;
-            if (not Unit2.Calculate) then begin // расчет ... если нет ни одной комбины - ошибка
+            if (not Unit2.Calculate) then begin
                 ShowMessage('Ошибка в кроссворде (столбец ' + IntToStr(x) + ').');
                 btCalc.Click;
                 Exit;
             end;
+            c:=false;
             for y:=1 to LenY do
                 if (Data[x, y] <> Unit2.glData[y]) then begin
                     b:=true;
                     Data[x, y]:=Unit2.glData[y];
+                    ChX[y]:=true;
                 end;
+            ChY[x]:=false;
         end;
         GetFin;
         RefreshPole;
