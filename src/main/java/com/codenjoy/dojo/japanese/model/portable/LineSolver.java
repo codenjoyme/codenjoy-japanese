@@ -4,18 +4,36 @@ import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 
 public class LineSolver {
 
-    Solver.Dot[] array = new Solver.Dot[MAX + 1];
-    double[] probability = new double[MAX + 1];
-    boolean[] combinations = new boolean[MAX + 1];
-    int combinationCount;
-    int len;
-    int cr;
-    Solver.TNumbers10 numbers10 = new Solver.TNumbers10();
-    int[] numbers = new int[MAX + 1];
-    int cutFrom;
-    int cutTo;
-    int cutLen;
-    int countRjad;
+    public static class TRjad10Record {
+        public int c;
+        public boolean b;
+    }
+
+    public static class TNumbers10 {
+        public TRjad10Record[] arr = new TRjad10Record[MAX + 1];
+
+        public TNumbers10() {
+            for (int i = 1; i < arr.length; i++) {
+                arr[i] = new TRjad10Record();
+            }
+        }
+    }
+
+    private boolean[] combinations = new boolean[MAX + 1];
+    private int combinationCount;
+
+    private Solver.Dot[] array = new Solver.Dot[MAX + 1];
+    private double[] probability = new double[MAX + 1];
+    private int len;
+
+    private int[] numbers = new int[MAX + 1];
+    private int countNumbers;
+    private int cr;
+    private TNumbers10 numbers10 = new TNumbers10();
+
+    private int cutFrom;
+    private int cutTo;
+    private int cutLen;
 
     public void prepareNumbersX(TAllData data, int y, int len, int[] countNumbers, int[][] numbers) {
         // подготовка строки
@@ -23,7 +41,7 @@ public class LineSolver {
         for (int x = 1; x <= len; x++) {
             array[x] = data.data[x][y]; // данные
         }
-        countRjad = countNumbers[y]; // длинна ряда
+        this.countNumbers = countNumbers[y]; // длинна ряда
         for (int x = 1; x <= countNumbers[y]; x++) {
             this.numbers[x] = numbers[x][y];  // сам ряд
         }
@@ -35,7 +53,7 @@ public class LineSolver {
         for (int y = 1; y <= len; y++) {
             array[y] = data.data[x][y];  // данные
         }
-        countRjad = countNumbers[x]; // длинна ряда
+        this.countNumbers = countNumbers[x]; // длинна ряда
         for (int y = 1; y <= countNumbers[x]; y++) {
             this.numbers[y] = numbers[x][y]; // сам ряд
         }
@@ -44,7 +62,7 @@ public class LineSolver {
     public boolean calculate() {
         boolean b1;
         boolean result;
-        if (countRjad == 0) {
+        if (countNumbers == 0) {
             result = true;
             for (int i = 1; i <= len; i++) {
                 if (array[i] == Solver.Dot.BLACK) {
@@ -79,7 +97,7 @@ public class LineSolver {
             result = false;
             cr = 1;
             int j = 0;
-            for (int i = 1; i <= countRjad; i++) {
+            for (int i = 1; i <= countNumbers; i++) {
                 numbers10.arr[cr].b = true;
                 numbers10.arr[cr].c = numbers[i];
                 numbers10.arr[cr + 1].b = false;
@@ -209,16 +227,18 @@ public class LineSolver {
                 b = true;
                 while (true) {
                     a2 = 2;
-                    if (!b)
+                    if (!b) {
                         continue;
-                    b = !b;
+                    }
 
                     if ((a + 2) > cr) {
                         if ((a + 2) != (cr + 1)) break;
                         if (!numbers10.arr[cr].b) break;
 
                         b2 = false;
-                        if ((numbers10.arr[a].c != 1) && (cr == 2)) b2 = true;
+                        if ((numbers10.arr[a].c != 1) && (cr == 2)) {
+                            b2 = true;
+                        }
                         while (numbers10.arr[a].c == 1) {
                             a = a - 2;
                             a2 = a2 + 2;
@@ -256,8 +276,12 @@ public class LineSolver {
                     }
                     numbers10.arr[1].c = 1;
                     numbers10.arr[1].b = false;
-                    if (cr > 3) numbers10.arr[3].c = 1;
-                    if (cr == 3) numbers10.arr[3].c = numbers10.arr[3].c - 1;
+                    if (cr > 3) {
+                        numbers10.arr[3].c = 1;
+                    }
+                    if (cr == 3) {
+                        numbers10.arr[3].c = numbers10.arr[3].c - 1;
+                    }
                     break;
                 }
                 numbers10.arr[a - 2].c = numbers10.arr[a - 2].c + 1;
@@ -282,10 +306,10 @@ public class LineSolver {
     }
 
     public void SHLNumbers() {
-        for (int j = 2; j <= countRjad; j++) {
+        for (int j = 2; j <= countNumbers; j++) {
             numbers[j - 1] = numbers[j];
         } // TODO может нижняя строчка тоже
-        countRjad = countRjad - 1;
+        countNumbers = countNumbers - 1;
     }
 
     public boolean cut() {
@@ -316,7 +340,7 @@ public class LineSolver {
                             dr = dr - 1; // из за смещения
                         }
                     } else { // ничего после пустоты - выходим вообшето
-                        if (countRjad == 0) { // в этом ряде ничего больше делать нечего
+                        if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
                             probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
                         } else {
                             cutFrom = i;
@@ -351,7 +375,7 @@ public class LineSolver {
                 break;
             }
             i++;
-            if ((!b) & (i > len) | (countRjad == 0)) { // достигли конца
+            if ((!b) & (i > len) | (countNumbers == 0)) { // достигли конца
                 result = true;
                 return result;
             }
@@ -360,7 +384,7 @@ public class LineSolver {
         b = false; // выход из цикла
         i = len; // по ряду
         dot = false; // предидущая - точка, нет
-        dr = countRjad + 1; // первый ряд точек
+        dr = countNumbers + 1; // первый ряд точек
         cd = 0; // количество точек
         cutTo = i;
         do {
@@ -376,11 +400,11 @@ public class LineSolver {
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
                             probability[i] = EXACTLY_WHITE; // потом тут будет пустота
-                            countRjad = countRjad - 1;
+                            countNumbers = countNumbers - 1;
                             dot = false; // поставили пустоту
                         }
                     } else { // ничего после пустоты - выходим вообшето
-                        if (countRjad == 0) { // в этом ряде ничего больше делать нечего
+                        if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
                             probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
                         } else {
                             cutTo = i;
@@ -407,21 +431,21 @@ public class LineSolver {
                             return result;
                         }
                         dot = false; // теперь точки нет
-                        countRjad = countRjad - 1;
+                        countNumbers = countNumbers - 1;
                     }
                     probability[i] = EXACTLY_WHITE; // пустота
                 }
                 break;
             }
             i--;
-            if ((!b) && (i < 1) || (countRjad == 0)) { // достигли конца
+            if ((!b) && (i < 1) || (countNumbers == 0)) { // достигли конца
                 result = true;
                 return result;
             }
         } while (!b);
 
         cutLen = cutTo - cutFrom + 1;
-        result = ((cutFrom > cutTo) || (countRjad == 0));
+        result = ((cutFrom > cutTo) || (countNumbers == 0));
         return result;
     }
 

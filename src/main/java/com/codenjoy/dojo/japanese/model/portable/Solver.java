@@ -83,21 +83,6 @@ class Solver implements BoardReader {
         }
     }
 
-    public static class TRjad10Record {
-        public int c;
-        public boolean b;
-    }
-
-    public static class TNumbers10 {
-        public TRjad10Record[] arr = new TRjad10Record[MAX + 1];
-
-        public TNumbers10() {
-            for (int i = 1; i < arr.length; i++) {
-                arr[i] = new TRjad10Record();
-            }
-        }
-    }
-
     public String printData() {
         return (String)new PrinterFactoryImpl<>().getPrinter(
                 main, null).print();
