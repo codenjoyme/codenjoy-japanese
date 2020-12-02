@@ -61,13 +61,14 @@ public class NumbersBuilder {
             }
         }
 
-        public void reverse() {
-            Collections.reverse(line);
-        }
-
-        public void fill(int max) {
-            range(0, max - line.size()).forEach(i ->
-                    line.add(0));
+        public void fill(int max, boolean before) {
+            range(0, max - line.size()).forEach(i -> {
+                if (before) {
+                    line.addFirst(0);
+                } else {
+                    line.addLast(0);
+                }
+            });
         }
     }
 
@@ -94,11 +95,8 @@ public class NumbersBuilder {
         int max = Math.max(maxLength(numbersRows), maxLength(numbersCols));
 
         // дополняем нулями, с которых потом нарисуем nan'ы
-        numbersRows.forEach(numbers -> numbers.reverse());
-        fillZerro(numbersRows, max);
-        fillZerro(numbersCols, max);
-        numbersRows.forEach(numbers -> numbers.reverse());
-
+        fillZerro(numbersRows, max, true);
+        fillZerro(numbersCols, max, false);
 
         // меняем размер поля и двигаем все пиксели так, чтобы поместились циферки
         level.size(level.size() + max);
@@ -115,8 +113,8 @@ public class NumbersBuilder {
         generate(numbersCols, (x, y, len) -> pt(y + max, x + level.size() - max), max);
     }
 
-    private void fillZerro(List<Numbers> numbersRows, int max) {
-        numbersRows.forEach(numbers -> numbers.fill(max));
+    private void fillZerro(List<Numbers> numbersRows, int max, boolean before) {
+        numbersRows.forEach(numbers -> numbers.fill(max, before));
     }
 
     private int invert(int pos) {
