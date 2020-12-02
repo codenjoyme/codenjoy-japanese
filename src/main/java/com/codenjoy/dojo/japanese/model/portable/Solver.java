@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
+import static com.codenjoy.dojo.japanese.model.portable.Logic.*;
 import static com.codenjoy.dojo.services.PointImpl.pt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -24,446 +24,172 @@ import static java.util.stream.IntStream.range;
 
 class Solver implements BoardReader {
 
-    public Unit2 Unit2 = new Unit2();
-    public TPoint PredCoord;
-    TCheckBox cbMode = new TCheckBox();
-    TCheckBox cbRjad = new TCheckBox();
-    boolean assumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
-    boolean bDown; // непомню
-    TCurrPt CurrPt = new TCurrPt();
-    boolean bChangeLen, bUpDown; // флаг изменения размера кроссворда, флаг показывающий увеличился или уменшился кроссворд
+    public Logic logic = new Logic();
+    public TPoint previous;
+    boolean mode;
+    boolean tryAssumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
+    TCurrent current = new TCurrent();
     TAllData main = new TAllData(); // тут решение точное
     TAllData assumptionBlack = new TAllData(); // тут предполагаем black
     TAllData assumptionWhite = new TAllData();// тут предполагаем white
-    TPredpl Predpl = new TPredpl(); //данные предположения
-    static int LenX = 15, LenY = 15; // длинна и высота кроссворда
-    TXYRjad RjadX = new TXYRjad(); // тут хранятся цифры рядов
-    TXYRjad RjadY = new TXYRjad();
-    TXYCountRjad CountRjadX = new TXYCountRjad(); // тут хранятся количества цифер рядов
-    TXYCountRjad CountRjadY = new TXYCountRjad();
+    TAssumption assumption = new TAssumption(); //данные предположения
+    static int lenX = 15, lenY = 15; // длинна и высота кроссворда
+    TNumbers numbersX = new TNumbers(); // тут хранятся цифры рядов
+    TNumbers numbersY = new TNumbers();
+    TCountNumbers countNumbersX = new TCountNumbers(); // тут хранятся количества цифер рядов
+    TCountNumbers countNumbersY = new TCountNumbers();
 
     public Solver() {
         init();
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public String printData() {
         return (String)new PrinterFactoryImpl<>().getPrinter(
-                main.Data, null).print();
+                main.data, null).print();
     }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public String printAll() {
         return (String)new PrinterFactoryImpl<>().getPrinter(
                 this, null).print();
     }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void clear(boolean all) {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
-                main.Data.arr[x][y] = 0;
-                main.Ver.arr[x][y][1] = -1;
-                main.Ver.arr[x][y][2] = -1;
+                main.data.arr[x][y] = 0;
+                main.ver.arr[x][y][1] = -1;
+                main.ver.arr[x][y][2] = -1;
             }
             if (all) {
-                CountRjadX.arr[x] = 0;
-                CountRjadY.arr[x] = 0;
+                countNumbersX.arr[x] = 0;
+                countNumbersY.arr[x] = 0;
             }
-            main.FinY.arr[x] = false;
-            main.FinX.arr[x] = false;
-            main.ChY.arr[x] = true;
-            main.ChX.arr[x] = true;
+            main.finY.arr[x] = false;
+            main.finX.arr[x] = false;
+            main.chY.arr[x] = true;
+            main.chX.arr[x] = true;
         }
     }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     private void init() {
         main = new TAllData();
         assumptionBlack = new TAllData();
         assumptionWhite = new TAllData();
-        PredCoord = new TPoint(-1, -1);
-        CurrPt.xy = true;
-        CurrPt.pt = new TPoint(1, 1);
-        bChangeLen = true;
-        bUpDown = false;
-        LenX = 15;
-        LenY = 15;
-        bDown = false;
-        Predpl.SetDot = false;
-        Predpl.B = false;
+        previous = new TPoint(-1, -1);
+        current.xy = true;
+        current.pt = new TPoint(1, 1);
+        lenX = 15;
+        lenY = 15;
+        assumption.dot = false;
+        assumption.b = false;
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void GetRjadX() {
         int a;
-        for (int y = 1; y <= LenY; y++) {
+        for (int y = 1; y <= lenY; y++) {
             a = 0;
-            CountRjadX.arr[y] = 1;
-            for (int x = 1; x <= LenX; x++) {
-                if (main.Data.arr[x][y] == 1) {
+            countNumbersX.arr[y] = 1;
+            for (int x = 1; x <= lenX; x++) {
+                if (main.data.arr[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
-                        RjadX.arr[CountRjadX.arr[y]][y] = a;
+                        numbersX.arr[countNumbersX.arr[y]][y] = a;
                         a = 0;
-                        CountRjadX.arr[y] = CountRjadX.arr[y] + 1;
+                        countNumbersX.arr[y] = countNumbersX.arr[y] + 1;
                     }
                 }
             }
             if (a != 0) {
-                RjadX.arr[CountRjadX.arr[y]][y] = a;
-                CountRjadX.arr[y] = CountRjadX.arr[y] + 1;
+                numbersX.arr[countNumbersX.arr[y]][y] = a;
+                countNumbersX.arr[y] = countNumbersX.arr[y] + 1;
             }
-            CountRjadX.arr[y] = CountRjadX.arr[y] - 1;
+            countNumbersX.arr[y] = countNumbersX.arr[y] - 1;
         }
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void GetRjadY() {
         int a;
-        for (int x = 1; x <= LenX; x++) {
+        for (int x = 1; x <= lenX; x++) {
             a = 0;
-            CountRjadY.arr[x] = 1;
-            for (int y = 1; y <= LenY; y++) {
-                if (main.Data.arr[x][y] == 1) {
+            countNumbersY.arr[x] = 1;
+            for (int y = 1; y <= lenY; y++) {
+                if (main.data.arr[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
-                        RjadY.arr[x][CountRjadY.arr[x]] = a;
+                        numbersY.arr[x][countNumbersY.arr[x]] = a;
                         a = 0;
-                        CountRjadY.arr[x] = CountRjadY.arr[x] + 1;
+                        countNumbersY.arr[x] = countNumbersY.arr[x] + 1;
                     }
                 }
             }
             if (a != 0) {
-                RjadY.arr[x][CountRjadY.arr[x]] = a;
-                CountRjadY.arr[x] = CountRjadY.arr[x] + 1;
+                numbersY.arr[x][countNumbersY.arr[x]] = a;
+                countNumbersY.arr[x] = countNumbersY.arr[x] + 1;
             }
-            CountRjadY.arr[x] = CountRjadY.arr[x] - 1;
+            countNumbersY.arr[x] = countNumbersY.arr[x] - 1;
         }
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//    public void pbMouseDown(TMouseButton Button, TShiftState Shift, int X, int Y) {
-//        int j, k;
-//        Shift.remove(new String[]{ssDouble}); // когда 2 раза нажимаеш возникает и это сообщение, а оно портачит
-//        if ((X < bmpLeft.Width) && (Y < bmpTop.Height)) return; // если кликаем в области SmallBmp то выходим
-//        if (X < bmpLeft.Width) { // тут находится bmpLeft
-//            //        if (cbRjad.Checked) return; // это пока не проработал...
-//            Y = Y - bmpTop.Height; // получаем координаты начала bmpLeft
-//            X = X;
-//            Y = (Y / wid) + 1; // теперь номер ячейки
-//            X = (X / wid);
-//
-//            ChangeActive(new TPoint(Y, 0), true); // записываем номер ячейки
-//
-//            if (Shift.equals(new String[]{ssAlt, ssLeft})) { // если нужно расчитать этот ряд
-//                Unit2.glCountRjad = PrepRjadX(pDM, Y, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad); // подготовка ряда
-//                Unit2.glLen = LenX; // длинна
-//                if (!Unit2.Calculate()) { // расчет - если не получился ...
-//                    ShowMessage("Ошибка в кроссворде (строка " + Integer.toString(Y) + ").");
-//                    RefreshPole(); // обновляем поле
-//                    return; // выходим
-//                }
-//                for (int x = 1; x <= LenX; x++) {// тут обновляем ряд
-//                    pDM.data.Data.arr[x][Y] = Unit2.glData.arr[x];
-//                    pDM.data.Ver.arr[x][Y][1] = Unit2.glVer.arr[x];
-//                }
-//                //            GetFin;
-//                RefreshPole(); // и выводим его на екран
-//                return; // выходим
-//            }
-//            // пересчет для координат для рядов
-//            if (cbRjad.Checked) {
-//                X = X + 1 - (GetMaxCountRjadX() - CountRjadX.arr[Y]);
-//            } else {
-//                X = X - (((LenX + 1) / 2) - CountRjadX.arr[Y]) + 1;
-//            }
-//
-//            if (Shift.equals(new String[]{ssCtrl, ssLeft})) { // сдвиг рядов чисел
-//                for (int ty = (Y + 1); ty <= LenY; ty++) {
-//                    CountRjadX.arr[ty - 1] = CountRjadX.arr[ty];
-//                    for (int tx = 1; tx <= CountRjadX.arr[ty]; tx++) {
-//                        RjadX.arr[tx][ty - 1] = RjadX.arr[tx][ty];
-//                    }
-//                }
-//                CountRjadX.arr[LenY] = 0;
-//            }
-//            if (Shift.equals(new String[]{ssCtrl, ssRight})) { // то же но в другую сторону
-//                for (int ty = LenY; ty >= Y; ty--) {    // а возможен глюк
-//                    CountRjadX.arr[ty] = CountRjadX.arr[ty - 1];
-//                    for (int tx = 1; tx <= CountRjadX.arr[ty]; tx++) {
-//                        RjadX.arr[tx][ty] = RjadX.arr[tx][ty - 1];
-//                    }
-//                }
-//                CountRjadX.arr[Y] = 0;
-//            }
-//            if (Shift.equals(new String[]{ssLeft})) { // добавляем еще одну точку
-//                // получаем сумму всех точек, включая пустые промежутки из длинной в 1
-//                j = 0;
-//                for (int tx = 1; tx <= CountRjadX.arr[Y]; tx++) {
-//                    j = j + RjadX.arr[tx][Y];
-//                }
-//                if (X <= 0) { // добавление новой
-//                    if ((j + CountRjadX.arr[Y]) > (LenX - 1))
-//                        return; // если выходим при добавлении за граници, то выходим
-//                    for (int tx = CountRjadX.arr[Y]; tx >= 1; tx--) {
-//                        // смещаем все цифры ряда для добавления 1
-//                        RjadX.arr[tx + 1][Y] = RjadX.arr[tx][Y];
-//                    }
-//                    X = 1; // позиция добавления
-//                    CountRjadX.arr[Y] = CountRjadX.arr[Y] + 1; // длинна ряда увеличилась
-//                    RjadX.arr[X][Y] = 0; // пока ноль...
-//                }
-//                if ((j + CountRjadX.arr[Y]) > LenX) return; // если превышаем длинну - то выходим
-//                RjadX.arr[X][Y] = RjadX.arr[X][Y] + 1; // увеличиваем на 1
-//            }
-//            // тут уменьшаем на 1
-//            if (Shift.equals(new String[]{ssRight})) {
-//                if (CountRjadX.arr[Y] == 0) return; // если ряд пуст то выходим
-//                if (X <= 0) X = 1; // если нажали на пустую ячейку, то удалять будем первый
-//                RjadX.arr[X][Y] = RjadX.arr[X][Y] - 1; // удаляем
-//                if (RjadX.arr[X][Y] == 0) { // если там ноль получился
-//                    if (X != CountRjadX.arr[Y]) { // и этот ноль не в конце
-//                        for (int tx = X; tx <= CountRjadX.arr[Y]; tx++) { // то сдвигаем
-//                            RjadX.arr[tx][Y] = RjadX.arr[tx + 1][Y];
-//                        }
-//                    }
-//                    CountRjadX.arr[Y] = CountRjadX.arr[Y] - 1; // уменьшаем на 1 количество
-//                }
-//            }
-//            // тут прорисовка
-//            if (cbMode.Checked) {
-//                DataFromRjadX(Y);
-//                DrawPole(new TPoint(0, Y));
-//                DrawTop(0);
-//            }
-//            if ((Shift.equals(new String[]{ssCtrl, ssLeft}))
-//                    || (Shift.equals(new String[]{ssCtrl, ssRight}))) {
-//                DrawLeft(0);
-//            } else {
-//                DrawLeft(Y);
-//            }
-//            Draw(new TPoint(-1, -1));
-//            return;
-//        }
-//        // далее то же, но только с рядами в bmpTop
-//        if (Y < bmpTop.Height) {
-//            Y = Y;
-//            X = X - bmpLeft.Width;
-//            Y = (Y / wid);
-//            X = (X / wid) + 1;
-//
-//            ChangeActive(new TPoint(X, 0), false); // записываем номер ячейки
-//
-//            if (Shift.equals(new String[]{ssAlt, ssLeft})) {
-//                Unit2.glCountRjad = PrepRjadY(pDM, X, Unit2.glData, Unit2.glRjad, Unit2.glCountRjad);
-//                Unit2.glLen = LenY;
-//                if (!Unit2.Calculate()) {
-//                    ShowMessage("Ошибка в кроссворде (столбец " + Integer.toString(X) + ").");
-//                    RefreshPole();
-//                    return;
-//                }
-//                for (int y = 1; y <= LenY; y++) {
-//                    pDM.data.Data.arr[X][y] = Unit2.glData.arr[y];
-//                    pDM.data.Ver.arr[X][y][2] = Unit2.glVer.arr[y];
-//                }
-//                //            GetFin();
-//                RefreshPole();
-//                return;
-//            }
-//
-//            if (cbRjad.Checked) {
-//                Y = Y + 1 - (GetMaxCountRjadY() - CountRjadY.arr[X]);
-//            } else {
-//                Y = Y - (((LenY + 1) / 2) - CountRjadY.arr[X]) + 1;
-//            }
-//            if (Shift.equals(new String[]{ssCtrl, ssLeft})) {
-//                for (int tx = (X + 1); tx <= LenX; tx++) {
-//                    CountRjadY.arr[tx - 1] = CountRjadY.arr[tx];
-//                    for (int ty = 1; ty <= CountRjadY.arr[tx]; ty++) {
-//                        RjadY.arr[tx - 1][ty] = RjadY.arr[tx][ty];
-//                    }
-//                }
-//                CountRjadY.arr[LenX] = 0;
-//            }
-//            if (Shift.equals(new String[]{ssCtrl, ssRight})) {
-//                for (int tx = LenX; tx >= X; tx--) {    // аозможен глюк
-//                    CountRjadY.arr[tx] = CountRjadY.arr[tx - 1];
-//                    for (int ty = 1; ty <= CountRjadY.arr[tx]; ty++) {
-//                        RjadY.arr[tx][ty] = RjadY.arr[tx - 1][ty];
-//                    }
-//                }
-//                CountRjadY.arr[X] = 0;
-//            }
-//            if (Shift.equals(new String[]{ssLeft})) {
-//                j = 0;
-//                for (int ty = 1; ty <= CountRjadY.arr[X]; ty++) {
-//                    j = j + RjadY.arr[X][ty];
-//                }
-//                if (Y <= 0) {
-//                    if ((j + CountRjadY.arr[X]) > (LenY - 1)) return;
-//                    for (int ty = CountRjadY.arr[X]; ty >= 1; ty--) {
-//                        RjadY.arr[X][ty + 1] = RjadY.arr[X][ty];
-//                    }
-//                    Y = 1;
-//                    CountRjadY.arr[X] = CountRjadY.arr[X] + 1;
-//                    RjadY.arr[X][Y] = 0;
-//                }
-//                if ((j + CountRjadY.arr[X]) > LenY) return;
-//                RjadY.arr[X][Y] = RjadY.arr[X][Y] + 1;
-//            }
-//            if (Shift.equals(new String[]{ssRight})) {
-//                if (CountRjadY.arr[X] == 0) return;
-//                if (Y <= 0) Y = 1;
-//                RjadY.arr[X][Y] = RjadY.arr[X][Y] - 1;
-//                if (RjadY.arr[X][Y] == 0) {
-//                    if (Y != CountRjadY.arr[X]) {
-//                        for (int ty = Y; ty <= CountRjadY.arr[X]; ty++) {
-//                            RjadY.arr[X][ty] = RjadY.arr[X][ty + 1];
-//                        }
-//                    }
-//                    CountRjadY.arr[X] = CountRjadY.arr[X] - 1;
-//                }
-//            }
-//
-//            if (cbMode.Checked) {
-//                DataFromRjadY(X);
-//                DrawPole(new TPoint(X, 0));
-//                DrawLeft(0);
-//            }
-//            if ((Shift.equals(new String[]{ssCtrl, ssLeft}))
-//                    || (Shift.equals(new String[]{ssCtrl, ssRight}))) {
-//                DrawTop(0);
-//            } else {
-//                DrawTop(X);
-//            }
-//            Draw(new TPoint(-1, -1));
-//
-//            return;
-//        }
-//        bDown = true;
-//        pbMouseMove(Shift, X, Y); // а тут если на поле попали
-//    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void DataFromRjadX(int y) {
+    
+    public void dataFromRjadX(int y) {
         int k, tx, j;
-        for (tx = 1; tx <= LenX; tx++) {
-            main.Data.arr[tx][y] = 0;
+        for (tx = 1; tx <= lenX; tx++) {
+            main.data.arr[tx][y] = 0;
         }
         k = 1;
         tx = 1;
-        while (tx <= CountRjadX.arr[y]) {
-            for (j = 1; j <= RjadX.arr[tx][y]; j++) {
-                main.Data.arr[k + j - 1][y] = 1;
+        while (tx <= countNumbersX.arr[y]) {
+            for (j = 1; j <= numbersX.arr[tx][y]; j++) {
+                main.data.arr[k + j - 1][y] = 1;
             }
-            main.Data.arr[k + j][y] = 0;
+            main.data.arr[k + j][y] = 0;
             k = k + j;
             tx++;
         }
         GetRjadY();
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void DataFromRjadY(int x) {
         int k, j, ty;
-        for (ty = 1; ty <= LenY; ty++) {
-            main.Data.arr[x][ty] = 0;
+        for (ty = 1; ty <= lenY; ty++) {
+            main.data.arr[x][ty] = 0;
         }
         k = 1;
         ty = 1;
-        while (ty <= CountRjadY.arr[x]) {
-            for (j = 1; j <= RjadY.arr[x][ty]; j++) {
-                main.Data.arr[x][k + j - 1] = 1;
+        while (ty <= countNumbersY.arr[x]) {
+            for (j = 1; j <= numbersY.arr[x][ty]; j++) {
+                main.data.arr[x][k + j - 1] = 1;
             }
-            main.Data.arr[x][k + j] = 0;
+            main.data.arr[x][k + j] = 0;
             k = k + j;
             ty++;
         }
         GetRjadX();
     }
 
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//    public void pbMouseMove(TShiftState Shift, int X, int Y) {
-//        boolean bDraw;
-//        Y = Y - bmpTop.Height;
-//        X = X - bmpLeft.Width;
-//        if ((X < 0) || (Y < 0)) {
-//            Label1.Caption = "";
-//            return;
-//        }
-//        Y = (Y / wid) + 1;
-//        X = (X / wid) + 1;
-//        if ((Y <= 0) || (Y > LenY) || (X <= 0) || (X > LenX)) {
-//            Label1.Caption = "";
-//            return;
-//        }
-//        Label1.Caption = Double.toString(Math.round(pDM.data.Ver.arr[X][Y][1] * 100) / 100) + "     " + Double.toString(Math.round(pDM.data.Ver.arr[X][Y][2] * 100) / 100);
-//        if (!bDown) return;
-//        bDraw = false;
-//        if (Shift.equals(new String[]{ssLeft})) {
-//            bDraw = (pDM.data.Data.arr[X][Y] != 1);
-//            pDM.data.Data.arr[X][Y] = 1;
-//        }
-//        if (Shift.equals(new String[]{ssRight})) {
-//            bDraw = (pDM.data.Data.arr[X][Y] != 0);
-//            pDM.data.Data.arr[X][Y] = 0;
-//        }
-//        if (Shift.equals(new String[]{ssMiddle})) {
-//            bDraw = (pDM.data.Data.arr[X][Y] != 2);
-//            pDM.data.Data.arr[X][Y] = 2;
-//        }
-//        PredCoord = new TPoint(X, Y);
-//        PredButt = Shift;
-//        if (bDraw) {
-//            if (cbMode.Checked) {
-//                GetRjadX();
-//                GetRjadY();
-//                DrawLeft(Y);
-//                DrawTop(X);
-//            }
-//            DrawPole(new TPoint(X, Y));
-//            Draw(new TPoint(-1, -1));
-//        }
-//    }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//    public void cbModeClick() {
-//        btCalc.Enabled = !cbMode.Checked;
-//        cbVerEnable.Enabled = btCalc.Enabled;
-//        if (cbMode.Checked) {
-//            cbMode.Caption = "Редактор";
-//        } else {
-//            cbMode.Caption = "Расш.";
-//        }
-//        if (cbMode.Checked) {
-//            GetRjadX();
-//            GetRjadY();
-//        }
-//    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public TPoint Check() {
         int a1, a2;
         a1 = 0;
-        for (int x = 1; x <= LenX; x++) {
-            for (int y = 1; y <= CountRjadY.arr[x]; y++) {
-                a1 = a1 + RjadY.arr[x][y];
+        for (int x = 1; x <= lenX; x++) {
+            for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+                a1 = a1 + numbersY.arr[x][y];
             }
         }
         a2 = 0;
-        for (int y = 1; y <= LenY; y++) {
-            for (int x = 1; x <= CountRjadX.arr[y]; x++) {
-                a2 = a2 + RjadX.arr[x][y];
+        for (int y = 1; y <= lenY; y++) {
+            for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+                a2 = a2 + numbersX.arr[x][y];
             }
         }
         return new TPoint(a1, a2);  // разница рядов
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void RefreshPole() {
         System.out.println();
     }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void solve() {
         boolean b, b2, b5, b6, b7, b8, b9, b11; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
         int h; 
@@ -482,41 +208,41 @@ class Solver implements BoardReader {
         }
         //-----------------------------
         // сам рачсет
-        for (int x = 1; x <= LenX; x++) {
+        for (int x = 1; x <= lenX; x++) {
             h = 0;
-            for (int y = 1; y <= CountRjadX.arr[x]; y++) {
-                h = h + RjadX.arr[x][y];
+            for (int y = 1; y <= countNumbersX.arr[x]; y++) {
+                h = h + numbersX.arr[x][y];
             }
-            if (h < (LenX / 2)) {
-                main.ChY.arr[x] = false;
+            if (h < (lenX / 2)) {
+                main.chY.arr[x] = false;
             }
         }
-        for (int y = 1; y <= LenY; y++) {
+        for (int y = 1; y <= lenY; y++) {
             h = 0;
-            for (int x = 1; x < CountRjadY.arr[y]; x++) {
-                h = h + RjadY.arr[x][y];
+            for (int x = 1; x < countNumbersY.arr[y]; x++) {
+                h = h + numbersY.arr[x][y];
 
             }
-            if (h < (LenY / 2)) {
-                main.ChX.arr[y] = false;
+            if (h < (lenY / 2)) {
+                main.chX.arr[y] = false;
             }
         }
         //----------
-        for (int x = 1; x <= LenX; x++) {
-            main.tChY.arr[x] = true;
-            assumptionBlack.tChY.arr[x] = true;
-            assumptionWhite.tChY.arr[x] = true;
+        for (int x = 1; x <= lenX; x++) {
+            main.tchY.arr[x] = true;
+            assumptionBlack.tchY.arr[x] = true;
+            assumptionWhite.tchY.arr[x] = true;
         }
-        for (int y = 1; y <= LenY; y++) {
-            main.tChX.arr[y] = true;
-            assumptionBlack.tChX.arr[y] = true;
-            assumptionWhite.tChX.arr[y] = true;
+        for (int y = 1; y <= lenY; y++) {
+            main.tchX.arr[y] = true;
+            assumptionBlack.tchX.arr[y] = true;
+            assumptionWhite.tchX.arr[y] = true;
         }
-        for (int x = 1; x <= LenX; x++) {
-            for (int y = 1; y <= LenY; y++) {
-                main.NoSet.arr[x][y] = false;
-                assumptionBlack.NoSet.arr[x][y] = false;
-                assumptionWhite.NoSet.arr[x][y] = false;
+        for (int x = 1; x <= lenX; x++) {
+            for (int y = 1; y <= lenY; y++) {
+                main.noSet.arr[x][y] = false;
+                assumptionBlack.noSet.arr[x][y] = false;
+                assumptionWhite.noSet.arr[x][y] = false;
             }
         }
         b5 = false;
@@ -524,18 +250,18 @@ class Solver implements BoardReader {
         b8 = false;
         b9 = false;
         // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
-        b11 = (LenX > LenY); // нужно для пропуска прогона
+        b11 = (lenX > lenY); // нужно для пропуска прогона
         a1 = 0;
-        for (int x = 1; x <= LenX; x++) {
-            a1 = a1 + CountRjadY.arr[x];
+        for (int x = 1; x <= lenX; x++) {
+            a1 = a1 + countNumbersY.arr[x];
         }
         a2 = 0;
-        for (int y = 1; y <= LenY; y++) {
-            a2 = a2 + CountRjadX.arr[y];
+        for (int y = 1; y <= lenY; y++) {
+            a2 = a2 + countNumbersX.arr[y];
         }
-        b11 = (a1 / LenY > a2 / LenX);
+        b11 = (a1 / lenY > a2 / lenX);
         //----------------------------------------------------------
-        Predpl.B = false;
+        assumption.b = false;
         b = false; // для b11
         bErrT = false;
         bErrP = false;
@@ -544,8 +270,8 @@ class Solver implements BoardReader {
             b = false;
             b2 = false;
             // с каким указателем работаем
-            if (Predpl.B) {
-                if (Predpl.SetDot) {
+            if (assumption.b) {
+                if (assumption.dot) {
                     data = assumptionBlack;
                 } else {
                     data = assumptionWhite;
@@ -555,23 +281,13 @@ class Solver implements BoardReader {
             }
 
             if (!(b5 || b11)) { // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
-                for (int y = 1; y <= LenY; y++) {
-//                SetInfo(y, true, bPredpl, false, Predpl.SetDot);
-                    if (data.FinX.arr[y]) continue;
-                    if (!data.ChX.arr[y]) continue;
-                    Unit2.countRjad = PrepRjadX(data, y, Unit2.data, Unit2.rjad); // подготовка строки
-                    Unit2.len = LenX; // длинна строки
-//                    if (bPredpl) {
-//                        if (Predpl.SetDot == 1) {
-//                            System.out.println("Ряд: " + Integer.toString(y) + " предп. т");
-//                        } else {
-//                            System.out.println(("Ряд: " + Integer.toString(y) + " предп. п");
-//                        }
-//                    } else {
-//                        System.out.println(("Ряд: " + Integer.toString(y) + " точно");
-//                    }
-                    if (!Unit2.calculate()) { // расчет ... если нет ни одной комбины - ошибка
-                        if (!assumption) {
+                for (int y = 1; y <= lenY; y++) {
+                    if (data.finX.arr[y]) continue;
+                    if (!data.chX.arr[y]) continue;
+                    logic.countRjad = PrepRjadX(data, y, logic.data, logic.rjad); // подготовка строки
+                    logic.len = lenX; // длинна строки
+                    if (!logic.calculate()) { // расчет ... если нет ни одной комбины - ошибка
+                        if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
                             b9 = true;
                             break;
@@ -580,50 +296,40 @@ class Solver implements BoardReader {
                         b2 = true; // ошибка была
                         break;
                     }
-                    for (int x = 1; x <= LenX; x++) {
-                        data.Ver.arr[x][y][1] = Unit2.probability.arr[x];
+                    for (int x = 1; x <= lenX; x++) {
+                        data.ver.arr[x][y][1] = logic.probability.arr[x];
 
-                        if (data.Data.arr[x][y] != Unit2.data.arr[x]) {
-                            data.Data.arr[x][y] = Unit2.data.arr[x];
+                        if (data.data.arr[x][y] != logic.data.arr[x]) {
+                            data.data.arr[x][y] = logic.data.arr[x];
                             if (!b) {
                                 b = true; // b = true;
                             }
-                            if (!data.ChY.arr[x]) {
-                                data.ChY.arr[x] = true; // work.data.ChY.arr[x] = true;
+                            if (!data.chY.arr[x]) {
+                                data.chY.arr[x] = true; // work.data.ChY.arr[x] = true;
                             }
-                            if (Predpl.B) {
-                                if (!data.tChY.arr[x]) {
-                                    data.tChY.arr[x] = true; // work.data.tChY.arr[x] = true;
+                            if (assumption.b) {
+                                if (!data.tchY.arr[x]) {
+                                    data.tchY.arr[x] = true; // work.data.tChY.arr[x] = true;
                                 }
                             }
                         }
                     }
-                    data.ChX.arr[y] = false;
+                    data.chX.arr[y] = false;
                 }
-                if (!Predpl.B) RefreshPole(); // прорисовка поля только в случае точного расчета
+                if (!assumption.b) RefreshPole(); // прорисовка поля только в случае точного расчета
             }
             if (!b9) {
                 b9 = GetFin(data); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
             }
 
             if ((!b2) && (!b5) && (!b8) && (!b9)) { // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
-                for (int x = 1; x <= LenX; x++) { // дальше то же только для столбцов
-                    //                SetInfo(x, false, bPredpl, false, Predpl.SetDot);
-                    if (data.FinY.arr[x]) continue;
-                    if (!data.ChY.arr[x]) continue;
-                    Unit2.countRjad = PrepRjadY(data, x, Unit2.data, Unit2.rjad);
-                    Unit2.len = LenY;
-//                    if (bPredpl) {
-//                        if (Predpl.SetDot == 1) {
-//                            System.out.println(("Ст.: " + Integer.toString(x) + " предп. т")
-//                        } else {
-//                            System.out.println(("Ст.: " + Integer.toString(x) + " предп. п");
-//                        }
-//                    } else {
-//                        System.out.println(("Ст.: " + Integer.toString(x) + " точно");
-//                    }
-                    if (!Unit2.calculate()) {
-                        if (!assumption) {
+                for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
+                    if (data.finY.arr[x]) continue;
+                    if (!data.chY.arr[x]) continue;
+                    logic.countRjad = PrepRjadY(data, x, logic.data, logic.rjad);
+                    logic.len = lenY;
+                    if (!logic.calculate()) {
+                        if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (столбец " + x + ").");
                             b9 = true;
                             break;
@@ -633,46 +339,46 @@ class Solver implements BoardReader {
                         break;
                     }
 
-                    for (int y = 1; y <= LenY; y++) {
-                        data.Ver.arr[x][y][2] = Unit2.probability.arr[y];
+                    for (int y = 1; y <= lenY; y++) {
+                        data.ver.arr[x][y][2] = logic.probability.arr[y];
 
-                        if (data.Data.arr[x][y] != Unit2.data.arr[y]) {
-                            data.Data.arr[x][y] = Unit2.data.arr[y];
+                        if (data.data.arr[x][y] != logic.data.arr[y]) {
+                            data.data.arr[x][y] = logic.data.arr[y];
                             if (!b) {
                                 b = true; // b = true;
                             }
-                            if (!data.ChX.arr[y]) {
-                                data.ChX.arr[y] = true; // work.data.ChX.arr[y] = true;
+                            if (!data.chX.arr[y]) {
+                                data.chX.arr[y] = true; // work.data.ChX.arr[y] = true;
                             }
-                            if (Predpl.B) {
-                                if (!data.tChY.arr[x]) {
-                                    data.tChY.arr[x] = true; // work.data.tChY.arr[x] = true;
+                            if (assumption.b) {
+                                if (!data.tchY.arr[x]) {
+                                    data.tchY.arr[x] = true; // work.data.tChY.arr[x] = true;
                                 }
                             }
                         }
                     }
-                    data.ChY.arr[x] = false;
+                    data.chY.arr[x] = false;
                 }
-                if (!Predpl.B) RefreshPole();// прорисовка поля
+                if (!assumption.b) RefreshPole();// прорисовка поля
                 if (b11) b = true; // чтобы после прогона по х пошел прогон по у
             }
             if (!b9)
                 b9 = GetFin(data); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
 
             if (b7 || b8) b = false; // все конец
-            if ((assumption) && (!b) && (!b7) && (!b8) && (!b9)) { // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
+            if ((tryAssumption) && (!b) && (!b7) && (!b8) && (!b9)) { // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
                 if (b11) b11 = false;
 
-                if (Predpl.B) { // предполагали?
+                if (assumption.b) { // предполагали?
                     // да
-                    if (Predpl.SetDot) { // запоминаем ошибки
+                    if (assumption.dot) { // запоминаем ошибки
                         bErrT = b2;
                     } else {
                         bErrP = b2;
                     }
                     if (b2) b2 = false; // была
-                    if (Predpl.SetDot) { // что было
-                        SavePustot(Predpl.SetTo, false); //была точка, теперь пустота
+                    if (assumption.dot) { // что было
+                        SavePustot(assumption.pt, false); //была точка, теперь пустота
                         b = true; // произошли изменения
                     } else { // путота, значит будем определять что нам записывать
                         if (bErrT) {
@@ -694,15 +400,15 @@ class Solver implements BoardReader {
                                 b5 = true; // дальше предполагаем
                                 b = true; // продолжаем дальше
                             } else { // нет ни там ни там - значит неизвестно, это потом сохранять будем
-                                pt = Predpl.SetTo;
-                                main.NoSet.arr[pt.x][pt.y] = true;
-                                main.Data.arr[pt.x][pt.y] = 0;
-                                Draw(pt);
+                                pt = assumption.pt;
+                                main.noSet.arr[pt.x][pt.y] = true;
+                                main.data.arr[pt.x][pt.y] = 0;
+                                draw(pt);
                                 b5 = true; // дальше предполагаем
                                 b = true; // продолжаем дальше
                             }
                         }
-                        Predpl.B = false;
+                        assumption.b = false;
                     }
                 } else {
                     if (b2) { // ошибка была?
@@ -713,15 +419,15 @@ class Solver implements BoardReader {
                         MaxVer1 = 0; // пока вероятности такие
                         MaxVer2 = 0;
                         b6 = false;
-                        for (int x = 1; x <= LenX; x++) {  // по всему полю
-                            for (int y = 1; y <= LenY; y++) {
-                                if ((MaxVer1 <= main.Ver.arr[x][y][1])
-                                        && (MaxVer2 <= main.Ver.arr[x][y][2])
-                                        && (main.Ver.arr[x][y][1] < 1)
-                                        && (main.Ver.arr[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
-                                    if (main.NoSet.arr[x][y]) continue;
-                                    MaxVer1 = main.Ver.arr[x][y][1];
-                                    MaxVer2 = main.Ver.arr[x][y][2];
+                        for (int x = 1; x <= lenX; x++) {  // по всему полю
+                            for (int y = 1; y <= lenY; y++) {
+                                if ((MaxVer1 <= main.ver.arr[x][y][1])
+                                        && (MaxVer2 <= main.ver.arr[x][y][2])
+                                        && (main.ver.arr[x][y][1] < 1)
+                                        && (main.ver.arr[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                    if (main.noSet.arr[x][y]) continue;
+                                    MaxVer1 = main.ver.arr[x][y][1];
+                                    MaxVer2 = main.ver.arr[x][y][2];
                                     pt = new TPoint(x, y);
                                     b6 = true;
                                 }
@@ -732,26 +438,25 @@ class Solver implements BoardReader {
                         if (b6) { // нашли точку?
                             // да
                             if (!b5) {
-                                Predpl.B = true;
+                                assumption.b = true;
                                 SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
                             }
-                            main.Data.arr[pt.x][pt.y] = 3;
-                            Draw(pt);
-//System.out.println(("Предп. в " + Integer.toString(pt.y) + ", " + Integer.toString(pt.x));
+                            main.data.arr[pt.x][pt.y] = 3;
+                            draw(pt);
                             b = true; // произошли изменения
                         } else { // нет
                             if (b5) {
-                                Predpl.B = false;
+                                assumption.b = false;
                                 RefreshPole(); //
                             }
                             b = true; // изменений нету
-                            for (int x = 1; x <= LenX; x++) {
-                                main.FinY.arr[x] = false;
-                                main.ChY.arr[x] = true;
+                            for (int x = 1; x <= lenX; x++) {
+                                main.finY.arr[x] = false;
+                                main.chY.arr[x] = true;
                             }
-                            for (int y = 1; y <= LenY; y++) {
-                                main.FinX.arr[y] = false;
-                                main.ChX.arr[y] = true;
+                            for (int y = 1; y <= lenY; y++) {
+                                main.finX.arr[y] = false;
+                                main.chX.arr[y] = true;
                             }
                             b7 = true; // последний прогон для нормального отображения вероятностей
                         }
@@ -762,50 +467,49 @@ class Solver implements BoardReader {
             if (b9) b = false; // все конец
         } while (b);
         // очистка массивв флагов заполнености
-        for (int x = 1; x <= LenX; x++) {
-            main.ChY.arr[x] = true;
-            main.FinY.arr[x] = false;
+        for (int x = 1; x <= lenX; x++) {
+            main.chY.arr[x] = true;
+            main.finY.arr[x] = false;
         }
-        for (int y = 1; y <= LenY; y++) {
-            main.ChX.arr[y] = true;
-            main.FinX.arr[y] = false;
+        for (int y = 1; y <= lenY; y++) {
+            main.chX.arr[y] = true;
+            main.finX.arr[y] = false;
         }
-        for (int x = 1; x <= LenX; x++) {
-            for (int y = 1; y <= LenY; y++) {
-                switch (main.Data.arr[x][y]) {
+        for (int x = 1; x <= lenX; x++) {
+            for (int y = 1; y <= lenY; y++) {
+                switch (main.data.arr[x][y]) {
                     case 1: {
-                        main.Ver.arr[x][y][1] = 1;
-                        main.Ver.arr[x][y][2] = 1;
+                        main.ver.arr[x][y][1] = 1;
+                        main.ver.arr[x][y][2] = 1;
                     }
                     break;
                     case 2: {
-                        main.Ver.arr[x][y][1] = 0;
-                        main.Ver.arr[x][y][2] = 0;
+                        main.ver.arr[x][y][1] = 0;
+                        main.ver.arr[x][y][2] = 0;
                     }
                     break;
                 }
             }
         }
         if (b8) { // если нажали остановить
-            if (Predpl.B) {
-                main.Data.arr[Predpl.SetTo.x][Predpl.SetTo.y] = 0;
+            if (assumption.b) {
+                main.data.arr[assumption.pt.x][assumption.pt.y] = 0;
             }
-            Predpl.B = false;
+            assumption.b = false;
             RefreshPole(); // прорисовка поля
-            SetInfo(0, true, false, 0);
+            printOpened();
         } else {
             // решили кроссворд!
         }
 
         RefreshPole(); // прорисовка поля
-        SetInfo(0, true, false, 0);
+        printOpened();
     }
 
-    private void Draw(TPoint pt) {
+    private void draw(TPoint pt) {
 
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void SetPredplDot(boolean bDot) {
         TPoint pt;
         TAllData data;
@@ -814,27 +518,26 @@ class Solver implements BoardReader {
         } else {
             data = assumptionWhite; // путоту
         }
-        pt = Predpl.SetTo;
+        pt = assumption.pt;
         if (bDot) {
-            data.Data.arr[pt.x][pt.y] = 1;
+            data.data.arr[pt.x][pt.y] = 1;
             // меняем вероятности
-            data.Ver.arr[pt.x][pt.y][1] = 1;
-            data.Ver.arr[pt.x][pt.y][2] = 1;
+            data.ver.arr[pt.x][pt.y][1] = 1;
+            data.ver.arr[pt.x][pt.y][2] = 1;
         } else {
-            data.Data.arr[pt.x][pt.y] = 2;
+            data.data.arr[pt.x][pt.y] = 2;
             // меняем вероятности
-            data.Ver.arr[pt.x][pt.y][1] = 0;
-            data.Ver.arr[pt.x][pt.y][2] = 0;
+            data.ver.arr[pt.x][pt.y][1] = 0;
+            data.ver.arr[pt.x][pt.y][2] = 0;
         }
         // строка и солбец, содержащие эту точку пересчитать
-        data.ChX.arr[pt.y] = true;
-        data.ChY.arr[pt.x] = true;
-        data.FinX.arr[pt.y] = false;
-        data.FinY.arr[pt.x] = false;
-        Draw(pt);
+        data.chX.arr[pt.y] = true;
+        data.chY.arr[pt.x] = true;
+        data.finX.arr[pt.y] = false;
+        data.finY.arr[pt.x] = false;
+        draw(pt);
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void ChangeDataArr(boolean bDot) {
         TAllData data;
         if (bDot) {
@@ -847,8 +550,7 @@ class Solver implements BoardReader {
             assumptionWhite = data;
         }
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public void SavePustot(TPoint pt, boolean bDot) {
         boolean b;
         TAllData data;
@@ -857,60 +559,59 @@ class Solver implements BoardReader {
         } else {
             data = assumptionWhite; // путоту
         }
-        for (int x = 1; x <= LenX; x++) { // по всему полю
-            for (int y = 1; y <= LenY; y++) {
-                data.Data.arr[x][y] = main.Data.arr[x][y];
-                data.Ver.arr[x][y][1] = main.Ver.arr[x][y][1];
-                data.Ver.arr[x][y][2] = main.Ver.arr[x][y][2];
-                b = (main.Data.arr[x][y] == 0); // пусто?
+        for (int x = 1; x <= lenX; x++) { // по всему полю
+            for (int y = 1; y <= lenY; y++) {
+                data.data.arr[x][y] = main.data.arr[x][y];
+                data.ver.arr[x][y][1] = main.ver.arr[x][y][1];
+                data.ver.arr[x][y][2] = main.ver.arr[x][y][2];
+                b = (main.data.arr[x][y] == 0); // пусто?
                 if (b) {
                     // пусто
-                    if (data.tChY.arr[x] && data.tChX.arr[y]) { //если производились изменения
-                        data.NoSet.arr[x][y] = false; // ставить можна
+                    if (data.tchY.arr[x] && data.tchX.arr[y]) { //если производились изменения
+                        data.noSet.arr[x][y] = false; // ставить можна
                     }
                 } else {
-                    data.NoSet.arr[x][y] = true; // непусто - сюда ставить нельзя
+                    data.noSet.arr[x][y] = true; // непусто - сюда ставить нельзя
                 }
             }
         }
-        for (int x = 1; x <= LenX; x++) {
-            data.ChY.arr[x] = main.ChY.arr[x];
-            data.FinY.arr[x] = main.FinY.arr[x];
-            data.tChY.arr[x] = false;
+        for (int x = 1; x <= lenX; x++) {
+            data.chY.arr[x] = main.chY.arr[x];
+            data.finY.arr[x] = main.finY.arr[x];
+            data.tchY.arr[x] = false;
         }
-        for (int y = 1; y <= LenY; y++) {
-            data.ChX.arr[y] = main.ChX.arr[y];
-            data.FinX.arr[y] = main.FinX.arr[y];
-            data.tChX.arr[y] = false;
+        for (int y = 1; y <= lenY; y++) {
+            data.chX.arr[y] = main.chX.arr[y];
+            data.finX.arr[y] = main.finX.arr[y];
+            data.tchX.arr[y] = false;
         }
-        Predpl.SetTo = pt;
-        Predpl.SetDot = bDot;
+        assumption.pt = pt;
+        assumption.dot = bDot;
         SetPredplDot(bDot);
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public boolean GetFin(TAllData data) {
         boolean c, c2;
         // заполнение поля
         c2 = true;
-        for (int y = 1; y <= LenY; y++) {
+        for (int y = 1; y <= lenY; y++) {
             c = false; // флаг закончености строки
-            for (int x = 1; x <= LenX; x++) {  // по строке
-                c = c || (data.Data.arr[x][y] == 0); // если заполнено
+            for (int x = 1; x <= lenX; x++) {  // по строке
+                c = c || (data.data.arr[x][y] == 0); // если заполнено
             }
             c2 = c2 && (!c);
-            data.FinX.arr[y] = !c;
+            data.finX.arr[y] = !c;
             //        if (Predpl.B)  // массив флагов заполнености
             //            pDT.data.FinX.arr[y] = !c
             //            else pDM.data.FinX.arr[y] = !c;
         }
-        for (int x = 1; x <= LenX; x++) {
+        for (int x = 1; x <= lenX; x++) {
             c = false; // флаг закончености строки
-            for (int y = 1; y <= LenY; y++) {  // по строке
-                c = c || (data.Data.arr[x][y] == 0); // если заполнено
+            for (int y = 1; y <= lenY; y++) {  // по строке
+                c = c || (data.data.arr[x][y] == 0); // если заполнено
             }
             c2 = c2 && (!c);
-            data.FinY.arr[x] = !c;
+            data.finY.arr[x] = !c;
             //        if (Predpl.B) // массив флагов заполнености
             //            pDT.data.FinY.arr[x] = !c
             //            else pDM.data.FinY.arr[x] = !c;
@@ -922,405 +623,266 @@ class Solver implements BoardReader {
         }
         return Result;
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public int PrepRjadX(TAllData data, int y, TData Data, TRjad Rjad) {
         // подготовка строки
-        for (int x = 1; x <= LenX; x++) {
-            Data.arr[x] = data.Data.arr[x][y]; // данные
+        for (int x = 1; x <= lenX; x++) {
+            Data.arr[x] = data.data.arr[x][y]; // данные
         }
-        int result = CountRjadX.arr[y]; // длинна ряда
-        for (int x = 1; x <= CountRjadX.arr[y]; x++) {
-            Rjad.arr[x] = RjadX.arr[x][y];  // сам ряд
+        int result = countNumbersX.arr[y]; // длинна ряда
+        for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+            Rjad.arr[x] = numbersX.arr[x][y];  // сам ряд
         }
         return result;
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
     public int PrepRjadY(TAllData data, int x, TData Data, TRjad Rjad) {
         // подготовка столбца
-        for (int y = 1; y <= LenY; y++) {
-            Data.arr[y] = data.Data.arr[x][y];  // данные
+        for (int y = 1; y <= lenY; y++) {
+            Data.arr[y] = data.data.arr[x][y];  // данные
         }
-        int result = CountRjadY.arr[x]; // длинна ряда
-        for (int y = 1; y <= CountRjadY.arr[x]; y++) {
-            Rjad.arr[y] = RjadY.arr[x][y]; // сам ряд
+        int result = countNumbersY.arr[x]; // длинна ряда
+        for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+            Rjad.arr[y] = numbersY.arr[x][y]; // сам ряд
         }
         return result;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void AssignFile(TextFile f, String fileName) {
-        f.open(fileName);
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public String ReadLn(TextFile f) {
-        return f.readLine();
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void WriteLn(TextFile f, String text) {
-        f.writeLine(text);
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void ReSet(TextFile f) {
-        f.loadData();
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void CloseFile(TextFile f) {
-        f.close();
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void ReWrite(TextFile f) {
-        f.openWrite();
-    }
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void LoadRjadFromFile(String FileName) {
-        TextFile F = new TextFile();
-        String tstr;
-        AssignFile(F, FileName);
-        ReSet(F);
-        tstr = ReadLn(F);
-        LenX = Integer.valueOf(tstr); // ширина
-        tstr = ReadLn(F);
-        LenY = Integer.valueOf(tstr); // высота
-        for (int y = 1; y <= LenY; y++) {
-            tstr = ReadLn(F);
-            CountRjadX.arr[y] = Integer.valueOf(tstr); // длинна y строки
-            for (int x = 1; x <= CountRjadX.arr[y]; x++) {
-                tstr = ReadLn(F);
-                RjadX.arr[x][y] = Integer.valueOf(tstr); // числа y строки
+    public void loadRjadFromFile(String fileName) {
+        TextFile file = new TextFile();
+        file.open(fileName);
+        file.loadData();
+        String line = file.readLine();
+        lenX = Integer.valueOf(line); // ширина
+        line = file.readLine();
+        lenY = Integer.valueOf(line); // высота
+        for (int y = 1; y <= lenY; y++) {
+            line = file.readLine();
+            countNumbersX.arr[y] = Integer.valueOf(line); // длинна y строки
+            for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+                line = file.readLine();
+                numbersX.arr[x][y] = Integer.valueOf(line); // числа y строки
             }
         }
 
-        for (int x = 1; x <= LenX; x++) {
-            tstr = ReadLn(F);
-            CountRjadY.arr[x] = Integer.valueOf(tstr);       // длинна х столбца
-            for (int y = 1; y <= CountRjadY.arr[x]; y++) {
-                tstr = ReadLn(F);
-                RjadY.arr[x][y] = Integer.valueOf(tstr);   // числа х столбца
+        for (int x = 1; x <= lenX; x++) {
+            line = file.readLine();
+            countNumbersY.arr[x] = Integer.valueOf(line);       // длинна х столбца
+            for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+                line = file.readLine();
+                numbersY.arr[x][y] = Integer.valueOf(line);   // числа х столбца
             }
         }
-        CloseFile(F);
+        file.close();
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void SaveRjadToFile(String FileName) {
-        TextFile F = new TextFile();
-        AssignFile(F, FileName);
-        ReWrite(F);
-        WriteLn(F, Integer.toString(LenX));  // ширина
-        WriteLn(F, Integer.toString(LenY));  // высота
-        for (int y = 1; y <= LenY; y++) {
-            WriteLn(F, Integer.toString(CountRjadX.arr[y])); // длинна y строки
-            for (int x = 1; x <= CountRjadX.arr[y]; x++) {
-                WriteLn(F, Integer.toString(RjadX.arr[x][y])); // числа y строки
+    
+    public void SaveRjadToFile(String fileName) {
+        TextFile file = new TextFile();
+        file.open(fileName);
+        file.openWrite();
+        // ширина
+        file.writeLine(Integer.toString(lenX));
+        // высота
+        file.writeLine(Integer.toString(lenY));
+        for (int y = 1; y <= lenY; y++) {
+            // длинна y строки
+            file.writeLine(Integer.toString(countNumbersX.arr[y]));
+            for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+                // числа y строки
+                file.writeLine(Integer.toString(numbersX.arr[x][y]));
             }
         }
 
-        for (int x = 1; x <= LenX; x++) {
-            WriteLn(F, Integer.toString(CountRjadY.arr[x]));  // длинна х столбца
-            for (int y = 1; y <= CountRjadY.arr[x]; y++) {
-                WriteLn(F, Integer.toString(RjadY.arr[x][y]));  // числа х столбца
+        for (int x = 1; x <= lenX; x++) {
+            // длинна х столбца
+            file.writeLine(Integer.toString(countNumbersY.arr[x]));
+            for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+                // числа х столбца
+                file.writeLine(Integer.toString(numbersY.arr[x][y]));
             }
         }
-        CloseFile(F);
+        file.close();
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    private String ChangeFileExt(String fileName, String ext) {
+    
+    private String changeFileExt(String fileName, String ext) {
         return fileName.substring(0, fileName.lastIndexOf(".")) + ext;
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    private String ExtractFileExt(String fileName) {
-        return fileName.substring(fileName.lastIndexOf("."));
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    private String ExtractFileName(String fileName) {
+    
+    private String extractfileName(String fileName) {
         return new File(fileName).getName();
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    private boolean FileExists(String fileName) {
+    
+    private boolean fileExists(String fileName) {
         return new File(fileName).exists();
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void saveFile(int FilterIndex, String FileName) {
+    
+    public void saveFile(int FilterIndex, String fileName) {
         switch (FilterIndex) {
-            case 1: SaveRjadToFile(FileName); break;
-            case 2: SaveDataToFile(FileName); break;
+            case 1: SaveRjadToFile(fileName); break;
+            case 2: saveDataToFile(fileName); break;
         }
-        System.out.println("Японские головоломки - " + ExtractFileName(FileName));
+        System.out.println("Японские головоломки - " + extractfileName(fileName));
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void loadFile(boolean cbLoadNaklad, String FileName, int FilterIndex) {
+    
+    public void loadFile(boolean loadNaklad, String fileName, int FilterIndex) {
         String tstr, tstr2;
         boolean b; // флаг накладывания
 
-        cbRjad.Checked = true;
-        if (cbLoadNaklad) {
-            tstr = ChangeFileExt(FileName, ".jap");
-            tstr2 = ChangeFileExt(FileName, ".jdt");
-            if (FileExists(tstr) && FileExists(tstr2)) {
-                cbMode.Checked = false;
-                cbMode.Caption = "Расш.";
-                LoadRjadFromFile(tstr); // грузим файл
-                LoadDataFromFile(tstr2);  // грузим файл
-                bChangeLen = true;
-                bUpDown = true;
-                Draw(new TPoint(0, 0));
-                System.out.println("Японские головоломки - " + ExtractFileName(tstr) + ", " + ExtractFileName(tstr2));
-                SetInfo(0, true, false, 0);
+        if (loadNaklad) {
+            tstr = changeFileExt(fileName, ".jap");
+            tstr2 = changeFileExt(fileName, ".jdt");
+            if (fileExists(tstr) && fileExists(tstr2)) {
+                mode = false;
+                loadRjadFromFile(tstr); // грузим файл
+                loadDataFromFile(tstr2);  // грузим файл
+                draw(new TPoint(0, 0));
+                System.out.println("Японские головоломки - " + extractfileName(tstr) + ", " + extractfileName(tstr2));
+                printOpened();
                 return;
             }
         }
-        b = (cbLoadNaklad && (cbMode.Checked ^ (FilterIndex == 2)));
+        b = (loadNaklad && (mode ^ (FilterIndex == 2)));
         switch (FilterIndex) {
             case 1: { // файл расшифровщика
                 if (!b) {
                     // перекл режим
-                    cbMode.Checked = false;
-                    if (cbMode.Checked) {
-                        cbMode.Caption = "Редактор";
-                    } else {
-                        cbMode.Caption = "Расш.";
-                    }
+                    mode = false;
                     clear(true); // очищаем поле
                 }
-                LoadRjadFromFile(FileName); // грузим файл
-                bChangeLen = true;
-                bUpDown = true;
-                Draw(new TPoint(0, 0));
-                System.out.println("Японские головоломки - " + ExtractFileName(FileName));
-                SetInfo(0, true, false, 0);
+                loadRjadFromFile(fileName); // грузим файл
+                draw(new TPoint(0, 0));
+                System.out.println("Японские головоломки - " + extractfileName(fileName));
+                printOpened();
             }
             break;
             case 2: { // файл редактора
                 if (!b) {
                     // перекл режим
-                    cbMode.Checked = true;
-                    if (cbMode.Checked) {
-                        cbMode.Caption = "Редактор";
-                    } else {
-                        cbMode.Caption = "Расш.";
-                    }
+                    mode = true;
                 }
-                LoadDataFromFile(FileName);  // грузим файл
+                loadDataFromFile(fileName);  // грузим файл
                 if (!b) {
                     GetRjadX(); // получаем ряды
                     GetRjadY();
                 }
-                bChangeLen = true;
-                bUpDown = true;
-                Draw(new TPoint(0, 0));
-                System.out.println("Японские головоломки - " + ExtractFileName(FileName));
-                SetInfo(0, true, false, 0);
+                draw(new TPoint(0, 0));
+                System.out.println("Японские головоломки - " + extractfileName(fileName));
+                printOpened();
             }
             break;
         }
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void LoadDataFromFile(String FileName) {
-        String tstr;
-        TextFile F = new TextFile();
-        AssignFile(F, FileName);
-        ReSet(F);
-        tstr = ReadLn(F);
-        LenX = Integer.valueOf(tstr); // ширина
-        tstr = ReadLn(F);
-        LenY = Integer.valueOf(tstr); // высота
-        for (int x = 1; x <= LenX; x++) {
-            for (int y = 1; y <= LenY; y++) {
-                tstr = ReadLn(F);
-                main.Data.arr[x][y] = Integer.valueOf(tstr); // поле
+    
+    public void loadDataFromFile(String fileName) {
+        TextFile file = new TextFile();
+        file.open(fileName);
+        file.loadData();
+        String line = file.readLine();
+        lenX = Integer.valueOf(line); // ширина
+        line = file.readLine();
+        lenY = Integer.valueOf(line); // высота
+        for (int x = 1; x <= lenX; x++) {
+            for (int y = 1; y <= lenY; y++) {
+                line = file.readLine();
+                main.data.arr[x][y] = Integer.valueOf(line); // поле
             }
         }
-        CloseFile(F);
+        file.close();
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void SaveDataToFile(String FileName) {
-        TextFile F = new TextFile();
-        AssignFile(F, FileName);
-        ReWrite(F);
-        WriteLn(F, Integer.toString(LenX)); // ширина
-        WriteLn(F, Integer.toString(LenY)); // высора
-        for (int x = 1; x <= LenX; x++) {
-            for (int y = 1; y <= LenY; y++) {
-                WriteLn(F, Integer.toString(main.Data.arr[x][y])); // поле
+    
+    public void saveDataToFile(String fileName) {
+        TextFile file = new TextFile();
+        file.open(fileName);
+        file.openWrite();
+        // ширина
+        file.writeLine(Integer.toString(lenX));
+        // высора
+        file.writeLine(Integer.toString(lenY));
+        for (int x = 1; x <= lenX; x++) {
+            for (int y = 1; y <= lenY; y++) {
+                // поле
+                file.writeLine(Integer.toString(main.data.arr[x][y]));
             }
         }
-        CloseFile(F);
+        file.close();
     }
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void ActiveNext(int c) {
-        if (CurrPt.xy) {
-            if (c < 0) {
-                if ((CurrPt.pt.x + c) <= 0) {
-                    ChangeActive(new TPoint(LenX, 1), false); // записываем номер ячейки
-                } else {
-                    ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                }
-            } else {
-                if ((CurrPt.pt.x + c) > LenY) {
-                    ChangeActive(new TPoint(1, 1), false); // записываем номер ячейки
-                } else {
-                    ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                }
-            }
-        } else {
-            if (c < 0) {
-                if ((CurrPt.pt.x + c) <= 0) {
-                    ChangeActive(new TPoint(LenY, 1), true); // записываем номер ячейки
-                } else {
-                    ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                }
-            } else {
-                if ((CurrPt.pt.x + c) > LenX) {
-                    ChangeActive(new TPoint(1, 1), true); // записываем номер ячейки
-                } else {
-                    ChangeActive(new TPoint(CurrPt.pt.x + c, 1), CurrPt.xy); //следующая ячейка
-                }
-            }
-        }
-    }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void edInputKeyDown(int Key, TShiftState Shift) {
-        switch (Key) {
-            case 38: { // вверх
-                ActiveNext(-1);
-                Key = 0;
-            }
-            break;
-            case 39:
-                break;
-            case 40: { // вниз
-                ActiveNext(1);
-                Key = 0;
-            }
-            break;
-            case 41:
-                break;
-        }
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public int DecodeInteger(String str, char ch, int i) {
+    
+    public int parseSplitted(String str, char ch, int i) {
         return 0; // TODO надо реализовать
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void edInputKeyPress(char Key) {
-        int a;
-        String tstr = "";
-        if (!(Arrays.asList(',', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\u0013', '\u0008').contains(Key))) {
-            Key = '\u0000';
-            return;
-        }
-        if (Key == ',') Key = '.';
-        if (Key == '\u0013') {
-            Key = '\u0000';
-            tstr = "1.2.3.4.5";
-            if (tstr.equals("")) return;
-            // убираем дубл. точки
-            int i = 2;
-            do {
-                if ((tstr.charAt(i - 1) == '.') && (tstr.charAt(i) == '.')) {
-                    tstr = tstr.substring(1, i - 1) + tstr.substring(i + 1, tstr.length() - i);
-                } else {
-                    i++;
-                }
-                a = tstr.length();
-            } while (i <= a);
-            // убираем точку спереди, добавляем в зад
-            if (tstr.charAt(tstr.length() - 1) != '.') tstr = tstr + '.';
-            if (tstr.charAt(1) == '.') tstr = tstr.substring(2, tstr.length() - 1);
-            if (tstr.equals("")) return; // выходим если пусто
-            a = DecodeInteger(tstr, '.', 0); // количество цифер
-            if (!CurrPt.xy) { // столбцы
-                // заполнение
-                CountRjadY.arr[CurrPt.pt.x] = a;
-                for (int j = 1; j <= a; j++) {
-                    RjadY.arr[CurrPt.pt.x][j] = DecodeInteger(tstr, '.', j);
-                }
-                int cx = CurrPt.pt.x;
-                // проверка на ввод нулей - они не нужны
-                a = calcCountRjadY(a, cx);
-                if (CountRjadY.arr[CurrPt.pt.x] == 0) return;
-                // проверка на ввод чила большего чем ширина
-                int j = 0;
-                for (i = 1; i <= a; i++) {
-                    j = j + RjadY.arr[CurrPt.pt.x][i];
-                }
-                if ((j + a - 1) > LenY) {
-                    CountRjadY.arr[CurrPt.pt.x] = 0;
-                    return;
-                }
-                // прорисовать на поле если надо
-                if (cbMode.Checked) DataFromRjadY(CurrPt.pt.x);
-            } else { // строки
-                // заполнение
-                CountRjadX.arr[CurrPt.pt.x] = a;
-                for (i = 1; i <= a; i++) {
-                    RjadX.arr[i][CurrPt.pt.x] = DecodeInteger(tstr, '.', i);
-                }
-                int cx = CurrPt.pt.x;
-                // проверка на ввод нулей - они не нужны
-                a = calcCountRjadX(a, cx);
-                if (CountRjadX.arr[CurrPt.pt.x] == 0) return;
-                // проверка на ввод чила большего чем ширина
-                int j = 0;
-                for (i = 1; i <= a; i++) {
-                    j = j + RjadX.arr[i][CurrPt.pt.x];
-                }
-                if ((j + a - 1) > LenX) {
-                    CountRjadY.arr[CurrPt.pt.x] = 0;
-                    Beep();
-                    return;
-                }
-                // прорисовать на поле если надо
-                if (cbMode.Checked) DataFromRjadX(CurrPt.pt.x);
-            }
-
-            if (CurrPt.xy) {
-                if (cbMode.Checked) {
-                    Draw(new TPoint(0, CurrPt.pt.x));
-                } else {
-//                    DrawLeft(CurrPt.pt.x);
-                    Draw(new TPoint(-1, -1));
-                }
+    private boolean fill(String input) {
+        int a;// убираем дубл. точки
+        int i = 2;
+        do {
+            if ((input.charAt(i - 1) == '.') && (input.charAt(i) == '.')) {
+                input = input.substring(1, i - 1) + input.substring(i + 1, input.length() - i);
             } else {
-                if (cbMode.Checked) {
-                    Draw(new TPoint(CurrPt.pt.x, 0));
-                } else {
-//                    DrawTop(CurrPt.pt.x);
-                    Draw(new TPoint(-1, -1));
-                }
+                i++;
             }
-            ActiveNext(1);
+            a = input.length();
+        } while (i <= a);
+        // убираем точку спереди, добавляем в зад
+        if (input.charAt(input.length() - 1) != '.') input = input + '.';
+        if (input.charAt(1) == '.') input = input.substring(2, input.length() - 1);
+        if (input.equals("")) return true;
+        a = parseSplitted(input, '.', 0); // количество цифер
+        if (!current.xy) { // столбцы
+            // заполнение
+            countNumbersY.arr[current.pt.x] = a;
+            for (int j = 1; j <= a; j++) {
+                numbersY.arr[current.pt.x][j] = parseSplitted(input, '.', j);
+            }
+            int cx = current.pt.x;
+            // проверка на ввод нулей - они не нужны
+            a = calcCountNumbersY(a, cx);
+            if (countNumbersY.arr[current.pt.x] == 0) return true;
+            // проверка на ввод чила большего чем ширина
+            int j = 0;
+            for (i = 1; i <= a; i++) {
+                j = j + numbersY.arr[current.pt.x][i];
+            }
+            if ((j + a - 1) > lenY) {
+                countNumbersY.arr[current.pt.x] = 0;
+                return true;
+            }
+            // прорисовать на поле если надо
+            if (mode) DataFromRjadY(current.pt.x);
+        } else { // строки
+            // заполнение
+            countNumbersX.arr[current.pt.x] = a;
+            for (i = 1; i <= a; i++) {
+                numbersX.arr[i][current.pt.x] = parseSplitted(input, '.', i);
+            }
+            int cx = current.pt.x;
+            // проверка на ввод нулей - они не нужны
+            a = calcCountNumbersX(a, cx);
+            if (countNumbersX.arr[current.pt.x] == 0) return true;
+            // проверка на ввод чила большего чем ширина
+            int j = 0;
+            for (i = 1; i <= a; i++) {
+                j = j + numbersX.arr[i][current.pt.x];
+            }
+            if ((j + a - 1) > lenX) {
+                countNumbersY.arr[current.pt.x] = 0;
+                return true;
+            }
+            // прорисовать на поле если надо
+            if (mode) dataFromRjadX(current.pt.x);
         }
+        return false;
     }
 
-    private int calcCountRjadX(int len, int y) {
+    private int calcCountNumbersX(int len, int y) {
         int i = 1;
         while (i <= len) {
-            if (RjadX.arr[i][y] == 0) {
+            if (numbersX.arr[i][y] == 0) {
                 if (i != len) {
                     for (int j = i + 1; j <= len; j++) {
-                        RjadX.arr[j - 1][y] = RjadX.arr[j][y];
+                        numbersX.arr[j - 1][y] = numbersX.arr[j][y];
                     }
                 }
-                CountRjadX.arr[y] = CountRjadX.arr[y] - 1;
+                countNumbersX.arr[y] = countNumbersX.arr[y] - 1;
                 len--;
             } else {
                 i++;
@@ -1329,16 +891,16 @@ class Solver implements BoardReader {
         return len;
     }
 
-    private int calcCountRjadY(int len, int x) {
+    private int calcCountNumbersY(int len, int x) {
         int i = 1;
         while (i <= len) {
-            if (RjadY.arr[x][i] == 0) {
+            if (numbersY.arr[x][i] == 0) {
                 if (i != len) {
                     for (int j = i + 1; j <= len; j++) {
-                        RjadY.arr[x][j - 1] = RjadY.arr[x][j];
+                        numbersY.arr[x][j - 1] = numbersY.arr[x][j];
                     }
                 }
-                CountRjadY.arr[x] = CountRjadY.arr[x] - 1;
+                countNumbersY.arr[x] = countNumbersY.arr[x] - 1;
                 len--;
             } else {
                 i++;
@@ -1347,56 +909,17 @@ class Solver implements BoardReader {
         return len;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    private void Beep() {
-
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void ChangeActive(TPoint pt, boolean xy) {
-        TCurrPt c = CurrPt;
-        CurrPt.pt = pt;
-        CurrPt.xy = xy;
-        if (CurrPt.xy) {
-            Draw(new TPoint(CurrPt.pt.x, 0));
-        } else {
-            Draw(new TPoint(0, CurrPt.pt.x));
-        }
-        if (c.xy) {
-            Draw(new TPoint(c.pt.x, 0));
-        } else {
-            Draw(new TPoint(0, c.pt.x));
-        }
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void SetInfo(int Rjad, boolean bRjadStolb, boolean bPredpl, int bWhoPredpl) {
+    private void printOpened() {
         int a;
-        if (bPredpl) {
-            if (bWhoPredpl == 1) {
-                System.out.println("Расчет: предп. т.");
-            } else {
-                System.out.println("Расчет: предп. п.");
-            }
-        } else {
-            System.out.println("Расчет: точно");
-        }
-        if (bRjadStolb) {
-            System.out.println(String.format("Ряд: %s", Rjad));
-        } else {
-            System.out.println(String.format("Столбец: %s", Rjad));
-        }
-        System.out.println(Calendar.getInstance().getTime().toString());
-        if (bPredpl) return;
         a = 0;
-        for (int x = 1; x <= LenX; x++) {
-            for (int y = 1; y <= LenY; y++) {
-                if (main.Data.arr[x][y] > 0) {
+        for (int x = 1; x <= lenX; x++) {
+            for (int y = 1; y <= lenY; y++) {
+                if (main.data.arr[x][y] > 0) {
                     a = a + 1;
                 }
             }
         }
-        System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (LenX * LenY)) / 10) + "%(" + a + ")");
+        System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (lenX * lenY)) / 10) + "%(" + a + ")");
     }
 
     public int offset() {
@@ -1405,27 +928,27 @@ class Solver implements BoardReader {
 
     @Override
     public int size() {
-        return LenX + offset();
+        return lenX + offset();
     }
 
     @Override
     public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
-            List<Point> pixels = (List<Point>) main.Data.elements();
+            List<Point> pixels = (List<Point>) main.data.elements();
             pixels.forEach(pixel -> pixel.change(pt(offset(), 0)));
             addAll(pixels);
 
             int dx = offset(); // горизонтальные циферки вверху, должны быть
-            int dy = LenY;     // потому мы их смещаем туда
-            for (int x = 1; x <= LenX; x++) {
-                for (int y = 1; y <= CountRjadY.arr[x]; y++) {
-                    add(new Number(pt(x - 1 + dx, y - 1 + dy), RjadY.arr[x][y]));
+            int dy = lenY;     // потому мы их смещаем туда
+            for (int x = 1; x <= lenX; x++) {
+                for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+                    add(new Number(pt(x - 1 + dx, y - 1 + dy), numbersY.arr[x][y]));
                 }
             }
-            for (int y = 1; y <= LenY; y++) {
-                for (int x = 1; x <= CountRjadX.arr[y]; x++) {
-                    int dxx = offset() - CountRjadX.arr[y]; // атут надо смещать хитрее
-                    add(new Number(pt(x - 1 + dxx, y - 1), RjadX.arr[x][y]));
+            for (int y = 1; y <= lenY; y++) {
+                for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+                    int dxx = offset() - countNumbersX.arr[y]; // атут надо смещать хитрее
+                    add(new Number(pt(x - 1 + dxx, y - 1), numbersX.arr[x][y]));
                 }
             }
         }};
@@ -1452,38 +975,38 @@ class Solver implements BoardReader {
                 Numbers numbers = linesX.get(x);
                 int num = numbers.line.get(y);
 
-                RjadX.arr[y + 1][x + 1] = num;
+                numbersX.arr[y + 1][x + 1] = num;
             }
         }
 
         for (int x = 0; x < lines.size() - offset; x++) {
             for (int y = 0; y < offset; y++) {
-                if (RjadX.arr[y + 1][x + 1] != 0) {
-                    CountRjadX.arr[x + 1]++;
+                if (numbersX.arr[y + 1][x + 1] != 0) {
+                    countNumbersX.arr[x + 1]++;
                 }
             }
         }
 
-        LenX = end;
+        lenX = end;
 
         for (int x = 0; x < lines.size() - offset; x++) {
             Numbers numbers = linesY.get(x);
             for (int y = 0; y < offset; y++) {
                 int num = numbers.line.get(y);
 
-                RjadY.arr[x + 1][y + 1] = num;
+                numbersY.arr[x + 1][y + 1] = num;
             }
         }
 
         for (int y = 0; y < offset; y++) {
             for (int x = 0; x < lines.size() - offset; x++) {
-                if (RjadY.arr[x + 1][y + 1] != 0) {
-                    CountRjadY.arr[x + 1]++;
+                if (numbersY.arr[x + 1][y + 1] != 0) {
+                    countNumbersY.arr[x + 1]++;
                 }
             }
         }
 
-        LenY = end;
+        lenY = end;
     }
 
     // только для квадратных полей с одинаковой шириной зоны с цифрами
@@ -1532,18 +1055,18 @@ class Solver implements BoardReader {
 
         @Override
         public int size() {
-            if (LenX != LenY) {
+            if (lenX != lenY) {
                 throw new RuntimeException("Кроссворд не прямоугольный");
             }
 
-            return Solver.LenX;
+            return Solver.lenX;
         }
 
         @Override
         public Iterable<? extends Point> elements() {
             List<Pixel> result = new LinkedList<>();
-            for (int x = 1; x <= LenX; x++) {
-                for (int y = 1; y <= LenY; y++) {
+            for (int x = 1; x <= lenX; x++) {
+                for (int y = 1; y <= lenY; y++) {
                     // инвертирование потому что в этом коде черный и белый отличаются от codenjoyного
                     int inverted = Math.abs(arr[x][y] - 1);
                     // так же надо отступить, потому что в этом коде индексы начинаются с 0
@@ -1558,7 +1081,7 @@ class Solver implements BoardReader {
         public boolean[][] arr = new boolean[MAX + 1][MAX + 1];
     }
 
-    static class TXYRjad {
+    static class TNumbers {
         public int[][] arr = new int[MAX + 1][MAX + 1];
     }
 
@@ -1566,7 +1089,7 @@ class Solver implements BoardReader {
         public boolean[] arr = new boolean[MAX + 1];
     }
 
-    static class TXYCountRjad {
+    static class TCountNumbers {
         public int[] arr = new int[MAX + 1];
     }
 
@@ -1575,35 +1098,26 @@ class Solver implements BoardReader {
     }
 
     static class TAllData {
-        public TXYVer Ver = new TXYVer();
-        public TFinish FinX = new TFinish();
-        public TFinish FinY = new TFinish();
-        public TFinish ChX = new TFinish();
-        public TFinish ChY = new TFinish();
-        public TXYData Data = new TXYData();
-        public TFinish tChX = new TFinish();
-        public TFinish tChY = new TFinish();
-        public TXYPustot NoSet = new TXYPustot();
+        public TXYVer ver = new TXYVer();
+        public TFinish finX = new TFinish();
+        public TFinish finY = new TFinish();
+        public TFinish chX = new TFinish();
+        public TFinish chY = new TFinish();
+        public TXYData data = new TXYData();
+        public TFinish tchX = new TFinish();
+        public TFinish tchY = new TFinish();
+        public TXYPustot noSet = new TXYPustot();
     }
 
-    static class PAllData {
-        TAllData data;
+    static class TAssumption {
+        public TPoint pt;
+        public boolean dot;
+        public boolean b;
     }
 
-    static class TPredpl {
-        public TPoint SetTo;
-        public boolean SetDot;
-        public boolean B;
-    }
-
-    static class TCurrPt { // текущий ряд (для редактирования)
+    static class TCurrent { // текущий ряд (для редактирования)
         public TPoint pt; // координаты
         public boolean xy; // ряд / столбец
-    }
-
-    static class TCheckBox {
-        public boolean Checked;
-        public String Caption;
     }
 
     static class TextFile {
@@ -1661,6 +1175,4 @@ class Solver implements BoardReader {
         }
     }
 
-    public static class TShiftState {
-    }
 }

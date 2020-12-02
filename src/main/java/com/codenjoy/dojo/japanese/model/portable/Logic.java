@@ -1,6 +1,6 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-class Unit2 {
+class Logic {
 
     public static final int MAX = 150;
     public TData data = new TData();

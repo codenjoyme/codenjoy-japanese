@@ -10,7 +10,7 @@ public class SolverTest {
     @Test
     public void test() {
         Solver solver = new Solver();
-        solver.assumption = true;
+        solver.tryAssumption = true;
 
         solver.load(new LevelImpl(
                 "-**---**-\n" +
