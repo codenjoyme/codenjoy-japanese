@@ -78,7 +78,6 @@ class Solver implements BoardReader {
     }
 
     public boolean calculate() {
-        int j, i0, leni;
         boolean b1;
         boolean result;
         if (countRjad == 0) {
@@ -108,14 +107,14 @@ class Solver implements BoardReader {
 //        }
         //-----------
         for (int i = 1; i <= len; i++) {
-            probability[i] = 0;
+            probability[i] = EXACTLY_WHITE;
         }
         //-----------
         result = true;
         if (!cut()) {
             result = false;
             cr = 1;
-            j = 0;
+            int j = 0;
             for (int i = 1; i <= countRjad; i++) {
                 numbers10.arr[cr].b = true;
                 numbers10.arr[cr].c = numbers[i];
@@ -135,11 +134,13 @@ class Solver implements BoardReader {
                 if (testCombination()) {
                     combinationCount = combinationCount + 1;
 
-                    i0 = cutFrom;
-                    leni = cutTo;
-                    for (int i = i0; i <= leni; i++)
-                        if (combinations[i])
+                    int i0 = cutFrom;
+                    int leni = cutTo;
+                    for (int i = i0; i <= leni; i++) {
+                        if (combinations[i]) {
                             probability[i] = probability[i] + 1;
+                        }
+                    }
                 }
                 getNumbersFromCombination();
                 b1 = manipuleNumbers();
@@ -149,7 +150,7 @@ class Solver implements BoardReader {
                 if (combinationCount != 0) {
                     probability[i] = probability[i] / combinationCount;
                 } else {
-                    probability[i] = -1;
+                    probability[i] = UNKNOWN;
                 }
             }
             if (combinationCount == 0) {
@@ -160,33 +161,39 @@ class Solver implements BoardReader {
         }
         //-----------
         for (int i = 1; i <= len; i++) {
-            if (probability[i] == EXACTLY_BLACK) array[i] = Dot.BLACK;
-            if (probability[i] == EXACTLY_WHITE) array[i] = Dot.WHITE;
+            if (probability[i] == EXACTLY_BLACK) {
+                array[i] = Dot.BLACK;
+            }
+            if (probability[i] == EXACTLY_WHITE) {
+                array[i] = Dot.WHITE;
+            }
         }
 
         return result;
     }
 
     public boolean testCombination() {
-        boolean Result = true;
+        boolean result = true;
         for (int i = cutFrom; i <= cutTo; i++) {
             switch (array[i]) {
                 case UNSET:
                     break;                                         // ничего нет
                 case BLACK:
-                    if (combinations[i] != true) ;
-                    Result = false;
+                    if (combinations[i] != true) { // нашли бажинку!Ё!!!!
+                        result = false;
+                    }
                     break;  // точка
                 case WHITE:
-                    if (combinations[i] != false) ;
-                    Result = false;
+                    if (combinations[i] != false) {
+                        result = false;
+                    }
                     break; // пустота
                 case ASSUMPTION:
                     break;                                         // предполагаемая точка
             }
-            if (!Result) return Result;
+            if (!result) return result;
         }
-        return Result;
+        return result;
     }
 
     public void getCombinationsFromNumbers() {
