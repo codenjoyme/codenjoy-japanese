@@ -1,9 +1,11 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
 import com.codenjoy.dojo.japanese.model.items.Color;
+import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.japanese.model.level.Level;
+import com.codenjoy.dojo.japanese.model.level.NumbersBuilder;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
@@ -12,10 +14,15 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.japanese.model.portable.Unit2.*;
 import static com.codenjoy.dojo.services.PointImpl.pt;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.of;
+import static java.util.stream.IntStream.range;
 
 class Unit1 implements BoardReader {
 
@@ -1265,22 +1272,9 @@ class Unit1 implements BoardReader {
                 for (int j = 1; j <= a; j++) {
                     RjadY.arr[CurrPt.pt.x][j] = DecodeInteger(tstr, '.', j);
                 }
+                int cx = CurrPt.pt.x;
                 // проверка на ввод нулей - они не нужны
-                i = 1;
-                while (i <= a) {
-                    if (RjadY.arr[CurrPt.pt.x][i] == 0) {
-                        if (i != a) {
-                            for (int j = i + 1; j <= a; j++) {
-                                RjadY.arr[CurrPt.pt.x][j - 1] = RjadY.arr[CurrPt.pt.x][j];
-                            }
-                        }
-                        CountRjadY.arr[CurrPt.pt.x] = CountRjadY.arr[CurrPt.pt.x] - 1;
-                        a--;
-
-                    } else {
-                        i++;
-                    }
-                }
+                a = calcCountRjadY(a, cx);
                 if (CountRjadY.arr[CurrPt.pt.x] == 0) return;
                 // проверка на ввод чила большего чем ширина
                 int j = 0;
@@ -1299,21 +1293,9 @@ class Unit1 implements BoardReader {
                 for (i = 1; i <= a; i++) {
                     RjadX.arr[i][CurrPt.pt.x] = DecodeInteger(tstr, '.', i);
                 }
+                int cx = CurrPt.pt.x;
                 // проверка на ввод нулей - они не нужны
-                i = 1;
-                while (i <= a) {
-                    if (RjadX.arr[i][CurrPt.pt.x] == 0) {
-                        if (i != a) {
-                            for (int j = i + 1; j <= a; j++) {
-                                RjadX.arr[j - 1][CurrPt.pt.x] = RjadX.arr[j][CurrPt.pt.x];
-                            }
-                        }
-                        CountRjadX.arr[CurrPt.pt.x] = CountRjadX.arr[CurrPt.pt.x] - 1;
-                        a--;
-                    } else {
-                        i++;
-                    }
-                }
+                a = calcCountRjadX(a, cx);
                 if (CountRjadX.arr[CurrPt.pt.x] == 0) return;
                 // проверка на ввод чила большего чем ширина
                 int j = 0;
@@ -1346,6 +1328,42 @@ class Unit1 implements BoardReader {
             }
             ActiveNext(1);
         }
+    }
+
+    private int calcCountRjadX(int len, int y) {
+        int i = 1;
+        while (i <= len) {
+            if (RjadX.arr[i][y] == 0) {
+                if (i != len) {
+                    for (int j = i + 1; j <= len; j++) {
+                        RjadX.arr[j - 1][y] = RjadX.arr[j][y];
+                    }
+                }
+                CountRjadX.arr[y] = CountRjadX.arr[y] - 1;
+                len--;
+            } else {
+                i++;
+            }
+        }
+        return len;
+    }
+
+    private int calcCountRjadY(int len, int x) {
+        int i = 1;
+        while (i <= len) {
+            if (RjadY.arr[x][i] == 0) {
+                if (i != len) {
+                    for (int j = i + 1; j <= len; j++) {
+                        RjadY.arr[x][j - 1] = RjadY.arr[x][j];
+                    }
+                }
+                CountRjadY.arr[x] = CountRjadY.arr[x] - 1;
+                len--;
+            } else {
+                i++;
+            }
+        }
+        return len;
     }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1433,7 +1451,99 @@ class Unit1 implements BoardReader {
     }
 
     public void load(Level level) {
-        List<Number> numbers = level.numbers();
+        int offset = getOffset(level);
+
+        // X рядки чисел
+        int end = level.size() - offset;
+        List<Numbers> linesX = lines(level, Number::getY)
+                .subList(0, end);
+        linesX.forEach(numbers -> numbers.fill(offset, false));
+
+        // Y стобики чисел
+        List<Numbers> lines = lines(level, Number::getX);
+        List<Numbers> linesY = lines
+                .subList(offset, lines.size());
+        linesY.forEach(numbers -> numbers.fill(offset, false));
+
+
+        for (int y = 0; y < offset; y++) {
+            for (int x = 0; x < lines.size() - offset; x++) {
+                Numbers numbers = linesX.get(x);
+                int num = numbers.line.get(y);
+
+                RjadX.arr[y + 1][x + 1] = num;
+            }
+        }
+
+        for (int x = 0; x < lines.size() - offset; x++) {
+            for (int y = 0; y < offset; y++) {
+                if (RjadX.arr[y + 1][x + 1] != 0) {
+                    CountRjadX.arr[x + 1]++;
+                }
+            }
+        }
+
+        LenX = end;
+
+        for (int x = 0; x < lines.size() - offset; x++) {
+            Numbers numbers = linesY.get(x);
+            for (int y = 0; y < offset; y++) {
+                int num = numbers.line.get(y);
+
+                RjadY.arr[x + 1][y + 1] = num;
+            }
+        }
+
+        for (int y = 0; y < offset; y++) {
+            for (int x = 0; x < lines.size() - offset; x++) {
+                if (RjadY.arr[x + 1][y + 1] != 0) {
+                    CountRjadY.arr[x + 1]++;
+                }
+            }
+        }
+
+        LenY = end;
+    }
+
+    // только для квадратных полей с одинаковой шириной зоны с цифрами
+    private int getOffset(Level level) {
+        List<Nan> nans = level.nans();
+        Point pt = pt(0, level.size() - 1);
+        while (nans.contains(pt)) {
+            pt.change(pt(1, -1));
+        }
+        return pt.getX();
+    }
+
+    static class Numbers {
+        int pos;
+        LinkedList<Integer> line;
+
+        public Numbers(Map.Entry<Integer, List<Number>> entry) {
+            pos = entry.getKey();
+            line = new LinkedList<>(entry.getValue().stream()
+                    .map(Number::number)
+                    .collect(toList()));
+        }
+
+        public void fill(int max, boolean before) {
+            range(0, max - line.size()).forEach(i -> {
+                if (before) {
+                    line.addFirst(0);
+                } else {
+                    line.addLast(0);
+                }
+            });
+        }
+    }
+
+    private List<Numbers> lines(Level level, Function<Number, Integer> grouping) {
+        return level.numbers().stream()
+                .sorted()
+                .collect(groupingBy(grouping))
+                .entrySet().stream()
+                .map(Unit1.Numbers::new)
+                .collect(toList());
     }
 
     static class TXYData implements BoardReader {

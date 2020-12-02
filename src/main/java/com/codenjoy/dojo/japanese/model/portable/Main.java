@@ -12,16 +12,12 @@ public class Main {
         unit.init();
         unit.assumption = true; // не будем гадать, пробуем решить точно
 
-        Level level = new Level1();
-        unit.load(level);
+        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";
+        unit.loadFile(true, folder + "5.jap", 1);
+        // unit.clear(false); // чистим только поле
         unit.solve();
-
-//        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";
-//        unit.loadFile(true, folder + "5.jap", 1);
-//        // unit.clear(false); // чистим только поле
-//        unit.solve();
-//        unit.saveFile(1, folder + "!5.jap");
-//        unit.saveFile(2, folder + "!5.jdt");
+        unit.saveFile(1, folder + "!5.jap");
+        unit.saveFile(2, folder + "!5.jdt");
 
         System.out.println("Поле без цифер");
         String board = unit.printData();
@@ -39,6 +35,14 @@ public class Main {
         LevelImpl level3 = new LevelImpl(board);
         String board3 = printLevel(level3);
         System.out.println(board3);
+
+        unit = new Unit1();
+        unit.init();
+        unit.assumption = true; // не будем гадать, пробуем решить точно
+
+        unit.clear(true);
+        unit.load(level3);
+        unit.solve();
 
     }
 

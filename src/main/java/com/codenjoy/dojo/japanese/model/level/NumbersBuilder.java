@@ -23,6 +23,7 @@ public class NumbersBuilder {
     private List<Pixels> pixelsCols;
     private List<Numbers> numbersRows;
     private List<Numbers> numbersCols;
+    private int max;
 
     public NumbersBuilder(LevelImpl level) {
         this.level = level;
@@ -91,7 +92,7 @@ public class NumbersBuilder {
         numbersCols = numbers(pixelsCols);
 
         // определяем максимальную длинну циферок
-        int max = Math.max(maxLength(numbersRows), maxLength(numbersCols));
+        max = Math.max(maxLength(numbersRows), maxLength(numbersCols));
 
         // дополняем нулями, с которых потом нарисуем nan'ы
         fillZero(numbersRows, max, true);

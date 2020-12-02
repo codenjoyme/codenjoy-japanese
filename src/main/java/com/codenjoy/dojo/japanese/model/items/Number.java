@@ -47,4 +47,8 @@ public class Number extends PointImpl implements State<Elements, Player> {
     public String toString() {
         return String.format("%s=%s", super.toString(), number);
     }
+
+    public int number() {
+        return number;
+    }
 }
