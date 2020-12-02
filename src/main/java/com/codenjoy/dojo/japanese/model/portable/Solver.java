@@ -5,7 +5,6 @@ import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.japanese.model.level.Level;
-import com.codenjoy.dojo.japanese.model.level.NumbersBuilder;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
@@ -24,7 +23,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.of;
 import static java.util.stream.IntStream.range;
 
-class Unit1 implements BoardReader {
+class Solver implements BoardReader {
 
     public Unit2 Unit2 = new Unit2();
     public TPoint PredCoord;
@@ -1542,7 +1541,7 @@ class Unit1 implements BoardReader {
                 .sorted()
                 .collect(groupingBy(grouping))
                 .entrySet().stream()
-                .map(Unit1.Numbers::new)
+                .map(Solver.Numbers::new)
                 .collect(toList());
     }
 
@@ -1555,7 +1554,7 @@ class Unit1 implements BoardReader {
                 throw new RuntimeException("Кроссворд не прямоугольный");
             }
 
-            return Unit1.LenX;
+            return Solver.LenX;
         }
 
         @Override
