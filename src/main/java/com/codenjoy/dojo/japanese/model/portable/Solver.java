@@ -45,7 +45,7 @@ class Solver implements BoardReader {
 
     public String printData() {
         return (String)new PrinterFactoryImpl<>().getPrinter(
-                main.data, null).print();
+                main, null).print();
     }
     
     public String printAll() {
@@ -56,7 +56,7 @@ class Solver implements BoardReader {
     public void clear(boolean all) {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
-                main.data.arr[x][y] = 0;
+                main.data[x][y] = 0;
                 main.ver[x][y][1] = -1;
                 main.ver[x][y][2] = -1;
             }
@@ -64,10 +64,10 @@ class Solver implements BoardReader {
                 countNumbersX.arr[x] = 0;
                 countNumbersY.arr[x] = 0;
             }
-            main.finY.arr[x] = false;
-            main.finX.arr[x] = false;
-            main.chY.arr[x] = true;
-            main.chX.arr[x] = true;
+            main.finY[x] = false;
+            main.finX[x] = false;
+            main.chY[x] = true;
+            main.chX[x] = true;
         }
     }
     
@@ -90,7 +90,7 @@ class Solver implements BoardReader {
             a = 0;
             countNumbersX.arr[y] = 1;
             for (int x = 1; x <= lenX; x++) {
-                if (main.data.arr[x][y] == 1) {
+                if (main.data[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
@@ -114,7 +114,7 @@ class Solver implements BoardReader {
             a = 0;
             countNumbersY.arr[x] = 1;
             for (int y = 1; y <= lenY; y++) {
-                if (main.data.arr[x][y] == 1) {
+                if (main.data[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
@@ -135,15 +135,15 @@ class Solver implements BoardReader {
     public void dataFromRjadX(int y) {
         int k, tx, j;
         for (tx = 1; tx <= lenX; tx++) {
-            main.data.arr[tx][y] = 0;
+            main.data[tx][y] = 0;
         }
         k = 1;
         tx = 1;
         while (tx <= countNumbersX.arr[y]) {
             for (j = 1; j <= numbersX.arr[tx][y]; j++) {
-                main.data.arr[k + j - 1][y] = 1;
+                main.data[k + j - 1][y] = 1;
             }
-            main.data.arr[k + j][y] = 0;
+            main.data[k + j][y] = 0;
             k = k + j;
             tx++;
         }
@@ -153,15 +153,15 @@ class Solver implements BoardReader {
     public void DataFromRjadY(int x) {
         int k, j, ty;
         for (ty = 1; ty <= lenY; ty++) {
-            main.data.arr[x][ty] = 0;
+            main.data[x][ty] = 0;
         }
         k = 1;
         ty = 1;
         while (ty <= countNumbersY.arr[x]) {
             for (j = 1; j <= numbersY.arr[x][ty]; j++) {
-                main.data.arr[x][k + j - 1] = 1;
+                main.data[x][k + j - 1] = 1;
             }
-            main.data.arr[x][k + j] = 0;
+            main.data[x][k + j] = 0;
             k = k + j;
             ty++;
         }
@@ -214,7 +214,7 @@ class Solver implements BoardReader {
                 h = h + numbersX.arr[x][y];
             }
             if (h < (lenX / 2)) {
-                main.chY.arr[x] = false;
+                main.chY[x] = false;
             }
         }
         for (int y = 1; y <= lenY; y++) {
@@ -224,25 +224,25 @@ class Solver implements BoardReader {
 
             }
             if (h < (lenY / 2)) {
-                main.chX.arr[y] = false;
+                main.chX[y] = false;
             }
         }
         //----------
         for (int x = 1; x <= lenX; x++) {
-            main.tchY.arr[x] = true;
-            assumptionBlack.tchY.arr[x] = true;
-            assumptionWhite.tchY.arr[x] = true;
+            main.tchY[x] = true;
+            assumptionBlack.tchY[x] = true;
+            assumptionWhite.tchY[x] = true;
         }
         for (int y = 1; y <= lenY; y++) {
-            main.tchX.arr[y] = true;
-            assumptionBlack.tchX.arr[y] = true;
-            assumptionWhite.tchX.arr[y] = true;
+            main.tchX[y] = true;
+            assumptionBlack.tchX[y] = true;
+            assumptionWhite.tchX[y] = true;
         }
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
-                main.noSet.arr[x][y] = false;
-                assumptionBlack.noSet.arr[x][y] = false;
-                assumptionWhite.noSet.arr[x][y] = false;
+                main.noSet[x][y] = false;
+                assumptionBlack.noSet[x][y] = false;
+                assumptionWhite.noSet[x][y] = false;
             }
         }
         b5 = false;
@@ -282,8 +282,8 @@ class Solver implements BoardReader {
 
             if (!(b5 || b11)) { // при поиску другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
                 for (int y = 1; y <= lenY; y++) {
-                    if (data.finX.arr[y]) continue;
-                    if (!data.chX.arr[y]) continue;
+                    if (data.finX[y]) continue;
+                    if (!data.chX[y]) continue;
                     logic.countRjad = PrepRjadX(data, y, logic.data, logic.rjad); // подготовка строки
                     logic.len = lenX; // длинна строки
                     if (!logic.calculate()) { // расчет ... если нет ни одной комбины - ошибка
@@ -299,22 +299,22 @@ class Solver implements BoardReader {
                     for (int x = 1; x <= lenX; x++) {
                         data.ver[x][y][1] = logic.probability.arr[x];
 
-                        if (data.data.arr[x][y] != logic.data.arr[x]) {
-                            data.data.arr[x][y] = logic.data.arr[x];
+                        if (data.data[x][y] != logic.data.arr[x]) {
+                            data.data[x][y] = logic.data.arr[x];
                             if (!b) {
                                 b = true; // b = true;
                             }
-                            if (!data.chY.arr[x]) {
-                                data.chY.arr[x] = true; // work.data.ChY.arr[x] = true;
+                            if (!data.chY[x]) {
+                                data.chY[x] = true; // work.data.ChY.arr[x] = true;
                             }
                             if (assumption.b) {
-                                if (!data.tchY.arr[x]) {
-                                    data.tchY.arr[x] = true; // work.data.tChY.arr[x] = true;
+                                if (!data.tchY[x]) {
+                                    data.tchY[x] = true; // work.data.tChY.arr[x] = true;
                                 }
                             }
                         }
                     }
-                    data.chX.arr[y] = false;
+                    data.chX[y] = false;
                 }
                 if (!assumption.b) RefreshPole(); // прорисовка поля только в случае точного расчета
             }
@@ -324,8 +324,8 @@ class Solver implements BoardReader {
 
             if ((!b2) && (!b5) && (!b8) && (!b9)) { // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
                 for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
-                    if (data.finY.arr[x]) continue;
-                    if (!data.chY.arr[x]) continue;
+                    if (data.finY[x]) continue;
+                    if (!data.chY[x]) continue;
                     logic.countRjad = PrepRjadY(data, x, logic.data, logic.rjad);
                     logic.len = lenY;
                     if (!logic.calculate()) {
@@ -342,22 +342,22 @@ class Solver implements BoardReader {
                     for (int y = 1; y <= lenY; y++) {
                         data.ver[x][y][2] = logic.probability.arr[y];
 
-                        if (data.data.arr[x][y] != logic.data.arr[y]) {
-                            data.data.arr[x][y] = logic.data.arr[y];
+                        if (data.data[x][y] != logic.data.arr[y]) {
+                            data.data[x][y] = logic.data.arr[y];
                             if (!b) {
                                 b = true; // b = true;
                             }
-                            if (!data.chX.arr[y]) {
-                                data.chX.arr[y] = true; // work.data.ChX.arr[y] = true;
+                            if (!data.chX[y]) {
+                                data.chX[y] = true; // work.data.ChX.arr[y] = true;
                             }
                             if (assumption.b) {
-                                if (!data.tchY.arr[x]) {
-                                    data.tchY.arr[x] = true; // work.data.tChY.arr[x] = true;
+                                if (!data.tchY[x]) {
+                                    data.tchY[x] = true; // work.data.tChY.arr[x] = true;
                                 }
                             }
                         }
                     }
-                    data.chY.arr[x] = false;
+                    data.chY[x] = false;
                 }
                 if (!assumption.b) RefreshPole();// прорисовка поля
                 if (b11) b = true; // чтобы после прогона по х пошел прогон по у
@@ -401,8 +401,8 @@ class Solver implements BoardReader {
                                 b = true; // продолжаем дальше
                             } else { // нет ни там ни там - значит неизвестно, это потом сохранять будем
                                 pt = assumption.pt;
-                                main.noSet.arr[pt.x][pt.y] = true;
-                                main.data.arr[pt.x][pt.y] = 0;
+                                main.noSet[pt.x][pt.y] = true;
+                                main.data[pt.x][pt.y] = 0;
                                 draw(pt);
                                 b5 = true; // дальше предполагаем
                                 b = true; // продолжаем дальше
@@ -425,7 +425,7 @@ class Solver implements BoardReader {
                                         && (MaxVer2 <= main.ver[x][y][2])
                                         && (main.ver[x][y][1] < 1)
                                         && (main.ver[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
-                                    if (main.noSet.arr[x][y]) continue;
+                                    if (main.noSet[x][y]) continue;
                                     MaxVer1 = main.ver[x][y][1];
                                     MaxVer2 = main.ver[x][y][2];
                                     pt = new TPoint(x, y);
@@ -441,7 +441,7 @@ class Solver implements BoardReader {
                                 assumption.b = true;
                                 SavePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
                             }
-                            main.data.arr[pt.x][pt.y] = 3;
+                            main.data[pt.x][pt.y] = 3;
                             draw(pt);
                             b = true; // произошли изменения
                         } else { // нет
@@ -451,12 +451,12 @@ class Solver implements BoardReader {
                             }
                             b = true; // изменений нету
                             for (int x = 1; x <= lenX; x++) {
-                                main.finY.arr[x] = false;
-                                main.chY.arr[x] = true;
+                                main.finY[x] = false;
+                                main.chY[x] = true;
                             }
                             for (int y = 1; y <= lenY; y++) {
-                                main.finX.arr[y] = false;
-                                main.chX.arr[y] = true;
+                                main.finX[y] = false;
+                                main.chX[y] = true;
                             }
                             b7 = true; // последний прогон для нормального отображения вероятностей
                         }
@@ -468,16 +468,16 @@ class Solver implements BoardReader {
         } while (b);
         // очистка массивв флагов заполнености
         for (int x = 1; x <= lenX; x++) {
-            main.chY.arr[x] = true;
-            main.finY.arr[x] = false;
+            main.chY[x] = true;
+            main.finY[x] = false;
         }
         for (int y = 1; y <= lenY; y++) {
-            main.chX.arr[y] = true;
-            main.finX.arr[y] = false;
+            main.chX[y] = true;
+            main.finX[y] = false;
         }
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
-                switch (main.data.arr[x][y]) {
+                switch (main.data[x][y]) {
                     case 1: {
                         main.ver[x][y][1] = 1;
                         main.ver[x][y][2] = 1;
@@ -493,7 +493,7 @@ class Solver implements BoardReader {
         }
         if (b8) { // если нажали остановить
             if (assumption.b) {
-                main.data.arr[assumption.pt.x][assumption.pt.y] = 0;
+                main.data[assumption.pt.x][assumption.pt.y] = 0;
             }
             assumption.b = false;
             RefreshPole(); // прорисовка поля
@@ -520,21 +520,21 @@ class Solver implements BoardReader {
         }
         pt = assumption.pt;
         if (bDot) {
-            data.data.arr[pt.x][pt.y] = 1;
+            data.data[pt.x][pt.y] = 1;
             // меняем вероятности
             data.ver[pt.x][pt.y][1] = 1;
             data.ver[pt.x][pt.y][2] = 1;
         } else {
-            data.data.arr[pt.x][pt.y] = 2;
+            data.data[pt.x][pt.y] = 2;
             // меняем вероятности
             data.ver[pt.x][pt.y][1] = 0;
             data.ver[pt.x][pt.y][2] = 0;
         }
         // строка и солбец, содержащие эту точку пересчитать
-        data.chX.arr[pt.y] = true;
-        data.chY.arr[pt.x] = true;
-        data.finX.arr[pt.y] = false;
-        data.finY.arr[pt.x] = false;
+        data.chX[pt.y] = true;
+        data.chY[pt.x] = true;
+        data.finX[pt.y] = false;
+        data.finY[pt.x] = false;
         draw(pt);
     }
     
@@ -561,29 +561,29 @@ class Solver implements BoardReader {
         }
         for (int x = 1; x <= lenX; x++) { // по всему полю
             for (int y = 1; y <= lenY; y++) {
-                data.data.arr[x][y] = main.data.arr[x][y];
+                data.data[x][y] = main.data[x][y];
                 data.ver[x][y][1] = main.ver[x][y][1];
                 data.ver[x][y][2] = main.ver[x][y][2];
-                b = (main.data.arr[x][y] == 0); // пусто?
+                b = (main.data[x][y] == 0); // пусто?
                 if (b) {
                     // пусто
-                    if (data.tchY.arr[x] && data.tchX.arr[y]) { //если производились изменения
-                        data.noSet.arr[x][y] = false; // ставить можна
+                    if (data.tchY[x] && data.tchX[y]) { //если производились изменения
+                        data.noSet[x][y] = false; // ставить можна
                     }
                 } else {
-                    data.noSet.arr[x][y] = true; // непусто - сюда ставить нельзя
+                    data.noSet[x][y] = true; // непусто - сюда ставить нельзя
                 }
             }
         }
         for (int x = 1; x <= lenX; x++) {
-            data.chY.arr[x] = main.chY.arr[x];
-            data.finY.arr[x] = main.finY.arr[x];
-            data.tchY.arr[x] = false;
+            data.chY[x] = main.chY[x];
+            data.finY[x] = main.finY[x];
+            data.tchY[x] = false;
         }
         for (int y = 1; y <= lenY; y++) {
-            data.chX.arr[y] = main.chX.arr[y];
-            data.finX.arr[y] = main.finX.arr[y];
-            data.tchX.arr[y] = false;
+            data.chX[y] = main.chX[y];
+            data.finX[y] = main.finX[y];
+            data.tchX[y] = false;
         }
         assumption.pt = pt;
         assumption.dot = bDot;
@@ -597,10 +597,10 @@ class Solver implements BoardReader {
         for (int y = 1; y <= lenY; y++) {
             c = false; // флаг закончености строки
             for (int x = 1; x <= lenX; x++) {  // по строке
-                c = c || (data.data.arr[x][y] == 0); // если заполнено
+                c = c || (data.data[x][y] == 0); // если заполнено
             }
             c2 = c2 && (!c);
-            data.finX.arr[y] = !c;
+            data.finX[y] = !c;
             //        if (Predpl.B)  // массив флагов заполнености
             //            pDT.data.FinX.arr[y] = !c
             //            else pDM.data.FinX.arr[y] = !c;
@@ -608,10 +608,10 @@ class Solver implements BoardReader {
         for (int x = 1; x <= lenX; x++) {
             c = false; // флаг закончености строки
             for (int y = 1; y <= lenY; y++) {  // по строке
-                c = c || (data.data.arr[x][y] == 0); // если заполнено
+                c = c || (data.data[x][y] == 0); // если заполнено
             }
             c2 = c2 && (!c);
-            data.finY.arr[x] = !c;
+            data.finY[x] = !c;
             //        if (Predpl.B) // массив флагов заполнености
             //            pDT.data.FinY.arr[x] = !c
             //            else pDM.data.FinY.arr[x] = !c;
@@ -627,7 +627,7 @@ class Solver implements BoardReader {
     public int PrepRjadX(TAllData data, int y, TData Data, TRjad Rjad) {
         // подготовка строки
         for (int x = 1; x <= lenX; x++) {
-            Data.arr[x] = data.data.arr[x][y]; // данные
+            Data.arr[x] = data.data[x][y]; // данные
         }
         int result = countNumbersX.arr[y]; // длинна ряда
         for (int x = 1; x <= countNumbersX.arr[y]; x++) {
@@ -639,7 +639,7 @@ class Solver implements BoardReader {
     public int PrepRjadY(TAllData data, int x, TData Data, TRjad Rjad) {
         // подготовка столбца
         for (int y = 1; y <= lenY; y++) {
-            Data.arr[y] = data.data.arr[x][y];  // данные
+            Data.arr[y] = data.data[x][y];  // данные
         }
         int result = countNumbersY.arr[x]; // длинна ряда
         for (int y = 1; y <= countNumbersY.arr[x]; y++) {
@@ -784,7 +784,7 @@ class Solver implements BoardReader {
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
                 line = file.readLine();
-                main.data.arr[x][y] = Integer.valueOf(line); // поле
+                main.data[x][y] = Integer.valueOf(line); // поле
             }
         }
         file.close();
@@ -801,7 +801,7 @@ class Solver implements BoardReader {
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
                 // поле
-                file.writeLine(Integer.toString(main.data.arr[x][y]));
+                file.writeLine(Integer.toString(main.data[x][y]));
             }
         }
         file.close();
@@ -914,7 +914,7 @@ class Solver implements BoardReader {
         a = 0;
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
-                if (main.data.arr[x][y] > 0) {
+                if (main.data[x][y] > 0) {
                     a = a + 1;
                 }
             }
@@ -934,7 +934,7 @@ class Solver implements BoardReader {
     @Override
     public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
-            List<Point> pixels = (List<Point>) main.data.elements();
+            List<Point> pixels = (List<Point>) main.elements();
             pixels.forEach(pixel -> pixel.change(pt(offset(), 0)));
             addAll(pixels);
 
@@ -1050,8 +1050,24 @@ class Solver implements BoardReader {
                 .collect(toList());
     }
 
-    static class TXYData implements BoardReader {
+    static class TNumbers {
         public int[][] arr = new int[MAX + 1][MAX + 1];
+    }
+
+    static class TCountNumbers {
+        public int[] arr = new int[MAX + 1];
+    }
+    
+    static class TAllData implements BoardReader {
+        public double[][][] ver = new double[MAX + 1][MAX + 1][3];
+        public boolean[] finX = new boolean[MAX + 1];
+        public boolean[] finY = new boolean[MAX + 1];
+        public boolean[] chX = new boolean[MAX + 1];
+        public boolean[] chY = new boolean[MAX + 1];
+        public int[][] data = new int[MAX + 1][MAX + 1];
+        public boolean[] tchX = new boolean[MAX + 1];
+        public boolean[] tchY = new boolean[MAX + 1];
+        public boolean[][] noSet = new boolean[MAX + 1][MAX + 1];
 
         @Override
         public int size() {
@@ -1068,41 +1084,13 @@ class Solver implements BoardReader {
             for (int x = 1; x <= lenX; x++) {
                 for (int y = 1; y <= lenY; y++) {
                     // инвертирование потому что в этом коде черный и белый отличаются от codenjoyного
-                    int inverted = Math.abs(arr[x][y] - 1);
+                    int inverted = Math.abs(data[x][y] - 1);
                     // так же надо отступить, потому что в этом коде индексы начинаются с 0
                     result.add(new Pixel(pt(x - 1, y - 1), Color.get(inverted)));
                 }
             }
             return result;
         }
-    }
-
-    static class TXYPustot {
-        public boolean[][] arr = new boolean[MAX + 1][MAX + 1];
-    }
-
-    static class TNumbers {
-        public int[][] arr = new int[MAX + 1][MAX + 1];
-    }
-
-    static class TFinish {
-        public boolean[] arr = new boolean[MAX + 1];
-    }
-
-    static class TCountNumbers {
-        public int[] arr = new int[MAX + 1];
-    }
-    
-    static class TAllData {
-        public double[][][] ver = new double[MAX + 1][MAX + 1][3];
-        public TFinish finX = new TFinish();
-        public TFinish finY = new TFinish();
-        public TFinish chX = new TFinish();
-        public TFinish chY = new TFinish();
-        public TXYData data = new TXYData();
-        public TFinish tchX = new TFinish();
-        public TFinish tchY = new TFinish();
-        public TXYPustot noSet = new TXYPustot();
     }
 
     static class TAssumption {
