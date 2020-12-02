@@ -3,6 +3,7 @@ package com.codenjoy.dojo.japanese.model.portable;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
+import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
@@ -51,7 +52,7 @@ class Unit1 implements BoardReader {
                 this, null).print();
     }
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void ClearData(boolean all) {
+    public void clear(boolean all) {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
                 pDataMain.data.Data.arr[x][y] = 0;
@@ -120,7 +121,7 @@ class Unit1 implements BoardReader {
     }
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void FormCreate() {
+    public void init() {
         pDataMain = new PAllData();
         pDataAssumptionBlack = new PAllData();
         pDataAssumtionWhite = new PAllData();
@@ -138,7 +139,7 @@ class Unit1 implements BoardReader {
         Predpl.SetDot = false;
         Predpl.B = false;
 
-        ClearData(true);
+        clear(true);
 
         SetInfo(0, true, false, 0);
     }
@@ -1095,7 +1096,7 @@ class Unit1 implements BoardReader {
                     } else {
                         cbMode.Caption = "Расш.";
                     }
-                    ClearData(true); // очищаем поле
+                    clear(true); // очищаем поле
                 }
                 LoadRjadFromFile(FileName); // грузим файл
                 bChangeLen = true;
@@ -1166,7 +1167,7 @@ class Unit1 implements BoardReader {
 
     //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public void btClearClick() {
-        ClearData(cbMode.Checked); // очищаем поле
+        clear(cbMode.Checked); // очищаем поле
         ChangeActive(new TPoint(1, 1), true); // записываем номер ячейки
         Draw(new TPoint(0, 0)); // прорисовка
         SetInfo(0, true, false, 0);
@@ -1429,6 +1430,10 @@ class Unit1 implements BoardReader {
                 }
             }
         }};
+    }
+
+    public void load(Level level) {
+        List<Number> numbers = level.numbers();
     }
 
     static class TXYData implements BoardReader {

@@ -5,7 +5,6 @@ import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.Point;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -95,8 +94,8 @@ public class NumbersBuilder {
         int max = Math.max(maxLength(numbersRows), maxLength(numbersCols));
 
         // дополняем нулями, с которых потом нарисуем nan'ы
-        fillZerro(numbersRows, max, true);
-        fillZerro(numbersCols, max, false);
+        fillZero(numbersRows, max, true);
+        fillZero(numbersCols, max, false);
 
         // меняем размер поля и двигаем все пиксели так, чтобы поместились циферки
         level.size(level.size() + max);
@@ -113,7 +112,7 @@ public class NumbersBuilder {
         generate(numbersCols, (x, y, len) -> pt(y + max, x + level.size() - max), max);
     }
 
-    private void fillZerro(List<Numbers> numbersRows, int max, boolean before) {
+    private void fillZero(List<Numbers> numbersRows, int max, boolean before) {
         numbersRows.forEach(numbers -> numbers.fill(max, before));
     }
 
