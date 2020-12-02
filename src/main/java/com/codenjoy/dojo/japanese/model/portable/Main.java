@@ -12,38 +12,27 @@ public class Main {
         unit.init();
         unit.assumption = true; // не будем гадать, пробуем решить точно
 
-        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";
-        unit.loadFile(true, folder + "5.jap", 1);
-        // unit.clear(false); // чистим только поле
+//        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";
+//        unit.loadFile(true, folder + "5.jap", 1);
+//        // unit.clear(false); // чистим только поле
+//        unit.solve();
+//        unit.saveFile(1, folder + "!5.jap");
+//        unit.saveFile(2, folder + "!5.jdt");
+
+
+        unit.load(new Level1());
+        unit.clear(false);
+        print(unit);
         unit.solve();
-        unit.saveFile(1, folder + "!5.jap");
-        unit.saveFile(2, folder + "!5.jdt");
+        print(unit);
 
-        System.out.println("Поле без цифер");
-        String board = unit.printData();
-        System.out.println(board);
-        System.out.println();
-        System.out.println();
+    }
 
+    private static void print(Unit1 unit) {
         System.out.println("Поле с цифрами");
         String board2 = unit.printAll();
         System.out.println(board2);
         System.out.println();
-        System.out.println();
-
-        System.out.println("Поле без цифр загруженное в Level (с пересчетом цифр)");
-        LevelImpl level3 = new LevelImpl(board);
-        String board3 = printLevel(level3);
-        System.out.println(board3);
-
-        unit = new Unit1();
-        unit.init();
-        unit.assumption = true; // не будем гадать, пробуем решить точно
-
-        unit.clear(true);
-        unit.load(level3);
-        unit.solve();
-
     }
 
     private static String printLevel(LevelImpl level) {
