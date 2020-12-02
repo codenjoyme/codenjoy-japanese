@@ -1,8 +1,6 @@
 package com.codenjoy.dojo.japanese.model.level;
 
-import com.codenjoy.dojo.japanese.model.level.levels.Level1;
-import com.codenjoy.dojo.japanese.model.level.levels.Level1WithoutNumbers;
-import com.codenjoy.dojo.japanese.model.level.levels.Level1WithoutPixels;
+import com.codenjoy.dojo.japanese.model.level.levels.*;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 import org.junit.Ignore;
@@ -15,7 +13,7 @@ public class LevelImplTest {
     private Level level;
 
     @Test
-    public void shouldParse_whenPixels_andNumbers() {
+    public void shouldParse_whenPixels_andNumbers_level1() {
         level = new Level1();
 
         assertB("...........\n" +
@@ -32,7 +30,7 @@ public class LevelImplTest {
     }
 
     @Test
-    public void shouldParse_whenPixels_andNoNumbers() {
+    public void shouldParse_whenPixels_andNoNumbers_level1() {
         level = new Level1WithoutNumbers();
 
         assertB("...........\n" +
@@ -46,6 +44,70 @@ public class LevelImplTest {
                 ".5--*****--\n" +
                 ".3---***---\n" +
                 ".1----*----\n");
+    }
+
+    @Test
+    public void shouldParse_whenPixels_andNumbers_level10() {
+        level = new Level10();
+
+        assertB("........1.................\n" +
+                "........23122.2.34...2....\n" +
+                "........114332321321432...\n" +
+                "........2444431312612111..\n" +
+                "......2312521326622612222.\n" +
+                "......34151233222141114141\n" +
+                "....52--*****-----------**\n" +
+                "...143---*-****-------***-\n" +
+                "...252---**--*****---**---\n" +
+                "....37----***--*******----\n" +
+                "...531----*****-***-*-----\n" +
+                "...813--********-*-***----\n" +
+                "..3412***----****-*-**----\n" +
+                ".24133**-****--*-***-***--\n" +
+                "...852-********-*****--**-\n" +
+                "..5161---*****-*-******-*-\n" +
+                "..6223--******-**-**--***-\n" +
+                "..2321-**-----***-**----*-\n" +
+                "..2443**-****-****-***----\n" +
+                "..6142******-*-****--**---\n" +
+                "211231**--*--*-**-***-*---\n" +
+                "..2322---**-***-**---**---\n" +
+                ".21221---**-*-**-**---*---\n" +
+                "..1221---*-**--**-*-------\n" +
+                "....33---***----***-------\n" +
+                "....21--**--------*-------\n");
+    }
+
+    @Test
+    public void shouldParse_whenPixels_andNoNumbers_level10() {
+        level = new Level10WithoutNumbers();
+
+        assertB("........1.................\n" +
+                "........23122.2.34...2....\n" +
+                "........114332321321432...\n" +
+                "........2444431312612111..\n" +
+                "......2312521326622612222.\n" +
+                "......34151233222141114141\n" +
+                "....52--*****-----------**\n" +
+                "...143---*-****-------***-\n" +
+                "...252---**--*****---**---\n" +
+                "....37----***--*******----\n" +
+                "...531----*****-***-*-----\n" +
+                "...813--********-*-***----\n" +
+                "..3412***----****-*-**----\n" +
+                ".24133**-****--*-***-***--\n" +
+                "...852-********-*****--**-\n" +
+                "..5161---*****-*-******-*-\n" +
+                "..6223--******-**-**--***-\n" +
+                "..2321-**-----***-**----*-\n" +
+                "..2443**-****-****-***----\n" +
+                "..6142******-*-****--**---\n" +
+                "211231**--*--*-**-***-*---\n" +
+                "..2322---**-***-**---**---\n" +
+                ".21221---**-*-**-**---*---\n" +
+                "..1221---*-**--**-*-------\n" +
+                "....33---***----***-------\n" +
+                "....21--**--------*-------\n");
     }
 
     @Ignore // TODO реализовать решалку

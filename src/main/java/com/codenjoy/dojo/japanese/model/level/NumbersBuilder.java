@@ -94,15 +94,22 @@ public class NumbersBuilder {
                     level.nans().add(new Nan(pt(x, invert(y))))));
 
         // прописываем цифры и nan'ы в соостветствующих местах на поле
-        generate(numbersRows, (x, y) -> pt(x, y), max);
-        generate(numbersCols, (x, y) -> pt(invert(y), invert(x)), max);
+        // TODO чувствуешь силу? Попробуй реши проще
+        generate(numbersRows, (x, y, len) -> pt(x, y), max, 0);
+        generate(numbersCols, (x, y, len) -> pt(y + max, invert(max - x) - (max - len - 1)), max, max);
     }
 
     private int invert(int pos) {
         return level.size() - 1 - pos;
     }
 
-    private void generate(List<Numbers> list, BiFunction<Integer, Integer, Point> pt, int max) {
+    @FunctionalInterface
+    public interface TriFunction<T, U, V, R> {
+
+        R apply(T t, U u, V v);
+    }
+
+    private void generate(List<Numbers> list, TriFunction<Integer, Integer, Integer, Point> pt, int max, int dx) {
         list.forEach(numbers -> {
             List<Integer> line = numbers.line;
             Integer y = numbers.pos;
@@ -110,10 +117,10 @@ public class NumbersBuilder {
             int end = max - line.size();
 
             range(0, end).forEach(x ->
-                    addNan(pt.apply(x, y)));
+                    addNan(pt.apply(x + dx, y, line.size())));
 
             range(end, max).forEach(x ->
-                    addNumber(pt.apply(x, y), line.get(x - end)));
+                    addNumber(pt.apply(x, y, line.size()), line.get(x - end)));
         });
     }
 
