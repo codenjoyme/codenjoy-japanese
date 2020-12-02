@@ -9,11 +9,8 @@ public class SolverTest {
 
     @Test
     public void test() {
-        Solver solver = new Solver();
-        solver.tryAssumption = true;
 
-        solver.load(new LevelImpl(
-                "-**---**-\n" +
+        assertS("-**---**-\n" +
                 "****-****\n" +
                 "*********\n" +
                 "*********\n" +
@@ -21,11 +18,8 @@ public class SolverTest {
                 "-*******-\n" +
                 "--*****--\n" +
                 "---***---\n" +
-                "----*----"));
+                "----*----",
 
-        solver.clear(false);
-
-        assertEquals(
                 "           \n" +
                 "  467777764\n" +
                 "22---------\n" +
@@ -36,11 +30,8 @@ public class SolverTest {
                 " 7---------\n" +
                 " 5---------\n" +
                 " 3---------\n" +
-                " 1---------\n", solver.printAll());
+                " 1---------\n",
 
-        solver.solve();
-
-        assertEquals(
                 "           \n" +
                 "  467777764\n" +
                 "22---------\n" +
@@ -51,7 +42,22 @@ public class SolverTest {
                 " 7--*****--\n" +
                 " 5----*----\n" +
                 " 3---------\n" +
-                " 1---------\n", solver.printAll());
+                " 1---------\n");
+    }
+
+    private void assertS(String map, String expected, String expected1) {
+        // given
+        Solver solver = new Solver();
+        solver.tryAssumption = true;
+        solver.load(new LevelImpl(map));
+        solver.clear(false);
+        assertEquals(expected, solver.printAll());
+
+        // when
+        solver.solve();
+
+        // then
+        assertEquals(expected1, solver.printAll());
     }
 
 }
