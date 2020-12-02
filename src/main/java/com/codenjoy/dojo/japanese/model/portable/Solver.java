@@ -13,6 +13,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -872,8 +873,8 @@ class Solver implements BoardReader {
                             for (int y = 1; y <= lenY; y++) {
                                 if ((max1 <= main.probability[x][y][Dot.BLACK.code])
                                         && (max2 <= main.probability[x][y][Dot.WHITE.code])
-                                        && (main.probability[x][y][Dot.BLACK.code] < 1) // TODO тут странно
-                                        && (main.probability[x][y][Dot.WHITE.code] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                        && (main.probability[x][y][Dot.BLACK.code] < 1.0) // TODO тут странно, вероятность белой точки вроде как EXACLTY_WHITE
+                                        && (main.probability[x][y][Dot.WHITE.code] < 1.0)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
                                     if (main.noSet[x][y]) continue;
                                     max1 = main.probability[x][y][Dot.BLACK.code];
                                     max2 = main.probability[x][y][Dot.WHITE.code];
@@ -1090,31 +1091,16 @@ class Solver implements BoardReader {
         return result;
     }
 
-    public void loadRjadFromFile(String fileName) {
+    public void loadNumbersFromFile(String fileName) {
         TextFile file = new TextFile();
         file.open(fileName);
         file.loadData();
-        String line = file.readLine();
-        lenX = Integer.valueOf(line); // ширина
-        line = file.readLine();
-        lenY = Integer.valueOf(line); // высота
-        for (int y = 1; y <= lenY; y++) {
-            line = file.readLine();
-            countNumbersX[y] = Integer.valueOf(line); // длинна y строки
-            for (int x = 1; x <= countNumbersX[y]; x++) {
-                line = file.readLine();
-                numbersX[x][y] = Integer.valueOf(line); // числа y строки
-            }
-        }
 
-        for (int x = 1; x <= lenX; x++) {
-            line = file.readLine();
-            countNumbersY[x] = Integer.valueOf(line);       // длинна х столбца
-            for (int y = 1; y <= countNumbersY[x]; y++) {
-                line = file.readLine();
-                numbersY[x][y] = Integer.valueOf(line);   // числа х столбца
-            }
-        }
+        lenX = Integer.valueOf(file.readLine()); // ширина
+        lenY = Integer.valueOf(file.readLine()); // высота
+
+        loadNumbers(file,(x, y) -> pt(x, y), countNumbersX, numbersX, lenY);
+        loadNumbers(file,(x, y) -> pt(y, x), countNumbersY, numbersY, lenX);
 
         int maxY = 0;
         for (int y = 1; y <= lenY; y++) {
@@ -1131,7 +1117,17 @@ class Solver implements BoardReader {
 
         file.close();
     }
-    
+
+    private void loadNumbers(TextFile file, BiFunction<Integer, Integer, Point> mirror, int[] counts, int[][] numbers, int len) {
+        for (int y = 1; y <= len; y++) { ;
+            counts[y] = Integer.valueOf(file.readLine()); // длинна y строки
+            for (int x = 1; x <= counts[y]; x++) {
+                Point pt = mirror.apply(x, y);
+                numbers[pt.getX()][pt.getY()] = Integer.valueOf(file.readLine()); // числа y строки
+            }
+        }
+    }
+
     public void saveNumbersToFile(String fileName) {
         TextFile file = new TextFile();
         file.open(fileName);
@@ -1181,7 +1177,7 @@ class Solver implements BoardReader {
             tstr2 = changeFileExt(fileName, JDT_EXT);
             if (fileExists(tstr) && fileExists(tstr2)) {
                 mode = false;
-                loadRjadFromFile(tstr); // грузим файл
+                loadNumbersFromFile(tstr); // грузим файл
                 loadDataFromFile(tstr2);  // грузим файл
                 draw(new TPoint(0, 0));
                 System.out.println("Японские головоломки - " + extractfileName(tstr) + ", " + extractfileName(tstr2));
@@ -1197,7 +1193,7 @@ class Solver implements BoardReader {
                     mode = false;
                     clear(true); // очищаем поле
                 }
-                loadRjadFromFile(fileName); // грузим файл
+                loadNumbersFromFile(fileName); // грузим файл
                 draw(new TPoint(0, 0));
                 System.out.println("Японские головоломки - " + extractfileName(fileName));
                 printOpened();
@@ -1435,8 +1431,6 @@ class Solver implements BoardReader {
                 }
             }
         }
-
-
     }
 
     // TODO только для квадратных полей с одинаковой шириной зоны с цифрами
