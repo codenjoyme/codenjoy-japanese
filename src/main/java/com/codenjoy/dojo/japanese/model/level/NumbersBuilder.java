@@ -5,10 +5,10 @@ import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.Point;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
@@ -60,6 +60,15 @@ public class NumbersBuilder {
                 line.removeLast();
             }
         }
+
+        public void reverse() {
+            Collections.reverse(line);
+        }
+
+        public void fill(int max) {
+            range(0, max - line.size()).forEach(i ->
+                    line.add(0));
+        }
     }
 
     static class Pixels {
@@ -84,6 +93,13 @@ public class NumbersBuilder {
         // определяем максимальную длинну циферок
         int max = Math.max(maxLength(numbersRows), maxLength(numbersCols));
 
+        // дополняем нулями, с которых потом нарисуем nan'ы
+        numbersRows.forEach(numbers -> numbers.reverse());
+        fillZerro(numbersRows, max);
+        fillZerro(numbersCols, max);
+        numbersRows.forEach(numbers -> numbers.reverse());
+
+
         // меняем размер поля и двигаем все пиксели так, чтобы поместились циферки
         level.size(level.size() + max);
         level.pixels().forEach(pixel -> pixel.change(pt(max, 0)));
@@ -95,8 +111,12 @@ public class NumbersBuilder {
 
         // прописываем цифры и nan'ы в соостветствующих местах на поле
         // TODO чувствуешь силу? Попробуй реши проще
-        generate(numbersRows, (x, y, len) -> pt(x, y), max, 0);
-        generate(numbersCols, (x, y, len) -> pt(y + max, invert(max - x) - (max - len - 1)), max, max);
+        generate(numbersRows, (x, y, len) -> pt(x + max - len, y), max);
+        generate(numbersCols, (x, y, len) -> pt(y + max, x + level.size() - max), max);
+    }
+
+    private void fillZerro(List<Numbers> numbersRows, int max) {
+        numbersRows.forEach(numbers -> numbers.fill(max));
     }
 
     private int invert(int pos) {
@@ -109,27 +129,22 @@ public class NumbersBuilder {
         R apply(T t, U u, V v);
     }
 
-    private void generate(List<Numbers> list, TriFunction<Integer, Integer, Integer, Point> pt, int max, int dx) {
+    private void generate(List<Numbers> list, TriFunction<Integer, Integer, Integer, Point> pt, int max) {
         list.forEach(numbers -> {
             List<Integer> line = numbers.line;
             Integer y = numbers.pos;
 
-            int end = max - line.size();
-
-            range(0, end).forEach(x ->
-                    addNan(pt.apply(x + dx, y, line.size())));
-
-            range(end, max).forEach(x ->
-                    addNumber(pt.apply(x, y, line.size()), line.get(x - end)));
+            range(0, line.size()).forEach(x ->
+                    add(pt.apply(x, y, line.size()), line.get(x)));
         });
     }
 
-    private void addNumber(Point pt, int number) {
-        level.numbers().add(new Number(pt, number));
-    }
-
-    private void addNan(Point pt) {
-        level.nans().add(new Nan(pt));
+    private void add(Point pt, int number) {
+        if (number == 0) {
+            level.nans().add(new Nan(pt));
+        } else {
+            level.numbers().add(new Number(pt, number));
+        }
     }
 
     private Integer maxLength(List<Numbers> numbers) {

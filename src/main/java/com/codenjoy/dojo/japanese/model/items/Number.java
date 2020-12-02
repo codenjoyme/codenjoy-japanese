@@ -42,4 +42,9 @@ public class Number extends PointImpl implements State<Elements, Player> {
     public Elements state(Player player, Object... alsoAtPoint) {
         return Elements.forNumber(number);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s=%s", super.toString(), number);
+    }
 }
