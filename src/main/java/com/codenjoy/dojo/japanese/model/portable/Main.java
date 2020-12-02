@@ -8,7 +8,6 @@ public class Main {
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.init();
         solver.assumption = true; // не будем гадать, пробуем решить точно
 
 //        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";

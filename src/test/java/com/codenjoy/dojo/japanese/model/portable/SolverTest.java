@@ -10,8 +10,8 @@ public class SolverTest {
     @Test
     public void test() {
         Solver solver = new Solver();
-        solver.init();
         solver.assumption = true;
+
         solver.load(new LevelImpl(
                 "-**---**-\n" +
                 "****-****\n" +
@@ -22,6 +22,7 @@ public class SolverTest {
                 "--*****--\n" +
                 "---***---\n" +
                 "----*----"));
+
         solver.clear(false);
 
         assertEquals(
