@@ -345,18 +345,18 @@ class Solver implements BoardReader {
                         if (cd < numbers[dr]) { // dr - ый ряд закончили?
                             // незакончили
                             cd = cd + 1; // количество точек
-                            probability[i] = 1; // потом тут будет точка
+                            probability[i] = EXACTLY_BLACK; // потом тут будет точка
                             dot = true;  // поставили точку
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
-                            probability[i] = 0; // потом тут будет пустота
+                            probability[i] = EXACTLY_WHITE; // потом тут будет пустота
                             SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
                             dot = false;  // поставили пустоту
                             dr = dr - 1; // из за смещения
                         }
                     } else { // ничего после пустоты - выходим вообшето
                         if (countRjad == 0) { // в этом ряде ничего больше делать нечего
-                            probability[i] = 0; // канчаем его:)
+                            probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
                         } else {
                             cutFrom = i;
                             b = true; // иначе выходим
@@ -370,7 +370,7 @@ class Solver implements BoardReader {
                         cd = 0;
                         dot = true; // точка у нас
                     }
-                    probability[i] = 1; // потом тут будет точка
+                    probability[i] = EXACTLY_BLACK; // потом тут будет точка
                     cd = cd + 1; // точек стало больше
                 }
                 break;
@@ -385,7 +385,7 @@ class Solver implements BoardReader {
                         SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
                         dr = dr - 1; // из за смещения
                     }
-                    probability[i] = 0; // пустота
+                    probability[i] = EXACTLY_WHITE; // пустота
                 }
                 break;
             }
@@ -410,17 +410,17 @@ class Solver implements BoardReader {
                         if (cd < numbers[dr]) { // dr - ый ряд закончили?
                             // незакончили
                             cd = cd + 1; // количество точек
-                            probability[i] = 1; // потом тут будет точка
+                            probability[i] = EXACTLY_BLACK; // потом тут будет точка
                             dot = true;  // поставили точку
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
-                            probability[i] = 0; // потом тут будет пустота
+                            probability[i] = EXACTLY_WHITE; // потом тут будет пустота
                             countRjad = countRjad - 1;
                             dot = false; // поставили пустоту
                         }
                     } else { // ничего после пустоты - выходим вообшето
                         if (countRjad == 0) { // в этом ряде ничего больше делать нечего
-                            probability[i] = 0; // канчаем его:)
+                            probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
                         } else {
                             cutTo = i;
                             b = true; // иначе выходим
@@ -434,7 +434,7 @@ class Solver implements BoardReader {
                         cd = 0;
                         dot = true; // точка у нас
                     }
-                    probability[i] = 1; // потом тут будет точка
+                    probability[i] = EXACTLY_BLACK; // потом тут будет точка
                     cd = cd + 1; // точек стало больше
                 }
                 break;
@@ -448,7 +448,7 @@ class Solver implements BoardReader {
                         dot = false; // теперь точки нет
                         countRjad = countRjad - 1;
                     }
-                    probability[i] = 0; // пустота
+                    probability[i] = EXACTLY_WHITE; // пустота
                 }
                 break;
             }
@@ -503,8 +503,8 @@ class Solver implements BoardReader {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
                 main.data[x][y] = Dot.UNSET;
-                main.ver[x][y][1] = UNKNOWN;
-                main.ver[x][y][2] = UNKNOWN;
+                main.probability[x][y][Dot.BLACK.code] = UNKNOWN;
+                main.probability[x][y][Dot.WHITE.code] = UNKNOWN;
             }
             if (all) {
                 countNumbersX[x] = 0;
@@ -639,7 +639,7 @@ class Solver implements BoardReader {
     public void solve() {
         boolean b, b2, b5, b6, b7, b8, b9, b11; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
         int h; 
-        double MaxVer1, MaxVer2; 
+        double max1, max2;
         double a1, a2; 
         TPoint pt;
         TAllData data;
@@ -743,7 +743,7 @@ class Solver implements BoardReader {
                         break;
                     }
                     for (int x = 1; x <= lenX; x++) {
-                        data.ver[x][y][1] = probability[x];
+                        data.probability[x][y][Dot.BLACK.code] = probability[x];
 
                         if (data.data[x][y] != array[x]) {
                             data.data[x][y] = array[x];
@@ -786,7 +786,7 @@ class Solver implements BoardReader {
                     }
 
                     for (int y = 1; y <= lenY; y++) {
-                        data.ver[x][y][2] = probability[y];
+                        data.probability[x][y][Dot.WHITE.code] = probability[y];
 
                         if (data.data[x][y] != array[y]) {
                             data.data[x][y] = array[y];
@@ -862,25 +862,25 @@ class Solver implements BoardReader {
                         System.out.println("Ошибка в кроссворде.");
                         b9 = true;
                     } else { // еще не предполагали
-                        MaxVer1 = 0; // пока вероятности такие
-                        MaxVer2 = 0;
+                        max1 = 0; // пока вероятности такие
+                        max2 = 0;
                         b6 = false;
                         for (int x = 1; x <= lenX; x++) {  // по всему полю
                             for (int y = 1; y <= lenY; y++) {
-                                if ((MaxVer1 <= main.ver[x][y][1])
-                                        && (MaxVer2 <= main.ver[x][y][2])
-                                        && (main.ver[x][y][1] < 1)
-                                        && (main.ver[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                if ((max1 <= main.probability[x][y][Dot.BLACK.code])
+                                        && (max2 <= main.probability[x][y][Dot.WHITE.code])
+                                        && (main.probability[x][y][Dot.BLACK.code] < 1) // TODO тут странно
+                                        && (main.probability[x][y][Dot.WHITE.code] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
                                     if (main.noSet[x][y]) continue;
-                                    MaxVer1 = main.ver[x][y][1];
-                                    MaxVer2 = main.ver[x][y][2];
+                                    max1 = main.probability[x][y][Dot.BLACK.code];
+                                    max2 = main.probability[x][y][Dot.WHITE.code];
                                     pt = new TPoint(x, y);
                                     b6 = true;
                                 }
                             }
                         }
 
-                        b6 = b6 && ((MaxVer1 > 0) || (MaxVer2 > 0)); // критерий отбора
+                        b6 = b6 && ((max1 > 0) || (max2 > 0)); // критерий отбора
                         if (b6) { // нашли точку?
                             // да
                             if (!b5) {
@@ -911,13 +911,13 @@ class Solver implements BoardReader {
             for (int y = 1; y <= lenY; y++) {
                 switch (main.data[x][y]) {
                     case BLACK: {
-                        main.ver[x][y][1] = EXACTLY_BLACK;
-                        main.ver[x][y][2] = EXACTLY_BLACK;
+                        main.probability[x][y][Dot.BLACK.code] = EXACTLY_BLACK;
+                        main.probability[x][y][Dot.WHITE.code] = EXACTLY_BLACK;
                     }
                     break;
                     case WHITE: {
-                        main.ver[x][y][1] = EXACTLY_WHITE;
-                        main.ver[x][y][2] = EXACTLY_WHITE;
+                        main.probability[x][y][Dot.BLACK.code] = EXACTLY_WHITE;
+                        main.probability[x][y][Dot.WHITE.code] = EXACTLY_WHITE;
                     }
                     break;
                 }
@@ -960,13 +960,13 @@ class Solver implements BoardReader {
         if (isBlack) {
             data.data[pt.x][pt.y] = Dot.BLACK;
             // меняем вероятности
-            data.ver[pt.x][pt.y][1] = EXACTLY_BLACK;
-            data.ver[pt.x][pt.y][2] = EXACTLY_BLACK;
+            data.probability[pt.x][pt.y][Dot.BLACK.code] = EXACTLY_BLACK;
+            data.probability[pt.x][pt.y][Dot.WHITE.code] = EXACTLY_BLACK;
         } else {
             data.data[pt.x][pt.y] = Dot.WHITE;
             // меняем вероятности
-            data.ver[pt.x][pt.y][1] = EXACTLY_WHITE;
-            data.ver[pt.x][pt.y][2] = EXACTLY_WHITE;
+            data.probability[pt.x][pt.y][Dot.BLACK.code] = EXACTLY_WHITE;
+            data.probability[pt.x][pt.y][Dot.WHITE.code] = EXACTLY_WHITE;
         }
         // строка и солбец, содержащие эту точку пересчитать
         data.chX[pt.y] = true;
@@ -994,8 +994,8 @@ class Solver implements BoardReader {
         for (int x = 1; x <= lenX; x++) { // по всему полю
             for (int y = 1; y <= lenY; y++) {
                 data.data[x][y] = main.data[x][y];
-                data.ver[x][y][1] = main.ver[x][y][1];
-                data.ver[x][y][2] = main.ver[x][y][2];
+                data.probability[x][y][Dot.BLACK.code] = main.probability[x][y][Dot.BLACK.code];
+                data.probability[x][y][Dot.WHITE.code] = main.probability[x][y][Dot.WHITE.code];
                 if (main.data[x][y] == Dot.UNSET) { // пусто?
                     // пусто
                     if (data.tchY[x] && data.tchX[y]) { // если производились изменения
@@ -1501,7 +1501,7 @@ class Solver implements BoardReader {
     }
     
     static class TAllData implements BoardReader {
-        public double[][][] ver = new double[MAX + 1][MAX + 1][3];
+        public double[][][] probability = new double[MAX + 1][MAX + 1][3];
         public boolean[] finX = new boolean[MAX + 1];
         public boolean[] finY = new boolean[MAX + 1];
         public boolean[] chX = new boolean[MAX + 1];
