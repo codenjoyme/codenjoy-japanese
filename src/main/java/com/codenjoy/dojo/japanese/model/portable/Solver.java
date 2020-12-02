@@ -23,6 +23,9 @@ import static java.util.stream.IntStream.range;
 
 class Solver implements BoardReader {
 
+    public static final String JAP_EXT = ".jap";
+    public static final String JDT_EXT = ".jdt";
+
     enum Dot {
 
         UNSET(0), BLACK(1), WHITE(2), ASSUMPTION(3);
@@ -1129,7 +1132,7 @@ class Solver implements BoardReader {
         file.close();
     }
     
-    public void SaveRjadToFile(String fileName) {
+    public void saveNumbersToFile(String fileName) {
         TextFile file = new TextFile();
         file.open(fileName);
         file.openWrite();
@@ -1169,21 +1172,13 @@ class Solver implements BoardReader {
         return new File(fileName).exists();
     }
     
-    public void saveFile(int FilterIndex, String fileName) {
-        switch (FilterIndex) {
-            case 1: SaveRjadToFile(fileName); break;
-            case 2: saveDataToFile(fileName); break;
-        }
-        System.out.println("Японские головоломки - " + extractfileName(fileName));
-    }
-    
     public void loadFile(boolean loadNaklad, String fileName, int FilterIndex) {
         String tstr, tstr2;
         boolean b; // флаг накладывания
 
         if (loadNaklad) {
-            tstr = changeFileExt(fileName, ".jap");
-            tstr2 = changeFileExt(fileName, ".jdt");
+            tstr = changeFileExt(fileName, JAP_EXT);
+            tstr2 = changeFileExt(fileName, JDT_EXT);
             if (fileExists(tstr) && fileExists(tstr2)) {
                 mode = false;
                 loadRjadFromFile(tstr); // грузим файл
@@ -1225,19 +1220,26 @@ class Solver implements BoardReader {
             break;
         }
     }
-    
+
+    public void saveFile(boolean numbersOrData, String fileName) {
+        if (numbersOrData) {
+            saveNumbersToFile(fileName);
+        } else {
+            saveDataToFile(fileName);
+        }
+        System.out.println("Японские головоломки - " + extractfileName(fileName));
+    }
+
     public void loadDataFromFile(String fileName) {
         TextFile file = new TextFile();
         file.open(fileName);
         file.loadData();
-        String line = file.readLine();
-        lenX = Integer.valueOf(line); // ширина
-        line = file.readLine();
-        lenY = Integer.valueOf(line); // высота
+
+        lenX = Integer.valueOf(file.readLine()); // ширина
+        lenY = Integer.valueOf(file.readLine()); // высота
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
-                line = file.readLine();
-                main.data[x][y] = Dot.get(line); // поле
+                main.data[x][y] = Dot.get(file.readLine()); // поле
             }
         }
         file.close();
@@ -1363,8 +1365,7 @@ class Solver implements BoardReader {
     }
 
     private void printOpened() {
-        int a;
-        a = 0;
+        int a = 0;
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
                 if (main.data[x][y] != Dot.UNSET) {
@@ -1407,9 +1408,11 @@ class Solver implements BoardReader {
         getOffset(level);
 
         // X рядки чисел
-        int end = level.size() - offsetX;
+        lenX = level.size() - offsetX;
+        lenY = lenX;
+
         List<Numbers> linesX = lines(level, Number::getY)
-                .subList(0, end);
+                .subList(0, lenX);
         linesX.forEach(numbers -> numbers.fill(offsetX, false));
 
         // Y стобики чисел
@@ -1419,43 +1422,21 @@ class Solver implements BoardReader {
         linesY.forEach(numbers -> numbers.fill(offsetX, false));
 
 
-        for (int y = 0; y < offsetX; y++) {
-            for (int x = 0; x < lines.size() - offsetX; x++) {
-                Numbers numbers = linesX.get(x);
-                int num = numbers.line.get(y);
+        for (int y = 1; y <= offsetX; y++) {
+            for (int x = 1; x <= lenX; x++) {
+                numbersX[y][x] = linesX.get(x - 1).line.get(y - 1);
+                numbersY[x][y] = linesY.get(x - 1).line.get(y - 1);
 
-                numbersX[y + 1][x + 1] = num;
-            }
-        }
-
-        for (int x = 0; x < lines.size() - offsetX; x++) {
-            for (int y = 0; y < offsetX; y++) {
-                if (numbersX[y + 1][x + 1] != 0) {
-                    countNumbersX[x + 1]++;
+                if (numbersX[y][x] != 0) {
+                    countNumbersX[x]++;
+                }
+                if (numbersY[x][y] != 0) {
+                    countNumbersY[x]++;
                 }
             }
         }
 
-        lenX = end;
 
-        for (int x = 0; x < lines.size() - offsetX; x++) {
-            Numbers numbers = linesY.get(x);
-            for (int y = 0; y < offsetX; y++) {
-                int num = numbers.line.get(y);
-
-                numbersY[x + 1][y + 1] = num;
-            }
-        }
-
-        for (int y = 0; y < offsetX; y++) {
-            for (int x = 0; x < lines.size() - offsetX; x++) {
-                if (numbersY[x + 1][y + 1] != 0) {
-                    countNumbersY[x + 1]++;
-                }
-            }
-        }
-
-        lenY = end;
     }
 
     // TODO только для квадратных полей с одинаковой шириной зоны с цифрами
