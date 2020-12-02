@@ -34,10 +34,10 @@ class Solver implements BoardReader {
     TAllData assumptionWhite = new TAllData();// тут предполагаем white
     TAssumption assumption = new TAssumption(); //данные предположения
     static int lenX = 15, lenY = 15; // длинна и высота кроссворда
-    TNumbers numbersX = new TNumbers(); // тут хранятся цифры рядов
-    TNumbers numbersY = new TNumbers();
-    TCountNumbers countNumbersX = new TCountNumbers(); // тут хранятся количества цифер рядов
-    TCountNumbers countNumbersY = new TCountNumbers();
+    int[][] numbersX = new int[MAX + 1][MAX + 1]; // тут хранятся цифры рядов
+    int[][] numbersY = new int[MAX + 1][MAX + 1];
+    int[] countNumbersX = new int[MAX + 1]; // тут хранятся количества цифер рядов
+    int[] countNumbersY = new int[MAX + 1];
 
     public Solver() {
         init();
@@ -61,8 +61,8 @@ class Solver implements BoardReader {
                 main.ver[x][y][2] = -1;
             }
             if (all) {
-                countNumbersX.arr[x] = 0;
-                countNumbersY.arr[x] = 0;
+                countNumbersX[x] = 0;
+                countNumbersY[x] = 0;
             }
             main.finY[x] = false;
             main.finX[x] = false;
@@ -88,23 +88,23 @@ class Solver implements BoardReader {
         int a;
         for (int y = 1; y <= lenY; y++) {
             a = 0;
-            countNumbersX.arr[y] = 1;
+            countNumbersX[y] = 1;
             for (int x = 1; x <= lenX; x++) {
                 if (main.data[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
-                        numbersX.arr[countNumbersX.arr[y]][y] = a;
+                        numbersX[countNumbersX[y]][y] = a;
                         a = 0;
-                        countNumbersX.arr[y] = countNumbersX.arr[y] + 1;
+                        countNumbersX[y] = countNumbersX[y] + 1;
                     }
                 }
             }
             if (a != 0) {
-                numbersX.arr[countNumbersX.arr[y]][y] = a;
-                countNumbersX.arr[y] = countNumbersX.arr[y] + 1;
+                numbersX[countNumbersX[y]][y] = a;
+                countNumbersX[y] = countNumbersX[y] + 1;
             }
-            countNumbersX.arr[y] = countNumbersX.arr[y] - 1;
+            countNumbersX[y] = countNumbersX[y] - 1;
         }
     }
     
@@ -112,23 +112,23 @@ class Solver implements BoardReader {
         int a;
         for (int x = 1; x <= lenX; x++) {
             a = 0;
-            countNumbersY.arr[x] = 1;
+            countNumbersY[x] = 1;
             for (int y = 1; y <= lenY; y++) {
                 if (main.data[x][y] == 1) {
                     a++;
                 } else {
                     if (a != 0) {
-                        numbersY.arr[x][countNumbersY.arr[x]] = a;
+                        numbersY[x][countNumbersY[x]] = a;
                         a = 0;
-                        countNumbersY.arr[x] = countNumbersY.arr[x] + 1;
+                        countNumbersY[x] = countNumbersY[x] + 1;
                     }
                 }
             }
             if (a != 0) {
-                numbersY.arr[x][countNumbersY.arr[x]] = a;
-                countNumbersY.arr[x] = countNumbersY.arr[x] + 1;
+                numbersY[x][countNumbersY[x]] = a;
+                countNumbersY[x] = countNumbersY[x] + 1;
             }
-            countNumbersY.arr[x] = countNumbersY.arr[x] - 1;
+            countNumbersY[x] = countNumbersY[x] - 1;
         }
     }
     
@@ -139,8 +139,8 @@ class Solver implements BoardReader {
         }
         k = 1;
         tx = 1;
-        while (tx <= countNumbersX.arr[y]) {
-            for (j = 1; j <= numbersX.arr[tx][y]; j++) {
+        while (tx <= countNumbersX[y]) {
+            for (j = 1; j <= numbersX[tx][y]; j++) {
                 main.data[k + j - 1][y] = 1;
             }
             main.data[k + j][y] = 0;
@@ -157,8 +157,8 @@ class Solver implements BoardReader {
         }
         k = 1;
         ty = 1;
-        while (ty <= countNumbersY.arr[x]) {
-            for (j = 1; j <= numbersY.arr[x][ty]; j++) {
+        while (ty <= countNumbersY[x]) {
+            for (j = 1; j <= numbersY[x][ty]; j++) {
                 main.data[x][k + j - 1] = 1;
             }
             main.data[x][k + j] = 0;
@@ -172,14 +172,14 @@ class Solver implements BoardReader {
         int a1, a2;
         a1 = 0;
         for (int x = 1; x <= lenX; x++) {
-            for (int y = 1; y <= countNumbersY.arr[x]; y++) {
-                a1 = a1 + numbersY.arr[x][y];
+            for (int y = 1; y <= countNumbersY[x]; y++) {
+                a1 = a1 + numbersY[x][y];
             }
         }
         a2 = 0;
         for (int y = 1; y <= lenY; y++) {
-            for (int x = 1; x <= countNumbersX.arr[y]; x++) {
-                a2 = a2 + numbersX.arr[x][y];
+            for (int x = 1; x <= countNumbersX[y]; x++) {
+                a2 = a2 + numbersX[x][y];
             }
         }
         return new TPoint(a1, a2);  // разница рядов
@@ -210,8 +210,8 @@ class Solver implements BoardReader {
         // сам рачсет
         for (int x = 1; x <= lenX; x++) {
             h = 0;
-            for (int y = 1; y <= countNumbersX.arr[x]; y++) {
-                h = h + numbersX.arr[x][y];
+            for (int y = 1; y <= countNumbersX[x]; y++) {
+                h = h + numbersX[x][y];
             }
             if (h < (lenX / 2)) {
                 main.chY[x] = false;
@@ -219,8 +219,8 @@ class Solver implements BoardReader {
         }
         for (int y = 1; y <= lenY; y++) {
             h = 0;
-            for (int x = 1; x < countNumbersY.arr[y]; x++) {
-                h = h + numbersY.arr[x][y];
+            for (int x = 1; x < countNumbersY[y]; x++) {
+                h = h + numbersY[x][y];
 
             }
             if (h < (lenY / 2)) {
@@ -253,11 +253,11 @@ class Solver implements BoardReader {
         b11 = (lenX > lenY); // нужно для пропуска прогона
         a1 = 0;
         for (int x = 1; x <= lenX; x++) {
-            a1 = a1 + countNumbersY.arr[x];
+            a1 = a1 + countNumbersY[x];
         }
         a2 = 0;
         for (int y = 1; y <= lenY; y++) {
-            a2 = a2 + countNumbersX.arr[y];
+            a2 = a2 + countNumbersX[y];
         }
         b11 = (a1 / lenY > a2 / lenX);
         //----------------------------------------------------------
@@ -284,7 +284,7 @@ class Solver implements BoardReader {
                 for (int y = 1; y <= lenY; y++) {
                     if (data.finX[y]) continue;
                     if (!data.chX[y]) continue;
-                    logic.countRjad = PrepRjadX(data, y, logic.data, logic.rjad); // подготовка строки
+                    logic.countRjad = PrepRjadX(data, y, logic.data, logic.numbers); // подготовка строки
                     logic.len = lenX; // длинна строки
                     if (!logic.calculate()) { // расчет ... если нет ни одной комбины - ошибка
                         if (!tryAssumption) {
@@ -297,10 +297,10 @@ class Solver implements BoardReader {
                         break;
                     }
                     for (int x = 1; x <= lenX; x++) {
-                        data.ver[x][y][1] = logic.probability.arr[x];
+                        data.ver[x][y][1] = logic.probability[x];
 
-                        if (data.data[x][y] != logic.data.arr[x]) {
-                            data.data[x][y] = logic.data.arr[x];
+                        if (data.data[x][y] != logic.data[x]) {
+                            data.data[x][y] = logic.data[x];
                             if (!b) {
                                 b = true; // b = true;
                             }
@@ -326,7 +326,7 @@ class Solver implements BoardReader {
                 for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
                     if (data.finY[x]) continue;
                     if (!data.chY[x]) continue;
-                    logic.countRjad = PrepRjadY(data, x, logic.data, logic.rjad);
+                    logic.countRjad = PrepRjadY(data, x, logic.data, logic.numbers);
                     logic.len = lenY;
                     if (!logic.calculate()) {
                         if (!tryAssumption) {
@@ -340,10 +340,10 @@ class Solver implements BoardReader {
                     }
 
                     for (int y = 1; y <= lenY; y++) {
-                        data.ver[x][y][2] = logic.probability.arr[y];
+                        data.ver[x][y][2] = logic.probability[y];
 
-                        if (data.data[x][y] != logic.data.arr[y]) {
-                            data.data[x][y] = logic.data.arr[y];
+                        if (data.data[x][y] != logic.data[y]) {
+                            data.data[x][y] = logic.data[y];
                             if (!b) {
                                 b = true; // b = true;
                             }
@@ -624,26 +624,26 @@ class Solver implements BoardReader {
         return Result;
     }
     
-    public int PrepRjadX(TAllData data, int y, TData Data, TRjad Rjad) {
+    public int PrepRjadX(TAllData data, int y, int[] arr, int[] numb) {
         // подготовка строки
         for (int x = 1; x <= lenX; x++) {
-            Data.arr[x] = data.data[x][y]; // данные
+            arr[x] = data.data[x][y]; // данные
         }
-        int result = countNumbersX.arr[y]; // длинна ряда
-        for (int x = 1; x <= countNumbersX.arr[y]; x++) {
-            Rjad.arr[x] = numbersX.arr[x][y];  // сам ряд
+        int result = countNumbersX[y]; // длинна ряда
+        for (int x = 1; x <= countNumbersX[y]; x++) {
+            numb[x] = numbersX[x][y];  // сам ряд
         }
         return result;
     }
     
-    public int PrepRjadY(TAllData data, int x, TData Data, TRjad Rjad) {
+    public int PrepRjadY(TAllData data, int x, int[] arr, int[] numb) {
         // подготовка столбца
         for (int y = 1; y <= lenY; y++) {
-            Data.arr[y] = data.data[x][y];  // данные
+            arr[y] = data.data[x][y];  // данные
         }
-        int result = countNumbersY.arr[x]; // длинна ряда
-        for (int y = 1; y <= countNumbersY.arr[x]; y++) {
-            Rjad.arr[y] = numbersY.arr[x][y]; // сам ряд
+        int result = countNumbersY[x]; // длинна ряда
+        for (int y = 1; y <= countNumbersY[x]; y++) {
+            numb[y] = numbersY[x][y]; // сам ряд
         }
         return result;
     }
@@ -658,19 +658,19 @@ class Solver implements BoardReader {
         lenY = Integer.valueOf(line); // высота
         for (int y = 1; y <= lenY; y++) {
             line = file.readLine();
-            countNumbersX.arr[y] = Integer.valueOf(line); // длинна y строки
-            for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+            countNumbersX[y] = Integer.valueOf(line); // длинна y строки
+            for (int x = 1; x <= countNumbersX[y]; x++) {
                 line = file.readLine();
-                numbersX.arr[x][y] = Integer.valueOf(line); // числа y строки
+                numbersX[x][y] = Integer.valueOf(line); // числа y строки
             }
         }
 
         for (int x = 1; x <= lenX; x++) {
             line = file.readLine();
-            countNumbersY.arr[x] = Integer.valueOf(line);       // длинна х столбца
-            for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+            countNumbersY[x] = Integer.valueOf(line);       // длинна х столбца
+            for (int y = 1; y <= countNumbersY[x]; y++) {
                 line = file.readLine();
-                numbersY.arr[x][y] = Integer.valueOf(line);   // числа х столбца
+                numbersY[x][y] = Integer.valueOf(line);   // числа х столбца
             }
         }
         file.close();
@@ -686,19 +686,19 @@ class Solver implements BoardReader {
         file.writeLine(Integer.toString(lenY));
         for (int y = 1; y <= lenY; y++) {
             // длинна y строки
-            file.writeLine(Integer.toString(countNumbersX.arr[y]));
-            for (int x = 1; x <= countNumbersX.arr[y]; x++) {
+            file.writeLine(Integer.toString(countNumbersX[y]));
+            for (int x = 1; x <= countNumbersX[y]; x++) {
                 // числа y строки
-                file.writeLine(Integer.toString(numbersX.arr[x][y]));
+                file.writeLine(Integer.toString(numbersX[x][y]));
             }
         }
 
         for (int x = 1; x <= lenX; x++) {
             // длинна х столбца
-            file.writeLine(Integer.toString(countNumbersY.arr[x]));
-            for (int y = 1; y <= countNumbersY.arr[x]; y++) {
+            file.writeLine(Integer.toString(countNumbersY[x]));
+            for (int y = 1; y <= countNumbersY[x]; y++) {
                 // числа х столбца
-                file.writeLine(Integer.toString(numbersY.arr[x][y]));
+                file.writeLine(Integer.toString(numbersY[x][y]));
             }
         }
         file.close();
@@ -829,42 +829,42 @@ class Solver implements BoardReader {
         a = parseSplitted(input, '.', 0); // количество цифер
         if (!current.xy) { // столбцы
             // заполнение
-            countNumbersY.arr[current.pt.x] = a;
+            countNumbersY[current.pt.x] = a;
             for (int j = 1; j <= a; j++) {
-                numbersY.arr[current.pt.x][j] = parseSplitted(input, '.', j);
+                numbersY[current.pt.x][j] = parseSplitted(input, '.', j);
             }
             int cx = current.pt.x;
             // проверка на ввод нулей - они не нужны
             a = calcCountNumbersY(a, cx);
-            if (countNumbersY.arr[current.pt.x] == 0) return true;
+            if (countNumbersY[current.pt.x] == 0) return true;
             // проверка на ввод чила большего чем ширина
             int j = 0;
             for (i = 1; i <= a; i++) {
-                j = j + numbersY.arr[current.pt.x][i];
+                j = j + numbersY[current.pt.x][i];
             }
             if ((j + a - 1) > lenY) {
-                countNumbersY.arr[current.pt.x] = 0;
+                countNumbersY[current.pt.x] = 0;
                 return true;
             }
             // прорисовать на поле если надо
             if (mode) DataFromRjadY(current.pt.x);
         } else { // строки
             // заполнение
-            countNumbersX.arr[current.pt.x] = a;
+            countNumbersX[current.pt.x] = a;
             for (i = 1; i <= a; i++) {
-                numbersX.arr[i][current.pt.x] = parseSplitted(input, '.', i);
+                numbersX[i][current.pt.x] = parseSplitted(input, '.', i);
             }
             int cx = current.pt.x;
             // проверка на ввод нулей - они не нужны
             a = calcCountNumbersX(a, cx);
-            if (countNumbersX.arr[current.pt.x] == 0) return true;
+            if (countNumbersX[current.pt.x] == 0) return true;
             // проверка на ввод чила большего чем ширина
             int j = 0;
             for (i = 1; i <= a; i++) {
-                j = j + numbersX.arr[i][current.pt.x];
+                j = j + numbersX[i][current.pt.x];
             }
             if ((j + a - 1) > lenX) {
-                countNumbersY.arr[current.pt.x] = 0;
+                countNumbersY[current.pt.x] = 0;
                 return true;
             }
             // прорисовать на поле если надо
@@ -876,13 +876,13 @@ class Solver implements BoardReader {
     private int calcCountNumbersX(int len, int y) {
         int i = 1;
         while (i <= len) {
-            if (numbersX.arr[i][y] == 0) {
+            if (numbersX[i][y] == 0) {
                 if (i != len) {
                     for (int j = i + 1; j <= len; j++) {
-                        numbersX.arr[j - 1][y] = numbersX.arr[j][y];
+                        numbersX[j - 1][y] = numbersX[j][y];
                     }
                 }
-                countNumbersX.arr[y] = countNumbersX.arr[y] - 1;
+                countNumbersX[y] = countNumbersX[y] - 1;
                 len--;
             } else {
                 i++;
@@ -894,13 +894,13 @@ class Solver implements BoardReader {
     private int calcCountNumbersY(int len, int x) {
         int i = 1;
         while (i <= len) {
-            if (numbersY.arr[x][i] == 0) {
+            if (numbersY[x][i] == 0) {
                 if (i != len) {
                     for (int j = i + 1; j <= len; j++) {
-                        numbersY.arr[x][j - 1] = numbersY.arr[x][j];
+                        numbersY[x][j - 1] = numbersY[x][j];
                     }
                 }
-                countNumbersY.arr[x] = countNumbersY.arr[x] - 1;
+                countNumbersY[x] = countNumbersY[x] - 1;
                 len--;
             } else {
                 i++;
@@ -941,14 +941,14 @@ class Solver implements BoardReader {
             int dx = offset(); // горизонтальные циферки вверху, должны быть
             int dy = lenY;     // потому мы их смещаем туда
             for (int x = 1; x <= lenX; x++) {
-                for (int y = 1; y <= countNumbersY.arr[x]; y++) {
-                    add(new Number(pt(x - 1 + dx, y - 1 + dy), numbersY.arr[x][y]));
+                for (int y = 1; y <= countNumbersY[x]; y++) {
+                    add(new Number(pt(x - 1 + dx, y - 1 + dy), numbersY[x][y]));
                 }
             }
             for (int y = 1; y <= lenY; y++) {
-                for (int x = 1; x <= countNumbersX.arr[y]; x++) {
-                    int dxx = offset() - countNumbersX.arr[y]; // атут надо смещать хитрее
-                    add(new Number(pt(x - 1 + dxx, y - 1), numbersX.arr[x][y]));
+                for (int x = 1; x <= countNumbersX[y]; x++) {
+                    int dxx = offset() - countNumbersX[y]; // атут надо смещать хитрее
+                    add(new Number(pt(x - 1 + dxx, y - 1), numbersX[x][y]));
                 }
             }
         }};
@@ -975,14 +975,14 @@ class Solver implements BoardReader {
                 Numbers numbers = linesX.get(x);
                 int num = numbers.line.get(y);
 
-                numbersX.arr[y + 1][x + 1] = num;
+                numbersX[y + 1][x + 1] = num;
             }
         }
 
         for (int x = 0; x < lines.size() - offset; x++) {
             for (int y = 0; y < offset; y++) {
-                if (numbersX.arr[y + 1][x + 1] != 0) {
-                    countNumbersX.arr[x + 1]++;
+                if (numbersX[y + 1][x + 1] != 0) {
+                    countNumbersX[x + 1]++;
                 }
             }
         }
@@ -994,14 +994,14 @@ class Solver implements BoardReader {
             for (int y = 0; y < offset; y++) {
                 int num = numbers.line.get(y);
 
-                numbersY.arr[x + 1][y + 1] = num;
+                numbersY[x + 1][y + 1] = num;
             }
         }
 
         for (int y = 0; y < offset; y++) {
             for (int x = 0; x < lines.size() - offset; x++) {
-                if (numbersY.arr[x + 1][y + 1] != 0) {
-                    countNumbersY.arr[x + 1]++;
+                if (numbersY[x + 1][y + 1] != 0) {
+                    countNumbersY[x + 1]++;
                 }
             }
         }
@@ -1048,14 +1048,6 @@ class Solver implements BoardReader {
                 .entrySet().stream()
                 .map(Solver.Numbers::new)
                 .collect(toList());
-    }
-
-    static class TNumbers {
-        public int[][] arr = new int[MAX + 1][MAX + 1];
-    }
-
-    static class TCountNumbers {
-        public int[] arr = new int[MAX + 1];
     }
     
     static class TAllData implements BoardReader {

@@ -3,23 +3,23 @@ package com.codenjoy.dojo.japanese.model.portable;
 class Logic {
 
     public static final int MAX = 150;
-    public TData data = new TData();
-    public TProbability probability = new TProbability();
-    public TBitArray combinations = new TBitArray();
+    public int[] data = new int[MAX + 1];
+    public double[] probability = new double[MAX + 1];
+    public boolean[] combinations = new boolean[MAX + 1];
 
     public int combinationCount;
     public int len;
     public int cr;
 
-    public TRjad10 rjad10 = new TRjad10();
-    public TRjad rjad = new TRjad();
+    public TRjad10 numbers10 = new TRjad10();
+    public int[] numbers = new int[MAX + 1];
+    
     // обрез
     public int cutFrom;
     public int cutTo;
     public int cutLen;
     public int countRjad;
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public boolean calculate() {
         int j, i0, leni;
         boolean b1;
@@ -27,10 +27,10 @@ class Logic {
         if (countRjad == 0) {
             result = true;
             for (int i = 1; i <= len; i++) {
-                if (data.arr[i] == 1) {
+                if (data[i] == 1) {
                     result = false;
                 } else {
-                    data.arr[i] = 2;
+                    data[i] = 2;
                 }
             }
             return result;
@@ -51,48 +51,48 @@ class Logic {
 //        }
         //-----------
         for (int i = 1; i <= len; i++) {
-            probability.arr[i] = 0;
+            probability[i] = 0;
         }
         //-----------
         result = true;
-        if (!Cut()) {
+        if (!cut()) {
             result = false;
             cr = 1;
             j = 0;
             for (int i = 1; i <= countRjad; i++) {
-                rjad10.arr[cr].b = true;
-                rjad10.arr[cr].c = rjad.arr[i];
-                rjad10.arr[cr + 1].b = false;
-                rjad10.arr[cr + 1].c = 1;
-                j = j + rjad.arr[i] + 1;
+                numbers10.arr[cr].b = true;
+                numbers10.arr[cr].c = numbers[i];
+                numbers10.arr[cr + 1].b = false;
+                numbers10.arr[cr + 1].c = 1;
+                j = j + numbers[i] + 1;
                 cr = cr + 2;
             }
             cr = cr - 1;
             if (j > cutLen) cr = cr - 1;
-            if (j < cutLen) rjad10.arr[cr].c = rjad10.arr[cr].c + cutLen - j;
+            if (j < cutLen) numbers10.arr[cr].c = numbers10.arr[cr].c + cutLen - j;
             //-------
             b1 = true;
             combinationCount = 0;
             while (b1) {
-                getCombinationsFromRjad();
+                getCombinationsFromNumbers();
                 if (testCombination()) {
                     combinationCount = combinationCount + 1;
 
                     i0 = cutFrom;
                     leni = cutTo;
                     for (int i = i0; i <= leni; i++)
-                        if (combinations.arr[i])
-                            probability.arr[i] = probability.arr[i] + 1;
+                        if (combinations[i])
+                            probability[i] = probability[i] + 1;
                 }
-                getRjadFromCombination();
-                b1 = ManipuleRjad();
+                getNumbersFromCombination();
+                b1 = manipuleNumbers();
             }
 
             for (var i = cutFrom; i <= cutTo; i++) {
                 if (combinationCount != 0) {
-                    probability.arr[i] = probability.arr[i] / combinationCount;
+                    probability[i] = probability[i] / combinationCount;
                 } else {
-                    probability.arr[i] = -1;
+                    probability[i] = -1;
                 }
             }
             if (combinationCount == 0) {
@@ -103,26 +103,25 @@ class Logic {
         }
         //-----------
         for (int i = 1; i <= len; i++) {
-            if (probability.arr[i] == 1) data.arr[i] = 1;
-            if (probability.arr[i] == 0) data.arr[i] = 2;
+            if (probability[i] == 1) data[i] = 1;
+            if (probability[i] == 0) data[i] = 2;
         }
 
         return result;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public boolean testCombination() {
         boolean Result = true;
         for (int i = cutFrom; i <= cutTo; i++) {
-            switch (data.arr[i]) {
+            switch (data[i]) {
                 case 0:
                     break;                                         // ничего нет
                 case 1:
-                    if (combinations.arr[i] != true) ;
+                    if (combinations[i] != true) ;
                     Result = false;
                     break;  // точка
                 case 2:
-                    if (combinations.arr[i] != false) ;
+                    if (combinations[i] != false) ;
                     Result = false;
                     break; // пустота
                 case 3:
@@ -133,53 +132,50 @@ class Logic {
         return Result;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void getCombinationsFromRjad() {
+    public void getCombinationsFromNumbers() {
         int x;
         x = cutFrom - 1;
         for (int i = 1; i <= cr; i++) {
-            for (int j = 1; j <= rjad10.arr[i].c; j++) {
-                combinations.arr[x + j] = rjad10.arr[i].b;
+            for (int j = 1; j <= numbers10.arr[i].c; j++) {
+                combinations[x + j] = numbers10.arr[i].b;
             }
-            x = x + rjad10.arr[i].c;
+            x = x + numbers10.arr[i].c;
         }
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void getRjadFromCombination() {
+    public void getNumbersFromCombination() {
         int j, cr;
         int leni, i0;
-        boolean b = combinations.arr[cutFrom];
+        boolean b = combinations[cutFrom];
         j = 1;
         cr = 1;
 
         i0 = (cutFrom + 1);
         leni = cutTo;
         for (int i = i0; i <= leni; i++) {
-            if (combinations.arr[i] ^ b) {
-                rjad10.arr[cr].c = j;
-                rjad10.arr[cr].b = b;
+            if (combinations[i] ^ b) {
+                numbers10.arr[cr].c = j;
+                numbers10.arr[cr].b = b;
                 cr++; ;
                 j = 0;
             }
             j++;
-            b = combinations.arr[i];
+            b = combinations[i];
         }
         if (j != 0) {
-            rjad10.arr[cr].c = j;
-            rjad10.arr[cr].b = b;
+            numbers10.arr[cr].c = j;
+            numbers10.arr[cr].b = b;
         }
         this.cr = cr;
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean ManipuleRjad() {
+    
+    public boolean manipuleNumbers() {
         int a, a2;
         boolean b, b2 = false;
         a = cr;
         boolean Result = true;
         while (true) {
-            if (rjad10.arr[a].b) {
+            if (numbers10.arr[a].b) {
                 a = a - 1;
                 if (a <= 0) {
                     Result = false;
@@ -194,11 +190,11 @@ class Logic {
 
                     if ((a + 2) > cr) {
                         if ((a + 2) != (cr + 1)) break;
-                        if (!rjad10.arr[cr].b) break;
+                        if (!numbers10.arr[cr].b) break;
 
                         b2 = false;
-                        if ((rjad10.arr[a].c != 1) && (cr == 2)) b2 = true;
-                        while (rjad10.arr[a].c == 1) {
+                        if ((numbers10.arr[a].c != 1) && (cr == 2)) b2 = true;
+                        while (numbers10.arr[a].c == 1) {
                             a = a - 2;
                             a2 = a2 + 2;
                             if ((a <= 0) || (a2 == cr)) {
@@ -210,11 +206,11 @@ class Logic {
                         if (b2) break;
 
                         cr++;
-                        rjad10.arr[cr].b = false;
-                        rjad10.arr[cr].c = 0;
+                        numbers10.arr[cr].b = false;
+                        numbers10.arr[cr].c = 0;
                     }
-                    rjad10.arr[a + a2].c = rjad10.arr[a + a2].c + rjad10.arr[a].c - 2;
-                    rjad10.arr[a].c = 2;
+                    numbers10.arr[a + a2].c = numbers10.arr[a + a2].c + numbers10.arr[a].c - 2;
+                    numbers10.arr[a].c = 2;
                     break;
                 }
                 if (b2) {
@@ -230,24 +226,24 @@ class Logic {
                     if (a < 1) break;
                     cr++;
                     for (int i = (cr - 1); i >= 1; i--) { // TODO downto
-                        rjad10.arr[i + 1].c = rjad10.arr[i].c;
-                        rjad10.arr[i + 1].b = rjad10.arr[i].b;
+                        numbers10.arr[i + 1].c = numbers10.arr[i].c;
+                        numbers10.arr[i + 1].b = numbers10.arr[i].b;
                     }
-                    rjad10.arr[1].c = 1;
-                    rjad10.arr[1].b = false;
-                    if (cr > 3) rjad10.arr[3].c = 1;
-                    if (cr == 3) rjad10.arr[3].c = rjad10.arr[3].c - 1;
+                    numbers10.arr[1].c = 1;
+                    numbers10.arr[1].b = false;
+                    if (cr > 3) numbers10.arr[3].c = 1;
+                    if (cr == 3) numbers10.arr[3].c = numbers10.arr[3].c - 1;
                     break;
                 }
-                rjad10.arr[a - 2].c = rjad10.arr[a - 2].c + 1;
-                rjad10.arr[a].c = rjad10.arr[a].c - 1;
-                if (rjad10.arr[a].c == 0) {
+                numbers10.arr[a - 2].c = numbers10.arr[a - 2].c + 1;
+                numbers10.arr[a].c = numbers10.arr[a].c - 1;
+                if (numbers10.arr[a].c == 0) {
                     if (a == cr) {
                         cr--;
                         break;
                     } else {
-                        rjad10.arr[a - 2].c = rjad10.arr[a - 2].c - 1;
-                        rjad10.arr[a].c = rjad10.arr[a].c + 1;
+                        numbers10.arr[a - 2].c = numbers10.arr[a - 2].c - 1;
+                        numbers10.arr[a].c = numbers10.arr[a].c + 1;
                         a = a - 2;
                     }
                     continue;
@@ -259,17 +255,15 @@ class Logic {
         }
         return Result;
     }
-
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public void SHLRjad() {
+    
+    public void SHLNumbers() {
         for (int j = 2; j <= countRjad; j++) {
-            rjad.arr[j - 1] = rjad.arr[j];
+            numbers[j - 1] = numbers[j];
         } // TODO может нижняя строчка тоже
         countRjad = countRjad - 1;
     }
 
-    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    public boolean Cut() {
+    public boolean cut() {
         int i, dr, cd;
         boolean b, dot;
         b = false; // выход из цикла
@@ -280,25 +274,25 @@ class Logic {
         cutFrom = i;
         boolean result;
         do {
-            switch (data.arr[i]) { //
+            switch (data[i]) { //
                 case 0: { // ничего
                     if (dot) { // предидущая точка?
                         // ничего после точки - надо заканчивать ряд
-                        if (cd < rjad.arr[dr]) { // dr - ый ряд закончили?
+                        if (cd < numbers[dr]) { // dr - ый ряд закончили?
                             // незакончили
                             cd = cd + 1; // количество точек
-                            probability.arr[i] = 1; // потом тут будет точка
+                            probability[i] = 1; // потом тут будет точка
                             dot = true;  // поставили точку
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
-                            probability.arr[i] = 0; // потом тут будет пустота
-                            SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
+                            probability[i] = 0; // потом тут будет пустота
+                            SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
                             dot = false;  // поставили пустоту
                             dr = dr - 1; // из за смещения
                         }
                     } else { // ничего после пустоты - выходим вообшето
                         if (countRjad == 0) { // в этом ряде ничего больше делать нечего
-                            probability.arr[i] = 0; // канчаем его:)
+                            probability[i] = 0; // канчаем его:)
                         } else {
                             cutFrom = i;
                             b = true; // иначе выходим
@@ -312,22 +306,22 @@ class Logic {
                         cd = 0;
                         dot = true; // точка у нас
                     }
-                    probability.arr[i] = 1; // потом тут будет точка
+                    probability[i] = 1; // потом тут будет точка
                     cd = cd + 1; // точек стало больше
                 }
                 break;
                 case 2: { // пустота
                     if (dot) { // предыдущая - точка ?
                         // да
-                        if (cd != rjad.arr[dr]) {
+                        if (cd != numbers[dr]) {
                             result = false;
                             return result;
                         }
                         dot = false; // теперь точки нет
-                        SHLRjad(); // сдвигаем ряд (удаляем первый элемент)
+                        SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
                         dr = dr - 1; // из за смещения
                     }
-                    probability.arr[i] = 0; // пустота
+                    probability[i] = 0; // пустота
                 }
                 break;
             }
@@ -345,24 +339,24 @@ class Logic {
         cd = 0; // количество точек
         cutTo = i;
         do {
-            switch (data.arr[i]) { //
+            switch (data[i]) { //
                 case 0: { // ничего
                     if (dot) // предидущая точка?
                     { // ничего после точки - надо заканчивать ряд
-                        if (cd < rjad.arr[dr]) { // dr - ый ряд закончили?
+                        if (cd < numbers[dr]) { // dr - ый ряд закончили?
                             // незакончили
                             cd = cd + 1; // количество точек
-                            probability.arr[i] = 1; // потом тут будет точка
+                            probability[i] = 1; // потом тут будет точка
                             dot = true;  // поставили точку
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
-                            probability.arr[i] = 0; // потом тут будет пустота
+                            probability[i] = 0; // потом тут будет пустота
                             countRjad = countRjad - 1;
                             dot = false; // поставили пустоту
                         }
                     } else { // ничего после пустоты - выходим вообшето
                         if (countRjad == 0) { // в этом ряде ничего больше делать нечего
-                            probability.arr[i] = 0; // канчаем его:)
+                            probability[i] = 0; // канчаем его:)
                         } else {
                             cutTo = i;
                             b = true; // иначе выходим
@@ -376,21 +370,21 @@ class Logic {
                         cd = 0;
                         dot = true; // точка у нас
                     }
-                    probability.arr[i] = 1; // потом тут будет точка
+                    probability[i] = 1; // потом тут будет точка
                     cd = cd + 1; // точек стало больше
                 }
                 break;
                 case 2: { // пустота
                     if (dot) { // предидущая - точка ?
                         // да
-                        if (cd != rjad.arr[dr]) {
+                        if (cd != numbers[dr]) {
                             result = false;
                             return result;
                         }
                         dot = false; // теперь точки нет
                         countRjad = countRjad - 1;
                     }
-                    probability.arr[i] = 0; // пустота
+                    probability[i] = 0; // пустота
                 }
                 break;
             }
@@ -416,15 +410,6 @@ class Logic {
         }
     }
 
-    public static class TDataPt {
-        public TPoint Pos, Ass;
-        public byte Check; // 0 - пусто 1 - чек 2 - нечек
-    }
-
-    public static class TData {
-        public int[] arr = new int[MAX + 1];
-    }
-
     public static class TRjad10Record {
         public int c;
         public boolean b;
@@ -439,17 +424,4 @@ class Logic {
             }
         }
     }
-
-    public static class TRjad {
-        public int[] arr = new int[MAX + 1];
-    }
-
-    public static class TBitArray {
-        public boolean[] arr = new boolean[MAX + 1];
-    }
-
-    public static class TProbability {
-        public double[] arr = new double[MAX + 1];
-    }
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 }
