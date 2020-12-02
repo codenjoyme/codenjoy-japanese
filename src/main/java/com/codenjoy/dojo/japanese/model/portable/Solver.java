@@ -49,6 +49,7 @@ class Solver implements BoardReader {
     int cutTo;
     int cutLen;
     int countRjad;
+    int offset;
 
     public Solver() {
         init();
@@ -1338,23 +1339,19 @@ class Solver implements BoardReader {
         System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (lenX * lenY)) / 10) + "%(" + a + ")");
     }
 
-    public int offset() {
-        return 5;
-    }
-
     @Override
     public int size() {
-        return lenX + offset();
+        return lenX + offset;
     }
 
     @Override
     public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
             List<Point> pixels = (List<Point>) main.elements();
-            pixels.forEach(pixel -> pixel.change(pt(offset(), 0)));
+            pixels.forEach(pixel -> pixel.change(pt(offset, 0)));
             addAll(pixels);
 
-            int dx = offset(); // горизонтальные циферки вверху, должны быть
+            int dx = offset; // горизонтальные циферки вверху, должны быть
             int dy = lenY;     // потому мы их смещаем туда
             for (int x = 1; x <= lenX; x++) {
                 for (int y = 1; y <= countNumbersY[x]; y++) {
@@ -1363,7 +1360,7 @@ class Solver implements BoardReader {
             }
             for (int y = 1; y <= lenY; y++) {
                 for (int x = 1; x <= countNumbersX[y]; x++) {
-                    int dxx = offset() - countNumbersX[y]; // атут надо смещать хитрее
+                    int dxx = offset - countNumbersX[y]; // атут надо смещать хитрее
                     add(new Number(pt(x - 1 + dxx, y - 1), numbersX[x][y]));
                 }
             }
@@ -1371,7 +1368,7 @@ class Solver implements BoardReader {
     }
 
     public void load(Level level) {
-        int offset = getOffset(level);
+        offset = getOffset(level);
 
         // X рядки чисел
         int end = level.size() - offset;
