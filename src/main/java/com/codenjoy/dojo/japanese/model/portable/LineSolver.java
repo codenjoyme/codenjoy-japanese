@@ -1,0 +1,435 @@
+package com.codenjoy.dojo.japanese.model.portable;
+
+import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
+
+public class LineSolver {
+
+    Solver.Dot[] array = new Solver.Dot[MAX + 1];
+    double[] probability = new double[MAX + 1];
+    boolean[] combinations = new boolean[MAX + 1];
+    int combinationCount;
+    int len;
+    int cr;
+    Solver.TNumbers10 numbers10 = new Solver.TNumbers10();
+    int[] numbers = new int[MAX + 1];
+    int cutFrom;
+    int cutTo;
+    int cutLen;
+    int countRjad;
+
+    public void prepareNumbersX(TAllData data, int y, int len, int[] countNumbers, int[][] numbers) {
+        // подготовка строки
+        this.len = len;
+        for (int x = 1; x <= len; x++) {
+            array[x] = data.data[x][y]; // данные
+        }
+        countRjad = countNumbers[y]; // длинна ряда
+        for (int x = 1; x <= countNumbers[y]; x++) {
+            this.numbers[x] = numbers[x][y];  // сам ряд
+        }
+    }
+
+    public void prepareNumbersY(TAllData data, int x, int len, int[] countNumbers, int[][] numbers) {
+        // подготовка столбца
+        this.len = len;
+        for (int y = 1; y <= len; y++) {
+            array[y] = data.data[x][y];  // данные
+        }
+        countRjad = countNumbers[x]; // длинна ряда
+        for (int y = 1; y <= countNumbers[x]; y++) {
+            this.numbers[y] = numbers[x][y]; // сам ряд
+        }
+    }
+
+    public boolean calculate() {
+        boolean b1;
+        boolean result;
+        if (countRjad == 0) {
+            result = true;
+            for (int i = 1; i <= len; i++) {
+                if (array[i] == Solver.Dot.BLACK) {
+                    result = false;
+                } else {
+                    array[i] = Solver.Dot.WHITE;
+                }
+            }
+            return result;
+        }
+        //-----------
+//        b1 = false;
+//        for (int i = 1; i <= glLen; i++) {
+//            b1 = b1 | (glData.arr[i] != 0);
+//            if (b1) break;
+//        }
+//        if (!b1) {
+//            j = 0;
+//            for (int i = 1; i <= glCountRjad; i++) j = j + glRjad.arr[i];
+//            if (j < (glLen / 2)) {
+//                result = true;
+//                return result;
+//            }
+//        }
+        //-----------
+        for (int i = 1; i <= len; i++) {
+            probability[i] = EXACTLY_WHITE;
+        }
+        //-----------
+        result = true;
+        if (!cut()) {
+            result = false;
+            cr = 1;
+            int j = 0;
+            for (int i = 1; i <= countRjad; i++) {
+                numbers10.arr[cr].b = true;
+                numbers10.arr[cr].c = numbers[i];
+                numbers10.arr[cr + 1].b = false;
+                numbers10.arr[cr + 1].c = 1;
+                j = j + numbers[i] + 1;
+                cr = cr + 2;
+            }
+            cr = cr - 1;
+            if (j > cutLen) cr = cr - 1;
+            if (j < cutLen) numbers10.arr[cr].c = numbers10.arr[cr].c + cutLen - j;
+            //-------
+            b1 = true;
+            combinationCount = 0;
+            while (b1) {
+                getCombinationsFromNumbers();
+                if (testCombination()) {
+                    combinationCount = combinationCount + 1;
+
+                    int i0 = cutFrom;
+                    int leni = cutTo;
+                    for (int i = i0; i <= leni; i++) {
+                        if (combinations[i]) {
+                            probability[i] = probability[i] + 1;
+                        }
+                    }
+                }
+                getNumbersFromCombination();
+                b1 = manipuleNumbers();
+            }
+
+            for (var i = cutFrom; i <= cutTo; i++) {
+                if (combinationCount != 0) {
+                    probability[i] = probability[i] / combinationCount;
+                } else {
+                    probability[i] = UNKNOWN;
+                }
+            }
+            if (combinationCount == 0) {
+                return result;
+            } else {
+                result = true;
+            }
+        }
+        //-----------
+        for (int i = 1; i <= len; i++) {
+            if (probability[i] == EXACTLY_BLACK) {
+                array[i] = Solver.Dot.BLACK;
+            }
+            if (probability[i] == EXACTLY_WHITE) {
+                array[i] = Solver.Dot.WHITE;
+            }
+        }
+
+        return result;
+    }
+
+    public boolean testCombination() {
+        for (int i = cutFrom; i <= cutTo; i++) {
+            switch (array[i]) {
+                case UNSET:
+                    break;                                         // ничего нет
+                case BLACK:
+                    if (combinations[i] != true) {
+                        return false;
+                    }
+                    break;
+                case WHITE:
+                    if (combinations[i] != false) {
+                        return false;
+                    }
+                    break;
+                case ASSUMPTION:
+                    break;                                         // предполагаемая точка
+            }
+        }
+        return true;
+    }
+
+    public void getCombinationsFromNumbers() {
+        int x = cutFrom - 1;
+        for (int i = 1; i <= cr; i++) {
+            for (int j = 1; j <= numbers10.arr[i].c; j++) {
+                combinations[x + j] = numbers10.arr[i].b;
+            }
+            x = x + numbers10.arr[i].c;
+        }
+    }
+
+    public void getNumbersFromCombination() {
+        int j, cr;
+        int leni, i0;
+        boolean b = combinations[cutFrom];
+        j = 1;
+        cr = 1;
+
+        i0 = (cutFrom + 1);
+        leni = cutTo;
+        for (int i = i0; i <= leni; i++) {
+            if (combinations[i] ^ b) {
+                numbers10.arr[cr].c = j;
+                numbers10.arr[cr].b = b;
+                cr++; ;
+                j = 0;
+            }
+            j++;
+            b = combinations[i];
+        }
+        if (j != 0) {
+            numbers10.arr[cr].c = j;
+            numbers10.arr[cr].b = b;
+        }
+        this.cr = cr;
+    }
+
+    public boolean manipuleNumbers() {
+        int a, a2;
+        boolean b, b2 = false;
+        a = cr;
+        boolean Result = true;
+        while (true) {
+            if (numbers10.arr[a].b) {
+                a = a - 1;
+                if (a <= 0) {
+                    Result = false;
+                    break;
+                }
+                b = true;
+                while (true) {
+                    a2 = 2;
+                    if (!b)
+                        continue;
+                    b = !b;
+
+                    if ((a + 2) > cr) {
+                        if ((a + 2) != (cr + 1)) break;
+                        if (!numbers10.arr[cr].b) break;
+
+                        b2 = false;
+                        if ((numbers10.arr[a].c != 1) && (cr == 2)) b2 = true;
+                        while (numbers10.arr[a].c == 1) {
+                            a = a - 2;
+                            a2 = a2 + 2;
+                            if ((a <= 0) || (a2 == cr)) {
+                                b2 = true;
+                                break;
+                            }
+                        }
+
+                        if (b2) break;
+
+                        cr++;
+                        numbers10.arr[cr].b = false;
+                        numbers10.arr[cr].c = 0;
+                    }
+                    numbers10.arr[a + a2].c = numbers10.arr[a + a2].c + numbers10.arr[a].c - 2;
+                    numbers10.arr[a].c = 2;
+                    break;
+                }
+                if (b2) {
+                    Result = false;
+                    break;
+                }
+            } else {
+                if (cr == 1) {
+                    Result = false;
+                    break;
+                }
+                if ((a - 2) <= 0) {
+                    if (a < 1) break;
+                    cr++;
+                    for (int i = (cr - 1); i >= 1; i--) { // TODO downto
+                        numbers10.arr[i + 1].c = numbers10.arr[i].c;
+                        numbers10.arr[i + 1].b = numbers10.arr[i].b;
+                    }
+                    numbers10.arr[1].c = 1;
+                    numbers10.arr[1].b = false;
+                    if (cr > 3) numbers10.arr[3].c = 1;
+                    if (cr == 3) numbers10.arr[3].c = numbers10.arr[3].c - 1;
+                    break;
+                }
+                numbers10.arr[a - 2].c = numbers10.arr[a - 2].c + 1;
+                numbers10.arr[a].c = numbers10.arr[a].c - 1;
+                if (numbers10.arr[a].c == 0) {
+                    if (a == cr) {
+                        cr--;
+                        break;
+                    } else {
+                        numbers10.arr[a - 2].c = numbers10.arr[a - 2].c - 1;
+                        numbers10.arr[a].c = numbers10.arr[a].c + 1;
+                        a = a - 2;
+                    }
+                    continue;
+                } else {
+//                   cr--;
+                    break;
+                }
+            }
+        }
+        return Result;
+    }
+
+    public void SHLNumbers() {
+        for (int j = 2; j <= countRjad; j++) {
+            numbers[j - 1] = numbers[j];
+        } // TODO может нижняя строчка тоже
+        countRjad = countRjad - 1;
+    }
+
+    public boolean cut() {
+        int i, dr, cd;
+        boolean b, dot;
+        b = false; // выход из цикла
+        i = 1; // по ряду
+        dot = false; // предидущая - точка, нет
+        dr = 0; // первый ряд точек
+        cd = 0; // количество точек
+        cutFrom = i;
+        boolean result;
+        do {
+            switch (array[i]) {
+                case UNSET: {
+                    if (dot) { // предидущая точка?
+                        // ничего после точки - надо заканчивать ряд
+                        if (cd < numbers[dr]) { // dr - ый ряд закончили?
+                            // незакончили
+                            cd = cd + 1; // количество точек
+                            probability[i] = EXACTLY_BLACK; // потом тут будет точка
+                            dot = true;  // поставили точку
+                        } else { // закончили ряд
+                            cd = 0; // новы ряд еще не начали
+                            probability[i] = EXACTLY_WHITE; // потом тут будет пустота
+                            SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
+                            dot = false;  // поставили пустоту
+                            dr = dr - 1; // из за смещения
+                        }
+                    } else { // ничего после пустоты - выходим вообшето
+                        if (countRjad == 0) { // в этом ряде ничего больше делать нечего
+                            probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
+                        } else {
+                            cutFrom = i;
+                            b = true; // иначе выходим
+                        }
+                    }
+                }
+                break;
+                case BLACK: {
+                    if (!dot) {
+                        dr = dr + 1;
+                        cd = 0;
+                        dot = true; // точка у нас
+                    }
+                    probability[i] = EXACTLY_BLACK; // потом тут будет точка
+                    cd = cd + 1; // точек стало больше
+                }
+                break;
+                case WHITE: {
+                    if (dot) { // предыдущая - точка ?
+                        // да
+                        if (cd != numbers[dr]) {
+                            result = false;
+                            return result;
+                        }
+                        dot = false; // теперь точки нет
+                        SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
+                        dr = dr - 1; // из за смещения
+                    }
+                    probability[i] = EXACTLY_WHITE; // пустота
+                }
+                break;
+            }
+            i++;
+            if ((!b) & (i > len) | (countRjad == 0)) { // достигли конца
+                result = true;
+                return result;
+            }
+        } while (!b);
+
+        b = false; // выход из цикла
+        i = len; // по ряду
+        dot = false; // предидущая - точка, нет
+        dr = countRjad + 1; // первый ряд точек
+        cd = 0; // количество точек
+        cutTo = i;
+        do {
+            switch (array[i]) {
+                case UNSET: {
+                    if (dot) // предидущая точка?
+                    { // ничего после точки - надо заканчивать ряд
+                        if (cd < numbers[dr]) { // dr - ый ряд закончили?
+                            // незакончили
+                            cd = cd + 1; // количество точек
+                            probability[i] = EXACTLY_BLACK; // потом тут будет точка
+                            dot = true;  // поставили точку
+                        } else { // закончили ряд
+                            cd = 0; // новы ряд еще не начали
+                            probability[i] = EXACTLY_WHITE; // потом тут будет пустота
+                            countRjad = countRjad - 1;
+                            dot = false; // поставили пустоту
+                        }
+                    } else { // ничего после пустоты - выходим вообшето
+                        if (countRjad == 0) { // в этом ряде ничего больше делать нечего
+                            probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
+                        } else {
+                            cutTo = i;
+                            b = true; // иначе выходим
+                        }
+                    }
+                }
+                break;
+                case BLACK: {
+                    if (!dot) {
+                        dr = dr - 1;
+                        cd = 0;
+                        dot = true; // точка у нас
+                    }
+                    probability[i] = EXACTLY_BLACK; // потом тут будет точка
+                    cd = cd + 1; // точек стало больше
+                }
+                break;
+                case WHITE: {
+                    if (dot) { // предидущая - точка ?
+                        // да
+                        if (cd != numbers[dr]) {
+                            result = false;
+                            return result;
+                        }
+                        dot = false; // теперь точки нет
+                        countRjad = countRjad - 1;
+                    }
+                    probability[i] = EXACTLY_WHITE; // пустота
+                }
+                break;
+            }
+            i--;
+            if ((!b) && (i < 1) || (countRjad == 0)) { // достигли конца
+                result = true;
+                return result;
+            }
+        } while (!b);
+
+        cutLen = cutTo - cutFrom + 1;
+        result = ((cutFrom > cutTo) || (countRjad == 0));
+        return result;
+    }
+
+    public double probability(int x) {
+        return probability[x];
+    }
+
+    public Dot array(int x) {
+        return array[x];
+    }
+}

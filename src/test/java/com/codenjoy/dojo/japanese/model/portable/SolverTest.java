@@ -14,7 +14,47 @@ public class SolverTest {
 
     @Test
     public void case1() {
-        assertS("-**---**-\n" +
+        assertS(true,
+                "-**---**-\n" +
+                "****-****\n" +
+                "*********\n" +
+                "*********\n" +
+                "*********\n" +
+                "-*******-\n" +
+                "--*****--\n" +
+                "---***---\n" +
+                "----*----",
+
+                "           \n" +
+                "  467777764\n" +
+                "22---------\n" +
+                "44---------\n" +
+                " 9---------\n" +
+                " 9---------\n" +
+                " 9---------\n" +
+                " 7---------\n" +
+                " 5---------\n" +
+                " 3---------\n" +
+                " 1---------\n",
+
+                "           \n" +
+                "  467777764\n" +
+                "22---------\n" +
+                "44****-****\n" +
+                " 9*********\n" +
+                " 9*********\n" +
+                " 9*********\n" +
+                " 7-*******-\n" +
+                " 5--*****--\n" +
+                " 3----*----\n" +
+                " 1----*----\n");
+    }
+
+    @Test
+    public void case1_2() {
+        assertS(false,
+
+                "-**---**-\n" +
                 "****-****\n" +
                 "*********\n" +
                 "*********\n" +
@@ -51,7 +91,7 @@ public class SolverTest {
 
     @Test
     public void case2() {
-        assertS("---------\n" +
+        assertS(true, "---------\n" +
                 "---------\n" +
                 "*********\n" +
                 "*---*---*\n" +
@@ -1893,10 +1933,10 @@ public class SolverTest {
         return file.getName() + "\n" + solver.printAll() + "\n\n";
     }
 
-    private void assertS(String map, String expected, String expected1) {
+    private void assertS(boolean tryAssumption, String map, String expected, String expected1) {
         // given
         Solver solver = new Solver();
-        solver.tryAssumption = true;
+        solver.tryAssumption = tryAssumption;
         solver.load(new LevelImpl(map));
         solver.clear(false);
         assertEquals(expected, solver.printAll());
