@@ -35,26 +35,26 @@ public class LineSolver {
     private int cutTo;
     private int cutLen;
 
-    public void prepareNumbersX(TAllData data, int y, int len, int[] countNumbers, int[][] numbers) {
+    public void prepareNumbersX(TAllData data, int y, int len, int countNumbers, int[][] numbers) {
         // подготовка строки
         this.len = len;
         for (int x = 1; x <= len; x++) {
             array[x] = data.data[x][y]; // данные
         }
-        this.countNumbers = countNumbers[y]; // длинна ряда
-        for (int x = 1; x <= countNumbers[y]; x++) {
+        this.countNumbers = countNumbers; // длинна ряда
+        for (int x = 1; x <= countNumbers; x++) {
             this.numbers[x] = numbers[x][y];  // сам ряд
         }
     }
 
-    public void prepareNumbersY(TAllData data, int x, int len, int[] countNumbers, int[][] numbers) {
+    public void prepareNumbersY(TAllData data, int x, int len, int countNumbers, int[][] numbers) {
         // подготовка столбца
         this.len = len;
         for (int y = 1; y <= len; y++) {
             array[y] = data.data[x][y];  // данные
         }
-        this.countNumbers = countNumbers[x]; // длинна ряда
-        for (int y = 1; y <= countNumbers[x]; y++) {
+        this.countNumbers = countNumbers; // длинна ряда
+        for (int y = 1; y <= countNumbers; y++) {
             this.numbers[y] = numbers[x][y]; // сам ряд
         }
     }
