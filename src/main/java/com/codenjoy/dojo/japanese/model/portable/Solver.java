@@ -55,7 +55,8 @@ class Solver implements BoardReader {
     int cutTo;
     int cutLen;
     int countRjad;
-    int offset;
+    int offsetX;
+    int offsetY;
 
     public Solver() {
         init();
@@ -1089,6 +1090,20 @@ class Solver implements BoardReader {
                 numbersY[x][y] = Integer.valueOf(line);   // числа х столбца
             }
         }
+
+        int maxY = 0;
+        for (int y = 1; y <= lenY; y++) {
+            maxY = Math.max(maxY, countNumbersX[y]);
+        }
+
+        int maxX = 0;
+        for (int x = 1; x <= lenX; x++) {
+            maxX = Math.max(maxX, countNumbersX[x]);
+        }
+        offsetX = maxX;
+        offsetY = maxY;
+
+
         file.close();
     }
     
@@ -1340,17 +1355,17 @@ class Solver implements BoardReader {
 
     @Override
     public int size() {
-        return lenX + offset;
+        return Math.max(lenX + offsetX, lenY + offsetY);
     }
 
     @Override
     public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
             List<Point> pixels = (List<Point>) main.elements();
-            pixels.forEach(pixel -> pixel.change(pt(offset, 0)));
+            pixels.forEach(pixel -> pixel.change(pt(offsetX, 0)));
             addAll(pixels);
 
-            int dx = offset; // горизонтальные циферки вверху, должны быть
+            int dx = offsetX; // горизонтальные циферки вверху, должны быть
             int dy = lenY;     // потому мы их смещаем туда
             for (int x = 1; x <= lenX; x++) {
                 for (int y = 1; y <= countNumbersY[x]; y++) {
@@ -1359,7 +1374,7 @@ class Solver implements BoardReader {
             }
             for (int y = 1; y <= lenY; y++) {
                 for (int x = 1; x <= countNumbersX[y]; x++) {
-                    int dxx = offset - countNumbersX[y]; // атут надо смещать хитрее
+                    int dxx = offsetX - countNumbersX[y]; // атут надо смещать хитрее
                     add(new Number(pt(x - 1 + dxx, y - 1), numbersX[x][y]));
                 }
             }
@@ -1367,23 +1382,23 @@ class Solver implements BoardReader {
     }
 
     public void load(Level level) {
-        offset = getOffset(level);
+        getOffset(level);
 
         // X рядки чисел
-        int end = level.size() - offset;
+        int end = level.size() - offsetX;
         List<Numbers> linesX = lines(level, Number::getY)
                 .subList(0, end);
-        linesX.forEach(numbers -> numbers.fill(offset, false));
+        linesX.forEach(numbers -> numbers.fill(offsetX, false));
 
         // Y стобики чисел
         List<Numbers> lines = lines(level, Number::getX);
         List<Numbers> linesY = lines
-                .subList(offset, lines.size());
-        linesY.forEach(numbers -> numbers.fill(offset, false));
+                .subList(offsetX, lines.size());
+        linesY.forEach(numbers -> numbers.fill(offsetX, false));
 
 
-        for (int y = 0; y < offset; y++) {
-            for (int x = 0; x < lines.size() - offset; x++) {
+        for (int y = 0; y < offsetX; y++) {
+            for (int x = 0; x < lines.size() - offsetX; x++) {
                 Numbers numbers = linesX.get(x);
                 int num = numbers.line.get(y);
 
@@ -1391,8 +1406,8 @@ class Solver implements BoardReader {
             }
         }
 
-        for (int x = 0; x < lines.size() - offset; x++) {
-            for (int y = 0; y < offset; y++) {
+        for (int x = 0; x < lines.size() - offsetX; x++) {
+            for (int y = 0; y < offsetX; y++) {
                 if (numbersX[y + 1][x + 1] != 0) {
                     countNumbersX[x + 1]++;
                 }
@@ -1401,17 +1416,17 @@ class Solver implements BoardReader {
 
         lenX = end;
 
-        for (int x = 0; x < lines.size() - offset; x++) {
+        for (int x = 0; x < lines.size() - offsetX; x++) {
             Numbers numbers = linesY.get(x);
-            for (int y = 0; y < offset; y++) {
+            for (int y = 0; y < offsetX; y++) {
                 int num = numbers.line.get(y);
 
                 numbersY[x + 1][y + 1] = num;
             }
         }
 
-        for (int y = 0; y < offset; y++) {
-            for (int x = 0; x < lines.size() - offset; x++) {
+        for (int y = 0; y < offsetX; y++) {
+            for (int x = 0; x < lines.size() - offsetX; x++) {
                 if (numbersY[x + 1][y + 1] != 0) {
                     countNumbersY[x + 1]++;
                 }
@@ -1421,14 +1436,15 @@ class Solver implements BoardReader {
         lenY = end;
     }
 
-    // только для квадратных полей с одинаковой шириной зоны с цифрами
-    private int getOffset(Level level) {
+    // TODO только для квадратных полей с одинаковой шириной зоны с цифрами
+    private void getOffset(Level level) {
         List<Nan> nans = level.nans();
         Point pt = pt(0, level.size() - 1);
         while (nans.contains(pt)) {
             pt.change(pt(1, -1));
         }
-        return pt.getX();
+        offsetX = pt.getX();
+        offsetY = level.size() - 1 - pt.getY();
     }
 
     static class Numbers {
