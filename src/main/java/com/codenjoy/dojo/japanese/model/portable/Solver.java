@@ -57,8 +57,8 @@ class Solver implements BoardReader {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
                 main.data.arr[x][y] = 0;
-                main.ver.arr[x][y][1] = -1;
-                main.ver.arr[x][y][2] = -1;
+                main.ver[x][y][1] = -1;
+                main.ver[x][y][2] = -1;
             }
             if (all) {
                 countNumbersX.arr[x] = 0;
@@ -297,7 +297,7 @@ class Solver implements BoardReader {
                         break;
                     }
                     for (int x = 1; x <= lenX; x++) {
-                        data.ver.arr[x][y][1] = logic.probability.arr[x];
+                        data.ver[x][y][1] = logic.probability.arr[x];
 
                         if (data.data.arr[x][y] != logic.data.arr[x]) {
                             data.data.arr[x][y] = logic.data.arr[x];
@@ -340,7 +340,7 @@ class Solver implements BoardReader {
                     }
 
                     for (int y = 1; y <= lenY; y++) {
-                        data.ver.arr[x][y][2] = logic.probability.arr[y];
+                        data.ver[x][y][2] = logic.probability.arr[y];
 
                         if (data.data.arr[x][y] != logic.data.arr[y]) {
                             data.data.arr[x][y] = logic.data.arr[y];
@@ -421,13 +421,13 @@ class Solver implements BoardReader {
                         b6 = false;
                         for (int x = 1; x <= lenX; x++) {  // по всему полю
                             for (int y = 1; y <= lenY; y++) {
-                                if ((MaxVer1 <= main.ver.arr[x][y][1])
-                                        && (MaxVer2 <= main.ver.arr[x][y][2])
-                                        && (main.ver.arr[x][y][1] < 1)
-                                        && (main.ver.arr[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                if ((MaxVer1 <= main.ver[x][y][1])
+                                        && (MaxVer2 <= main.ver[x][y][2])
+                                        && (main.ver[x][y][1] < 1)
+                                        && (main.ver[x][y][2] < 1)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
                                     if (main.noSet.arr[x][y]) continue;
-                                    MaxVer1 = main.ver.arr[x][y][1];
-                                    MaxVer2 = main.ver.arr[x][y][2];
+                                    MaxVer1 = main.ver[x][y][1];
+                                    MaxVer2 = main.ver[x][y][2];
                                     pt = new TPoint(x, y);
                                     b6 = true;
                                 }
@@ -479,13 +479,13 @@ class Solver implements BoardReader {
             for (int y = 1; y <= lenY; y++) {
                 switch (main.data.arr[x][y]) {
                     case 1: {
-                        main.ver.arr[x][y][1] = 1;
-                        main.ver.arr[x][y][2] = 1;
+                        main.ver[x][y][1] = 1;
+                        main.ver[x][y][2] = 1;
                     }
                     break;
                     case 2: {
-                        main.ver.arr[x][y][1] = 0;
-                        main.ver.arr[x][y][2] = 0;
+                        main.ver[x][y][1] = 0;
+                        main.ver[x][y][2] = 0;
                     }
                     break;
                 }
@@ -522,13 +522,13 @@ class Solver implements BoardReader {
         if (bDot) {
             data.data.arr[pt.x][pt.y] = 1;
             // меняем вероятности
-            data.ver.arr[pt.x][pt.y][1] = 1;
-            data.ver.arr[pt.x][pt.y][2] = 1;
+            data.ver[pt.x][pt.y][1] = 1;
+            data.ver[pt.x][pt.y][2] = 1;
         } else {
             data.data.arr[pt.x][pt.y] = 2;
             // меняем вероятности
-            data.ver.arr[pt.x][pt.y][1] = 0;
-            data.ver.arr[pt.x][pt.y][2] = 0;
+            data.ver[pt.x][pt.y][1] = 0;
+            data.ver[pt.x][pt.y][2] = 0;
         }
         // строка и солбец, содержащие эту точку пересчитать
         data.chX.arr[pt.y] = true;
@@ -562,8 +562,8 @@ class Solver implements BoardReader {
         for (int x = 1; x <= lenX; x++) { // по всему полю
             for (int y = 1; y <= lenY; y++) {
                 data.data.arr[x][y] = main.data.arr[x][y];
-                data.ver.arr[x][y][1] = main.ver.arr[x][y][1];
-                data.ver.arr[x][y][2] = main.ver.arr[x][y][2];
+                data.ver[x][y][1] = main.ver[x][y][1];
+                data.ver[x][y][2] = main.ver[x][y][2];
                 b = (main.data.arr[x][y] == 0); // пусто?
                 if (b) {
                     // пусто
@@ -1092,13 +1092,9 @@ class Solver implements BoardReader {
     static class TCountNumbers {
         public int[] arr = new int[MAX + 1];
     }
-
-    static class TXYVer {
-        public double[][][] arr = new double[MAX + 1][MAX + 1][3];
-    }
-
+    
     static class TAllData {
-        public TXYVer ver = new TXYVer();
+        public double[][][] ver = new double[MAX + 1][MAX + 1][3];
         public TFinish finX = new TFinish();
         public TFinish finY = new TFinish();
         public TFinish chX = new TFinish();
