@@ -1,83 +1,39 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
-import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.IntStream.range;
 
 class Solver implements BoardReader {
 
     public static final String JAP_EXT = ".jap";
     public static final String JDT_EXT = ".jdt";
 
-
-    enum Dot {
-
-        UNSET(0), BLACK(1), WHITE(2), ASSUMPTION(3);
-
-        private int code;
-
-        Dot(int code) {
-            this.code = code;
-        }
-
-        public static Dot get(String data) {
-            return Arrays.stream(Dot.values())
-                    .filter(dot -> dot.code == Integer.valueOf(data))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Верный код для Dot"));
-        }
-
-        public boolean isBlack() {
-            return this == BLACK;
-        }
-
-        public boolean isWhite() {
-            return this == WHITE;
-        }
-
-        public Dot invert() {
-            if (this == BLACK) {
-                return WHITE;
-            } else if (this == WHITE) {
-                return BLACK;
-            } else {
-                return UNSET;
-            }
-        }
-    }
-
     public static final double EXACTLY_BLACK = 1.0;
     public static final double EXACTLY_WHITE = 0.0;
     public static final double UNKNOWN = -1.0;
+
     public static final int MAX = 150;
 
-    private TPoint previous;
     private boolean mode;
     public boolean withAssumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
-    private TCurrent current = new TCurrent();
     private TAllData main = new TAllData(); // тут решение точное
     private TAllData assumptionBlack = new TAllData(); // тут предполагаем black
     private TAllData assumptionWhite = new TAllData();// тут предполагаем white
     private Assumption assumption; //данные предположения
-    private static int lenX = 15, lenY = 15; // длинна и высота кроссворда
+    public static int lenX = 15, lenY = 15; // длинна и высота кроссворда
     private int[][] numbersX = new int[MAX + 1][MAX + 1]; // тут хранятся цифры рядов
     private int[][] numbersY = new int[MAX + 1][MAX + 1];
     private int[] countNumbersX = new int[MAX + 1]; // тут хранятся количества цифер рядов
@@ -89,16 +45,6 @@ class Solver implements BoardReader {
 
     public Solver() {
         init();
-    }
-
-    public static class TPoint {
-        public int x;
-        public int y;
-
-        public TPoint(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
     }
 
     public String printData() {
@@ -115,8 +61,8 @@ class Solver implements BoardReader {
         for (int x = 1; x <= MAX; x++) {
             for (int y = 1; y <= MAX; y++) {
                 main.data[x][y] = Dot.UNSET;
-                main.probability[x][y][Dot.BLACK.code] = UNKNOWN;
-                main.probability[x][y][Dot.WHITE.code] = UNKNOWN;
+                main.probability[x][y][Dot.BLACK.code()] = UNKNOWN;
+                main.probability[x][y][Dot.WHITE.code()] = UNKNOWN;
             }
             if (all) {
                 countNumbersX[x] = 0;
@@ -134,9 +80,6 @@ class Solver implements BoardReader {
         main = new TAllData();
         assumptionBlack = new TAllData();
         assumptionWhite = new TAllData();
-        previous = new TPoint(-1, -1);
-        current.xy = true;
-        current.pt = new TPoint(1, 1);
         lenX = 15;
         lenY = 15;
     }
@@ -244,6 +187,8 @@ class Solver implements BoardReader {
 
     
     public void printField() {
+        System.out.println(printAll());
+        System.out.println();
         System.out.println();
     }
     
@@ -352,7 +297,7 @@ class Solver implements BoardReader {
                         break;
                     }
                     for (int x = 1; x <= lenX; x++) {
-                        data.probability[x][y][Dot.BLACK.code] = lineSolver.probability(x);
+                        data.probability[x][y][Dot.BLACK.code()] = lineSolver.probability(x);
 
                         if (data.data[x][y] != lineSolver.array(x)) {
                             data.data[x][y] = lineSolver.array(x);
@@ -398,7 +343,7 @@ class Solver implements BoardReader {
                     }
 
                     for (int y = 1; y <= lenY; y++) {
-                        data.probability[x][y][Dot.WHITE.code] = lineSolver.probability(y);
+                        data.probability[x][y][Dot.WHITE.code()] = lineSolver.probability(y);
 
                         if (data.data[x][y] != lineSolver.array(y)) {
                             data.data[x][y] = lineSolver.array(y);
@@ -441,7 +386,7 @@ class Solver implements BoardReader {
                 if (assumption.inProgress()) {
                     if (assumption.isBlack()) {
                         // после BLACK пробуем предположить WHITE
-                        tryAssumption(assumption.at, Dot.WHITE);
+                        tryAssumption(assumption.at(), Dot.WHITE);
                         wasChanges = true;
                     } else {
                         // были предположения на WHITE (а до этого на BLACK),
@@ -452,7 +397,7 @@ class Solver implements BoardReader {
                             wasError = true;
                         } else if (assumption.noErrors()) {
                             // нет ошибок ни там ни там - значит неизвестно
-                            pt = assumption.at;
+                            pt = assumption.at();
                             main.noSet[pt.x][pt.y] = true;
                             main.data[pt.x][pt.y] = Dot.UNSET;
                             draw(pt);
@@ -478,13 +423,13 @@ class Solver implements BoardReader {
                         foundMaxProbDot = false;
                         for (int x = 1; x <= lenX; x++) {  // по всему полю
                             for (int y = 1; y <= lenY; y++) {
-                                if ((max1 <= main.probability[x][y][Dot.BLACK.code])
-                                        && (max2 <= main.probability[x][y][Dot.WHITE.code])
-                                        && (main.probability[x][y][Dot.BLACK.code] < 1.0) // TODO тут странно, вероятность белой точки вроде как EXACLTY_WHITE
-                                        && (main.probability[x][y][Dot.WHITE.code] < 1.0)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
+                                if ((max1 <= main.probability[x][y][Dot.BLACK.code()])
+                                        && (max2 <= main.probability[x][y][Dot.WHITE.code()])
+                                        && (main.probability[x][y][Dot.BLACK.code()] < 1.0) // TODO тут странно, вероятность белой точки вроде как EXACLTY_WHITE
+                                        && (main.probability[x][y][Dot.WHITE.code()] < 1.0)) { // ищем наиболее вероятную точку, но не с вероятностью 1 и 0
                                     if (main.noSet[x][y]) continue;
-                                    max1 = main.probability[x][y][Dot.BLACK.code];
-                                    max2 = main.probability[x][y][Dot.WHITE.code];
+                                    max1 = main.probability[x][y][Dot.BLACK.code()];
+                                    max2 = main.probability[x][y][Dot.WHITE.code()];
                                     pt = new TPoint(x, y);
                                     foundMaxProbDot = true;
                                 }
@@ -522,28 +467,18 @@ class Solver implements BoardReader {
             for (int y = 1; y <= lenY; y++) {
                 switch (main.data[x][y]) {
                     case BLACK: {
-                        main.probability[x][y][Dot.BLACK.code] = EXACTLY_BLACK;
-                        main.probability[x][y][Dot.WHITE.code] = EXACTLY_BLACK;
+                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_BLACK;
+                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_BLACK;
                     }
                     break;
                     case WHITE: {
-                        main.probability[x][y][Dot.BLACK.code] = EXACTLY_WHITE;
-                        main.probability[x][y][Dot.WHITE.code] = EXACTLY_WHITE;
+                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_WHITE;
+                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_WHITE;
                     }
                     break;
                 }
             }
         }
-//        if (b8) { // если нажали остановить
-//            if (assumption.b) {
-//                main.data[assumption.pt.x][assumption.pt.y] = Dot.UNSET;
-//            }
-//            assumption.b = false;
-//            RefreshPole(); // прорисовка поля
-//            printOpened();
-//        } else {
-//            // решили кроссворд!
-//        }
 
         printField(); // прорисовка поля
         printOpened();
@@ -558,16 +493,15 @@ class Solver implements BoardReader {
     // 4) может случиться так, что ни в 1) ни в 2) ошибок нет (в решении продвинулись но не до конца), тогда мы точно не знаем какого цвета там точка
     // и тогда нам надо вернуться в основной режим с объектом main и порпобовать то же где-то еще
     private TAllData getData() {
-        if (assumption.color == Dot.UNSET) {
-            return main;
-        }
-
-        if (assumption.color == Dot.BLACK) {
+        if (assumption.isBlack()) {
             return assumptionBlack;
         }
 
-        // assumption.color == Dot.WHITE
-        return assumptionWhite;
+        if (assumption.isWhite()) {
+            return assumptionWhite;
+        }
+
+        return main;
     }
 
     private int[] numbersX(int y) {
@@ -606,17 +540,17 @@ class Solver implements BoardReader {
     
     public void updateAssumptionDot(Dot dot) {
         TAllData data = getAssumptionData(dot);
-        TPoint pt = assumption.at;
+        TPoint pt = assumption.at();
         if (dot.isBlack()) {
             data.data[pt.x][pt.y] = Dot.BLACK;
             // меняем вероятности
-            data.probability[pt.x][pt.y][Dot.BLACK.code] = EXACTLY_BLACK;
-            data.probability[pt.x][pt.y][Dot.WHITE.code] = EXACTLY_BLACK;
+            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_BLACK;
+            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_BLACK;
         } else {
             data.data[pt.x][pt.y] = Dot.WHITE;
             // меняем вероятности
-            data.probability[pt.x][pt.y][Dot.BLACK.code] = EXACTLY_WHITE;
-            data.probability[pt.x][pt.y][Dot.WHITE.code] = EXACTLY_WHITE;
+            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_WHITE;
+            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_WHITE;
         }
         // строка и солбец, содержащие эту точку пересчитать
         data.chX[pt.y] = true;
@@ -640,14 +574,14 @@ class Solver implements BoardReader {
     }
     
     public void tryAssumption(TPoint pt, Dot dot) {
-        assumption.start(dot);
+        assumption.start(pt, dot);
 
         TAllData data = getAssumptionData(dot);
         for (int x = 1; x <= lenX; x++) { // по всему полю
             for (int y = 1; y <= lenY; y++) {
                 data.data[x][y] = main.data[x][y];
-                data.probability[x][y][Dot.BLACK.code] = main.probability[x][y][Dot.BLACK.code];
-                data.probability[x][y][Dot.WHITE.code] = main.probability[x][y][Dot.WHITE.code];
+                data.probability[x][y][Dot.BLACK.code()] = main.probability[x][y][Dot.BLACK.code()];
+                data.probability[x][y][Dot.WHITE.code()] = main.probability[x][y][Dot.WHITE.code()];
 
                 if (main.data[x][y] == Dot.UNSET) { // пусто в оригинале?
                     // пусто
@@ -669,8 +603,6 @@ class Solver implements BoardReader {
             data.finX[y] = main.finX[y];
             data.tchX[y] = false;
         }
-        assumption.at = pt;
-        assumption.color = dot;
         updateAssumptionDot(dot);
     }
 
@@ -870,7 +802,7 @@ class Solver implements BoardReader {
         for (int x = 1; x <= lenX; x++) {
             for (int y = 1; y <= lenY; y++) {
                 // поле
-                file.writeLine(Integer.toString(main.data[x][y].code));
+                file.writeLine(Integer.toString(main.data[x][y].code()));
             }
         }
         file.close();
@@ -880,6 +812,7 @@ class Solver implements BoardReader {
         return 0; // TODO надо реализовать
     }
 
+    // TODO метод в котором уже продумано заполнение, вангую повторно можно будет использовать
     private boolean fill(String input) {
         int a;// убираем дубл. точки
         int i = 2;
@@ -896,48 +829,50 @@ class Solver implements BoardReader {
         if (input.charAt(1) == '.') input = input.substring(2, input.length() - 1);
         if (input.equals("")) return true;
         a = parseSplitted(input, '.', 0); // количество цифер
-        if (!current.xy) { // столбцы
+        TPoint pt = new TPoint(1, 1); // координаты
+        boolean xy = true; // ряд / столбец
+        if (!xy) { // столбцы
             // заполнение
-            countNumbersY[current.pt.x] = a;
+            countNumbersY[pt.x] = a;
             for (int j = 1; j <= a; j++) {
-                numbersY[current.pt.x][j] = parseSplitted(input, '.', j);
+                numbersY[pt.x][j] = parseSplitted(input, '.', j);
             }
-            int cx = current.pt.x;
+            int cx = pt.x;
             // проверка на ввод нулей - они не нужны
             a = calcCountNumbersY(a, cx);
-            if (countNumbersY[current.pt.x] == 0) return true;
+            if (countNumbersY[pt.x] == 0) return true;
             // проверка на ввод чила большего чем ширина
             int j = 0;
             for (i = 1; i <= a; i++) {
-                j = j + numbersY[current.pt.x][i];
+                j = j + numbersY[pt.x][i];
             }
             if ((j + a - 1) > lenY) {
-                countNumbersY[current.pt.x] = 0;
+                countNumbersY[pt.x] = 0;
                 return true;
             }
             // прорисовать на поле если надо
-            if (mode) dataFromNumbersY(current.pt.x);
+            if (mode) dataFromNumbersY(pt.x);
         } else { // строки
             // заполнение
-            countNumbersX[current.pt.x] = a;
+            countNumbersX[pt.x] = a;
             for (i = 1; i <= a; i++) {
-                numbersX[i][current.pt.x] = parseSplitted(input, '.', i);
+                numbersX[i][pt.x] = parseSplitted(input, '.', i);
             }
-            int cx = current.pt.x;
+            int cx = pt.x;
             // проверка на ввод нулей - они не нужны
             a = calcCountNumbersX(a, cx);
-            if (countNumbersX[current.pt.x] == 0) return true;
+            if (countNumbersX[pt.x] == 0) return true;
             // проверка на ввод чила большего чем ширина
             int j = 0;
             for (i = 1; i <= a; i++) {
-                j = j + numbersX[i][current.pt.x];
+                j = j + numbersX[i][pt.x];
             }
             if ((j + a - 1) > lenX) {
-                countNumbersY[current.pt.x] = 0;
+                countNumbersY[pt.x] = 0;
                 return true;
             }
             // прорисовать на поле если надо
-            if (mode) dataFromNumbersX(current.pt.x);
+            if (mode) dataFromNumbersX(pt.x);
         }
         return false;
     }
@@ -1038,8 +973,8 @@ class Solver implements BoardReader {
 
         for (int y = 1; y <= offsetX; y++) {
             for (int x = 1; x <= lenX; x++) {
-                numbersX[y][x] = linesX.get(x - 1).line.get(y - 1);
-                numbersY[x][y] = linesY.get(x - 1).line.get(y - 1);
+                numbersX[y][x] = linesX.get(x - 1).get(y - 1);
+                numbersY[x][y] = linesY.get(x - 1).get(y - 1);
 
                 if (numbersX[y][x] != 0) {
                     countNumbersX[x]++;
@@ -1062,216 +997,13 @@ class Solver implements BoardReader {
         offsetY = level.size() - 1 - pt.getY();
     }
 
-    static class Numbers {
-        int pos;
-        LinkedList<Integer> line;
-
-        public Numbers(Map.Entry<Integer, List<Number>> entry) {
-            pos = entry.getKey();
-            line = new LinkedList<>(entry.getValue().stream()
-                    .map(Number::number)
-                    .collect(toList()));
-        }
-
-        public void fill(int max, boolean before) {
-            range(0, max - line.size()).forEach(i -> {
-                if (before) {
-                    line.addFirst(0);
-                } else {
-                    line.addLast(0);
-                }
-            });
-        }
-    }
-
     private List<Numbers> lines(Level level, Function<Number, Integer> grouping) {
         return level.numbers().stream()
                 .sorted()
                 .collect(groupingBy(grouping))
                 .entrySet().stream()
-                .map(Solver.Numbers::new)
+                .map(Numbers::new)
                 .collect(toList());
-    }
-    
-    static class TAllData implements BoardReader {
-        public double[][][] probability = new double[MAX + 1][MAX + 1][3];
-        public boolean[] finX = new boolean[MAX + 1];
-        public boolean[] finY = new boolean[MAX + 1];
-        public boolean[] chX = new boolean[MAX + 1];
-        public boolean[] chY = new boolean[MAX + 1];
-        public Dot[][] data = new Dot[MAX + 1][MAX + 1];
-        public boolean[] tchX = new boolean[MAX + 1];
-        public boolean[] tchY = new boolean[MAX + 1];
-        public boolean[][] noSet = new boolean[MAX + 1][MAX + 1];
-
-        public Dot[] dataX(int y) {
-            int len = lenX;
-            Dot[] result = new Dot[len + 1];
-            for (int x = 1; x <= len; x++) {
-                result[x] = data[x][y];
-            }
-            return result;
-        }
-
-        public Dot[] dataY(int x) {
-            int len = lenY;
-            Dot[] result = new Dot[len + 1];
-            for (int y = 1; y <= len; y++) {
-                result[y] = data[x][y];
-            }
-            return result;
-        }
-
-        @Override
-        public int size() {
-            if (lenX != lenY) {
-                throw new RuntimeException("Кроссворд не прямоугольный");
-            }
-
-            return Solver.lenX;
-        }
-
-        @Override
-        public Iterable<? extends Point> elements() {
-            List<Pixel> result = new LinkedList<>();
-            for (int x = 1; x <= lenX; x++) {
-                for (int y = 1; y <= lenY; y++) {
-                    // инвертирование потому что в этом коде черный и белый отличаются от codenjoy'ного
-                    int inverted = Math.abs(data[x][y].code - 1);
-                    // так же надо отступить, потому что в этом коде индексы начинаются с 0
-                    result.add(new Pixel(pt(x - 1, y - 1), Color.get(inverted)));
-                }
-            }
-            return result;
-        }
-    }
-
-    static class Assumption {
-
-        private TPoint at; // координата, которую пытаемся подобрать
-        private Dot color; // цвет в котором делали проверку подбором
-        private boolean error; // была ли ошибка в процессе подбора
-        private boolean errorOnBlack; // была ли ошибка в подборе BLACK точки
-        private boolean errorOnWhite; // была ли ошибка в подборе WHITE точки
-
-        public Assumption() {
-            stop();
-        }
-
-        public boolean inProgress() {
-            return color != Dot.UNSET;
-        }
-
-        public void stop() {
-            color = Dot.UNSET;
-            error = false;
-            errorOnBlack = false;
-            errorOnWhite = false;
-        }
-
-        public void start(Dot color) {
-            this.color = color;
-        }
-
-        public boolean isBlack() {
-            return color == Dot.BLACK;
-        }
-
-        public Dot color() {
-            return color;
-        }
-
-        public void error() {
-            error = true;
-            if (inProgress()) {
-                if (isBlack()) {
-                    errorOnBlack = true;
-                } else {
-                    errorOnWhite = true;
-                }
-            }
-        }
-
-        public boolean wasError() {
-            return error;
-        }
-
-        public boolean errorOnBoth() {
-            return errorOnBlack && errorOnWhite;
-        }
-
-        public boolean noErrors() {
-            return !errorOnBlack && !errorOnWhite;
-        }
-
-        public Dot errorOn() {
-            if (errorOnBlack) {
-                return Dot.BLACK;
-            } else if (errorOnWhite) {
-                return Dot.WHITE;
-            }
-            return Dot.UNSET;
-        }
-    }
-
-    static class TCurrent { // текущий ряд (для редактирования)
-        public TPoint pt; // координаты
-        public boolean xy; // ряд / столбец
-    }
-
-    static class TextFile {
-        File file;
-        List<String> lines;
-        int index;
-        Writer writer;
-
-        public void open(String fileName) {
-            file = new File(fileName);
-            lines = new LinkedList<>();
-        }
-
-        public void loadData() {
-            try (Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath()))) {
-                stream.forEach(lines::add);
-                index = 0;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public String readLine() {
-            return lines.get(index++);
-        }
-
-        public void close() {
-            lines.clear();
-            index = 0;
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                writer = null;
-            }
-        }
-
-        public void openWrite() {
-            try {
-                writer = new BufferedWriter(new OutputStreamWriter(
-                        new FileOutputStream(file, true), "UTF-8"));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void writeLine(String text) {
-            try {
-                writer.write(text + "\n");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 }

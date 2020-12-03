@@ -22,7 +22,7 @@ public class LineSolver {
     private boolean[] combinations = new boolean[MAX + 1];
     private int combinationCount;
 
-    private Solver.Dot[] dots;
+    private Dot[] dots;
     private double[] probability = new double[MAX + 1];
     private int len;
 
@@ -46,10 +46,10 @@ public class LineSolver {
         if (countNumbers == 0) {
             result = true;
             for (int i = 1; i <= len; i++) {
-                if (dots[i] == Solver.Dot.BLACK) {
+                if (dots[i] == Dot.BLACK) {
                     result = false;
                 } else {
-                    dots[i] = Solver.Dot.WHITE;
+                    dots[i] = Dot.WHITE;
                 }
             }
             return result;
@@ -125,10 +125,10 @@ public class LineSolver {
         //-----------
         for (int i = 1; i <= len; i++) {
             if (probability[i] == EXACTLY_BLACK) {
-                dots[i] = Solver.Dot.BLACK;
+                dots[i] = Dot.BLACK;
             }
             if (probability[i] == EXACTLY_WHITE) {
-                dots[i] = Solver.Dot.WHITE;
+                dots[i] = Dot.WHITE;
             }
         }
 
