@@ -55,6 +55,18 @@ public class AllData implements BoardReader {
         return result;
     }
 
+    // очистка масивов флагов заполнености
+    public void updateAllFinCh(boolean flag) {
+        for (int x = 1; x <= width; x++) {
+            chY[x] = !flag;
+            finY[x] = flag;
+        }
+        for (int y = 1; y <= height; y++) {
+            chX[y] = !flag;
+            finX[y] = flag;
+        }
+    }
+
     @Override
     public int size() {
         if (width != height) {

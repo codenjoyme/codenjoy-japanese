@@ -445,7 +445,7 @@ class Solver implements BoardReader {
                                 printField();
                             }
                             wasChanges = true;
-                            updateAllFinCh(false);
+                            data.updateAllFinCh(false);
                             b7 = true; // последний прогон для нормального отображения вероятностей
                         }
                         ableToNewAssumption = false;
@@ -455,7 +455,7 @@ class Solver implements BoardReader {
             if (wasError) wasChanges = false; // все конец
         } while (wasChanges);
 
-        updateAllFinCh(false);
+        data.updateAllFinCh(false);
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {
                 switch (main.data[x][y]) {
@@ -513,18 +513,6 @@ class Solver implements BoardReader {
             result[y] = numbersY[x][y];
         }
         return result;
-    }
-
-    // очистка масивов флагов заполнености
-    private void updateAllFinCh(boolean flag) {
-        for (int x = 1; x <= width; x++) {
-            main.chY[x] = !flag;
-            main.finY[x] = flag;
-        }
-        for (int y = 1; y <= height; y++) {
-            main.chX[y] = !flag;
-            main.finX[y] = flag;
-        }
     }
 
     private void draw(Point pt) {
