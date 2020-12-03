@@ -121,8 +121,8 @@ class Solver implements BoardReader {
         current.pt = new TPoint(1, 1);
         lenX = 15;
         lenY = 15;
-        assumption.dot = false;
-        assumption.b = false;
+        assumption.color = false;
+        assumption.was = false;
     }
     
     public void getNumbersX() {
@@ -232,7 +232,17 @@ class Solver implements BoardReader {
     }
     
     public void solve() {
-        boolean b, b2, b5, b6, b7, b8, b9, b11; // b - произошли ли изменения, b2 - была ли ошибка, b3 - , b4 - , b5 - предполагать максимальной вероятности с учетом массива NoSet, b6 - если точка с максимальной вероятностью была найдена, b7 - последний прогон для нормального отображения вероятностей, b8 - если нажали остановить, b9 - если остановка по ошибке, b11 - нудно для пропуска прогона по у если LenX больше LenY
+        boolean wasChanges, assumptionError, b5, foundMaxProbDot, b7, wasError, b11;
+        // wasChanges - произошли ли изменения,
+        // assumptionError - была ли ошибка,
+        // b3 - ,
+        // b4 - ,
+        // b5 - предполагать максимальной вероятности с учетом массива NoSet,
+        // foundMaxProbDot - если точка с максимальной вероятностью была найдена,
+        // b7 - последний прогон для нормального отображения вероятностей,
+        // wasError - если остановка по ошибке,
+        // b11 - нужно для пропуска прогона по у если LenX больше LenY
+
         int h; 
         double max1, max2;
         double a1, a2; 
@@ -288,8 +298,7 @@ class Solver implements BoardReader {
         }
         b5 = false;
         b7 = false;
-        b8 = false;
-        b9 = false;
+        wasError = false;
         // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
         b11 = (lenX > lenY); // нужно для пропуска прогона
         a1 = 0;
@@ -302,17 +311,17 @@ class Solver implements BoardReader {
         }
         b11 = (a1 / lenY > a2 / lenX);
         //----------------------------------------------------------
-        assumption.b = false;
-        b = false; // для b11
+        assumption.was = false;
+        wasChanges = false; // для b11
         bErrT = false;
         bErrP = false;
         do {
-            if (b && b11) b11 = false;
-            b = false;
-            b2 = false;
+            if (wasChanges && b11) b11 = false;
+            wasChanges = false;
+            assumptionError = false;
             // с каким указателем работаем
-            if (assumption.b) {
-                if (assumption.dot) {
+            if (assumption.was) {
+                if (assumption.color) {
                     data = assumptionBlack;
                 } else {
                     data = assumptionWhite;
@@ -328,11 +337,11 @@ class Solver implements BoardReader {
                     if (!lineSolver.calculate(numbersX(y), data.dataX(y))) { // расчет ... если нет ни одной комбины - ошибка
                         if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
-                            b9 = true;
+                            wasError = true;
                             break;
                         }
-                        b = false; // изменений нету
-                        b2 = true; // ошибка была
+                        wasChanges = false;
+                        assumptionError = true;
                         break;
                     }
                     for (int x = 1; x <= lenX; x++) {
@@ -340,13 +349,13 @@ class Solver implements BoardReader {
 
                         if (data.data[x][y] != lineSolver.array(x)) {
                             data.data[x][y] = lineSolver.array(x);
-                            if (!b) {
-                                b = true;
+                            if (!wasChanges) {
+                                wasChanges = true;
                             }
                             if (!data.chY[x]) {
                                 data.chY[x] = true;
                             }
-                            if (assumption.b) {
+                            if (assumption.was) {
                                 if (!data.tchY[x]) {
                                     data.tchY[x] = true;
                                 }
@@ -355,24 +364,24 @@ class Solver implements BoardReader {
                     }
                     data.chX[y] = false;
                 }
-                if (!assumption.b) RefreshPole(); // прорисовка поля только в случае точного расчета
+                if (!assumption.was) RefreshPole(); // прорисовка поля только в случае точного расчета
             }
-            if (!b9) {
-                b9 = GetFin(data); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
+            if (!wasError) {
+                wasError = GetFin(data); // если небыло ошибки, то если сложили все wasError = GetFin; выходим как если была бы ошибка
             }
 
-            if ((!b2) && (!b5) && (!b8) && (!b9)) { // если была ошибка (b2) или надо найти другую точку (b5) или принудительно заканчиваем (b8) или была ошибка (b9) то пропускаем этот шаг
+            if ((!assumptionError) && (!b5) && (!wasError)) { // если была ошибка (assumptionError) или надо найти другую точку (b5) или была ошибка (wasError) то пропускаем этот шаг
                 for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
                     if (data.finY[x]) continue;
                     if (!data.chY[x]) continue;
                     if (!lineSolver.calculate(numbersY(x), data.dataY(x))) {
                         if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (столбец " + x + ").");
-                            b9 = true;
+                            wasError = true;
                             break;
                         }
-                        b = false; // изменений нету
-                        b2 = true; // ошибка была
+                        wasChanges = false;
+                        assumptionError = true;
                         break;
                     }
 
@@ -381,81 +390,84 @@ class Solver implements BoardReader {
 
                         if (data.data[x][y] != lineSolver.array(y)) {
                             data.data[x][y] = lineSolver.array(y);
-                            if (!b) {
-                                b = true; // b = true;
+                            if (!wasChanges) {
+                                wasChanges = true;
                             }
                             if (!data.chX[y]) {
-                                data.chX[y] = true; // work.data.ChX.arr[y] = true;
+                                data.chX[y] = true;
                             }
-                            if (assumption.b) {
+                            if (assumption.was) {
                                 if (!data.tchY[x]) {
-                                    data.tchY[x] = true; // work.data.tChY.arr[x] = true;
+                                    data.tchY[x] = true;
                                 }
                             }
                         }
                     }
                     data.chY[x] = false;
                 }
-                if (!assumption.b) RefreshPole();// прорисовка поля
-                if (b11) b = true; // чтобы после прогона по х пошел прогон по у
+                if (!assumption.was) RefreshPole();// прорисовка поля
+                if (b11) wasChanges = true; // чтобы после прогона по х пошел прогон по у
             }
-            if (!b9)
-                b9 = GetFin(data); // если небыло ошибки, то если сложили все b9 = GetFin; выходим как если была бы ошибка
+            if (!wasError) {
+                wasError = GetFin(data); // если небыло ошибки, то если сложили все wasError = GetFin; выходим как если была бы ошибка
+            }
 
-            if (b7 || b8) b = false; // все конец
-            if ((tryAssumption) && (!b) && (!b7) && (!b8) && (!b9)) { // если ничего не получается решить точно (b) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и принудительно незавершали (b8) и ошибки нету
+            if (b7) wasChanges = false; // все конец
+            if ((tryAssumption) && (!wasChanges) && (!b7) && (!wasError)) { // если ничего не получается решить точно (wasChanges) и включено предположение (cbVerEnable.Checked) и последнего прогона нет (b7) и ошибки нету
                 if (b11) b11 = false;
 
-                if (assumption.b) { // предполагали?
+                if (assumption.was) { // предполагали?
                     // да
-                    if (assumption.dot) { // запоминаем ошибки
-                        bErrT = b2;
+                    if (assumption.color) { // запоминаем ошибки
+                        bErrT = assumptionError;
                     } else {
-                        bErrP = b2;
+                        bErrP = assumptionError;
                     }
-                    if (b2) b2 = false; // была
-                    if (assumption.dot) { // что было
+                    if (assumptionError) {
+                        assumptionError = false; // была
+                    }
+                    if (assumption.color) { // что было
                         savePustot(assumption.pt, false); //была точка, теперь пустота
-                        b = true; // произошли изменения
+                        wasChanges = true; // произошли изменения
                     } else { // путота, значит будем определять что нам записывать
                         if (bErrT) {
                             // ошибка на точке
                             if (bErrP) {
                                 // ошибка на точке и на пустоте - ошибка в кроссворде
                                 System.out.println("Ошибка в кроссворде.");
-                                b9 = true;
+                                wasError = true;
                             } else { // ошибка на точке и нет ее на пустоте - значит пустота
                                 ChangeDataArr(false);
                                 RefreshPole();
                                 b5 = true; // дальше предполагаем
-                                b = true; // продолжаем дальше
+                                wasChanges = true; // продолжаем дальше
                             }
                         } else {  // нет ошибки на точке
                             if (bErrP) { // нету на точке и есть на пустоте - значит точка
                                 ChangeDataArr(true);
                                 RefreshPole();
                                 b5 = true; // дальше предполагаем
-                                b = true; // продолжаем дальше
+                                wasChanges = true; // продолжаем дальше
                             } else { // нет ни там ни там - значит неизвестно, это потом сохранять будем
                                 pt = assumption.pt;
                                 main.noSet[pt.x][pt.y] = true;
                                 main.data[pt.x][pt.y] = Dot.UNSET;
                                 draw(pt);
                                 b5 = true; // дальше предполагаем
-                                b = true; // продолжаем дальше
+                                wasChanges = true; // продолжаем дальше
                             }
                         }
-                        assumption.b = false;
+                        assumption.was = false;
                     }
                 } else {
-                    if (b2) { // ошибка была?
+                    if (assumptionError) { // ошибка была?
                         // если была ошибка без предположений то в кросворде ошибка
                         System.out.println("Ошибка в кроссворде.");
-                        b9 = true;
+                        wasError = true;
                     } else { // еще не предполагали
                         max1 = 0; // пока вероятности такие
                         max2 = 0;
-                        b6 = false;
+                        foundMaxProbDot = false;
                         for (int x = 1; x <= lenX; x++) {  // по всему полю
                             for (int y = 1; y <= lenY; y++) {
                                 if ((max1 <= main.probability[x][y][Dot.BLACK.code])
@@ -466,27 +478,27 @@ class Solver implements BoardReader {
                                     max1 = main.probability[x][y][Dot.BLACK.code];
                                     max2 = main.probability[x][y][Dot.WHITE.code];
                                     pt = new TPoint(x, y);
-                                    b6 = true;
+                                    foundMaxProbDot = true;
                                 }
                             }
                         }
 
-                        b6 = b6 && ((max1 > 0) || (max2 > 0)); // критерий отбора
-                        if (b6) { // нашли точку?
+                        foundMaxProbDot = foundMaxProbDot && ((max1 > 0) || (max2 > 0)); // критерий отбора
+                        if (foundMaxProbDot) { // нашли точку?
                             // да
                             if (!b5) {
-                                assumption.b = true;
+                                assumption.was = true;
                                 savePustot(pt, true); // сохраняемся только если искали макс вероятность без учета массива NoSet
                             }
                             main.data[pt.x][pt.y] = Dot.ASSUMPTION;
                             draw(pt);
-                            b = true; // произошли изменения
+                            wasChanges = true; // произошли изменения
                         } else { // нет
                             if (b5) {
-                                assumption.b = false;
+                                assumption.was = false;
                                 RefreshPole(); //
                             }
-                            b = true; // изменений нету
+                            wasChanges = true; // изменений нету
                             updateAllFinCh(false);
                             b7 = true; // последний прогон для нормального отображения вероятностей
                         }
@@ -494,8 +506,8 @@ class Solver implements BoardReader {
                     }
                 }
             }
-            if (b9) b = false; // все конец
-        } while (b);
+            if (wasError) wasChanges = false; // все конец
+        } while (wasChanges);
 
         updateAllFinCh(false);
         for (int x = 1; x <= lenX; x++) {
@@ -514,16 +526,16 @@ class Solver implements BoardReader {
                 }
             }
         }
-        if (b8) { // если нажали остановить
-            if (assumption.b) {
-                main.data[assumption.pt.x][assumption.pt.y] = Dot.UNSET;
-            }
-            assumption.b = false;
-            RefreshPole(); // прорисовка поля
-            printOpened();
-        } else {
-            // решили кроссворд!
-        }
+//        if (b8) { // если нажали остановить
+//            if (assumption.b) {
+//                main.data[assumption.pt.x][assumption.pt.y] = Dot.UNSET;
+//            }
+//            assumption.b = false;
+//            RefreshPole(); // прорисовка поля
+//            printOpened();
+//        } else {
+//            // решили кроссворд!
+//        }
 
         RefreshPole(); // прорисовка поля
         printOpened();
@@ -626,7 +638,7 @@ class Solver implements BoardReader {
             data.tchX[y] = false;
         }
         assumption.pt = pt;
-        assumption.dot = bDot;
+        assumption.color = bDot;
         setAssumptionDot(bDot);
     }
 
@@ -1110,9 +1122,9 @@ class Solver implements BoardReader {
     }
 
     static class TAssumption {
-        public TPoint pt;
-        public boolean dot;
-        public boolean b;
+        public TPoint pt; // координата, которую пытаемся подобрать
+        public boolean color; // цвет в котором делали проверку подбором
+        public boolean was; // делали ли проверку подбором
     }
 
     static class TCurrent { // текущий ряд (для редактирования)
