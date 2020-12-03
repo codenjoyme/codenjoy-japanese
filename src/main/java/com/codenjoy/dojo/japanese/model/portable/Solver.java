@@ -325,7 +325,7 @@ class Solver implements BoardReader {
                 for (int y = 1; y <= lenY; y++) {
                     if (data.finX[y]) continue;
                     if (!data.chX[y]) continue;
-                    lineSolver.prepareNumbersX(data.data, y, lenX, countNumbersX[y], numbersX); // подготовка строки
+                    lineSolver.prepareNumbersX(data.data, y, lenX, numbersX(y)); // подготовка строки
                     if (!lineSolver.calculate()) { // расчет ... если нет ни одной комбины - ошибка
                         if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
@@ -366,7 +366,7 @@ class Solver implements BoardReader {
                 for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
                     if (data.finY[x]) continue;
                     if (!data.chY[x]) continue;
-                    lineSolver.prepareNumbersY(data.data, x, lenY, countNumbersY[x], numbersY);
+                    lineSolver.prepareNumbersY(data.data, x, lenY, numbersY(x));
                     if (!lineSolver.calculate()) {
                         if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (столбец " + x + ").");
@@ -529,6 +529,24 @@ class Solver implements BoardReader {
 
         RefreshPole(); // прорисовка поля
         printOpened();
+    }
+
+    private int[] numbersX(int y) {
+        int countNumbers = countNumbersX[y];
+        int[] result = new int[countNumbers + 1];
+        for (int x = 1; x <= countNumbers; x++) {
+            result[x] = numbersX[x][y];
+        }
+        return result;
+    }
+
+    private int[] numbersY(int x) {
+        int countNumbers = countNumbersY[x];
+        int[] result = new int[countNumbers + 1];
+        for (int y = 1; y <= countNumbers; y++) {
+            result[y] = numbersY[x][y];
+        }
+        return result;
     }
 
     // очистка масивов флагов заполнености
