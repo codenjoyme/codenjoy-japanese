@@ -29,7 +29,7 @@ class Solver implements BoardReader {
 
     private Assumption assumption;
     public int width, height;
-    private int[][] numbersX; // тут хранятся цифры рядов
+    private int[][] numbersX; // тут хранятся цифры рядов // TODO объединить с countNumbersX
     private int[][] numbersY;
     private int[] countNumbersX; // тут хранятся количества цифер рядов
     private int[] countNumbersY;
@@ -65,105 +65,72 @@ class Solver implements BoardReader {
         }
     }
 
+    // по загруженным данным на поле может построить numbers/countNumbers
     public void getNumbersX() {
-        int a;
         for (int y = 1; y <= height; y++) {
-            a = 0;
+            int length = 0;
             countNumbersX[y] = 1;
             for (int x = 1; x <= width; x++) {
-                if (main.data[x][y] == Dot.BLACK) {
-                    a++;
-                } else {
-                    if (a != 0) {
-                        numbersX[countNumbersX[y]][y] = a;
-                        a = 0;
-                        countNumbersX[y]++;
-                    }
+                if (main.data[x][y].isBlack()) {
+                    length++;
+                    continue;
+                }
+
+                if (length != 0) {
+                    numbersX[countNumbersX[y]][y] = length;
+                    length = 0;
+                    countNumbersX[y]++;
                 }
             }
-            if (a != 0) {
-                numbersX[countNumbersX[y]][y] = a;
+            if (length != 0) {
+                numbersX[countNumbersX[y]][y] = length;
                 countNumbersX[y]++;
             }
             countNumbersX[y]--;
         }
     }
-    
+
+    // по загруженным данным на поле может построить numbers/countNumbers
     public void getNumbersY() {
-        int a;
         for (int x = 1; x <= width; x++) {
-            a = 0;
+            int length = 0;
             countNumbersY[x] = 1;
             for (int y = 1; y <= height; y++) {
-                if (main.data[x][y] == Dot.BLACK) {
-                    a++;
-                } else {
-                    if (a != 0) {
-                        numbersY[x][countNumbersY[x]] = a;
-                        a = 0;
-                        countNumbersY[x]++;
-                    }
+                if (main.data[x][y].isBlack()) {
+                    length++;
+                    continue;
+                }
+
+                if (length != 0) {
+                    numbersY[x][countNumbersY[x]] = length;
+                    length = 0;
+                    countNumbersY[x]++;
                 }
             }
-            if (a != 0) {
-                numbersY[x][countNumbersY[x]] = a;
+            if (length != 0) {
+                numbersY[x][countNumbersY[x]] = length;
                 countNumbersY[x]++;
             }
             countNumbersY[x]--;
         }
     }
-    
-    public void dataFromNumbersX(int y) {
-        int k, tx, j;
-        for (tx = 1; tx <= width; tx++) {
-            main.data[tx][y] = Dot.UNSET;
-        }
-        k = 1;
-        tx = 1;
-        while (tx <= countNumbersX[y]) {
-            for (j = 1; j <= numbersX[tx][y]; j++) {
-                main.data[k + j - 1][y] = Dot.BLACK;
-            }
-            main.data[k + j][y] = Dot.UNSET;
-            k = k + j;
-            tx++;
-        }
-        getNumbersY();
-    }
-    
-    public void dataFromNumbersY(int x) {
-        int k, j, ty;
-        for (ty = 1; ty <= height; ty++) {
-            main.data[x][ty] = Dot.UNSET;
-        }
-        k = 1;
-        ty = 1;
-        while (ty <= countNumbersY[x]) {
-            for (j = 1; j <= numbersY[x][ty]; j++) {
-                main.data[x][k + j - 1] = Dot.BLACK;
-            }
-            main.data[x][k + j] = Dot.UNSET;
-            k = k + j;
-            ty++;
-        }
-        getNumbersX();
-    }
 
+    // дает все суммы в двух блоках чисел по X и по Y
+    // нужно для проверки валидности кроссворда
     public Pt check() {
-        int a1, a2;
-        a1 = 0;
+        int sum1 = 0;
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= countNumbersY[x]; y++) {
-                a1 = a1 + numbersY[x][y];
+                sum1 += numbersY[x][y];
             }
         }
-        a2 = 0;
+        int sum2 = 0;
         for (int y = 1; y <= height; y++) {
             for (int x = 1; x <= countNumbersX[y]; x++) {
-                a2 = a2 + numbersX[x][y];
+                sum2 += numbersX[x][y];
             }
         }
-        return new Pt(a1, a2);  // разница рядов
+        return new Pt(sum1, sum2);  // разница рядов
     }
 
     
@@ -184,13 +151,8 @@ class Solver implements BoardReader {
         // wasError - если остановка по ошибке,
         // b11 - нужно для пропуска прогона по у если LenX больше LenY
 
-        double max1, max2;
-        double a1, a2; 
-        Pt pt;
-        AllData data;
-
         // проверка на совпадение рядов
-        pt = check();
+        Pt pt = check();
         int x0 = Math.abs(pt.x - pt.y);
         if (x0 > 0) {
             System.out.println("Ошибка! Несовпадение на " + x0);
@@ -217,13 +179,13 @@ class Solver implements BoardReader {
         ableToNewAssumption = false;
         b7 = false;
         wasError = false;
-        // для пропуска прогона по у если в группе x и чисел меньше (значения больше) и длинна строки (группы) меньше, это все для ускорения
-        b11 = (width > height); // нужно для пропуска прогона
-        a1 = 0;
+        // для пропуска прогона по у если в группе x и чисел меньше
+        // (значения больше) и длинна строки (группы) меньше, это все для ускорения
+        double a1 = 0;
         for (int x = 1; x <= width; x++) {
             a1 = a1 + countNumbersY[x];
         }
-        a2 = 0;
+        double a2 = 0;
         for (int y = 1; y <= height; y++) {
             a2 = a2 + countNumbersX[y];
         }
@@ -231,8 +193,11 @@ class Solver implements BoardReader {
         //----------------------------------------------------------
         assumption = new Assumption();
         wasChanges = false; // для b11
+        AllData data;
         do {
-            if (wasChanges && b11) b11 = false;
+            if (wasChanges && b11) {
+                b11 = false;
+            }
             wasChanges = false;
 
             data = getData();
@@ -377,8 +342,9 @@ class Solver implements BoardReader {
                         System.out.println("Ошибка в кроссворде.");
                         wasError = true;
                     } else { // еще не предполагали
-                        max1 = 0; // пока вероятности такие
-                        max2 = 0;
+                        // пока вероятности такие
+                        double max1 = 0;
+                        double max2 = 0;
                         foundMaxProbDot = false;
                         for (int x = 1; x <= width; x++) {  // по всему полю
                             for (int y = 1; y <= height; y++) {
