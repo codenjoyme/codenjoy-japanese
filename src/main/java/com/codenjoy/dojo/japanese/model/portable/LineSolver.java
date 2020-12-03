@@ -22,7 +22,7 @@ public class LineSolver {
     private boolean[] combinations = new boolean[MAX + 1];
     private int combinationCount;
 
-    private Solver.Dot[] dots = new Solver.Dot[MAX + 1];
+    private Solver.Dot[] dots;
     private double[] probability = new double[MAX + 1];
     private int len;
 
@@ -35,27 +35,12 @@ public class LineSolver {
     private int cutTo;
     private int cutLen;
 
-    public void prepareNumbersX(Dot[][] data, int y, int len, int[] numbers) {
-        // подготовка строки
-        this.len = len;
-        for (int x = 1; x <= len; x++) {
-            dots[x] = data[x][y]; // данные
-        }
-        this.countNumbers = numbers.length - 1; // длинна ряда
+    public boolean calculate(int[] numbers, Dot[] dots) {
+        this.len = dots.length - 1;
+        this.dots = dots;
+        this.countNumbers = numbers.length - 1;
         this.numbers = numbers;
-    }
 
-    public void prepareNumbersY(Dot[][] data, int x, int len, int[] numbers) {
-        // подготовка столбца
-        this.len = len;
-        for (int y = 1; y <= len; y++) {
-            dots[y] = data[x][y];
-        }
-        this.countNumbers = numbers.length - 1; // длинна ряда
-        this.numbers = numbers;
-    }
-
-    public boolean calculate() {
         boolean b1;
         boolean result;
         if (countNumbers == 0) {
@@ -150,7 +135,7 @@ public class LineSolver {
         return result;
     }
 
-    public boolean testCombination() {
+    private boolean testCombination() {
         for (int i = cutFrom; i <= cutTo; i++) {
             switch (dots[i]) {
                 case UNSET:
@@ -172,7 +157,7 @@ public class LineSolver {
         return true;
     }
 
-    public void getCombinationsFromNumbers() {
+    private void getCombinationsFromNumbers() {
         int x = cutFrom - 1;
         for (int i = 1; i <= cr; i++) {
             for (int j = 1; j <= numbers10.arr[i].c; j++) {
@@ -182,7 +167,7 @@ public class LineSolver {
         }
     }
 
-    public void getNumbersFromCombination() {
+    private void getNumbersFromCombination() {
         int j, cr;
         int leni, i0;
         boolean b = combinations[cutFrom];
@@ -208,7 +193,7 @@ public class LineSolver {
         this.cr = cr;
     }
 
-    public boolean manipuleNumbers() {
+    private boolean manipuleNumbers() {
         int a, a2;
         boolean b, b2 = false;
         a = cr;
@@ -301,14 +286,14 @@ public class LineSolver {
         return Result;
     }
 
-    public void SHLNumbers() {
+    private void SHLNumbers() {
         for (int j = 2; j <= countNumbers; j++) {
             numbers[j - 1] = numbers[j];
         } // TODO может нижняя строчка тоже
         countNumbers = countNumbers - 1;
     }
 
-    public boolean cut() {
+    private boolean cut() {
         int i, dr, cd;
         boolean b, dot;
         b = false; // выход из цикла

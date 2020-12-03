@@ -325,8 +325,7 @@ class Solver implements BoardReader {
                 for (int y = 1; y <= lenY; y++) {
                     if (data.finX[y]) continue;
                     if (!data.chX[y]) continue;
-                    lineSolver.prepareNumbersX(data.data, y, lenX, numbersX(y)); // подготовка строки
-                    if (!lineSolver.calculate()) { // расчет ... если нет ни одной комбины - ошибка
+                    if (!lineSolver.calculate(numbersX(y), data.dataX(y))) { // расчет ... если нет ни одной комбины - ошибка
                         if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
                             b9 = true;
@@ -366,8 +365,7 @@ class Solver implements BoardReader {
                 for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
                     if (data.finY[x]) continue;
                     if (!data.chY[x]) continue;
-                    lineSolver.prepareNumbersY(data.data, x, lenY, numbersY(x));
-                    if (!lineSolver.calculate()) {
+                    if (!lineSolver.calculate(numbersY(x), data.dataY(x))) {
                         if (!tryAssumption) {
                             System.out.println("Ошибка в кроссворде (столбец " + x + ").");
                             b9 = true;
@@ -1068,6 +1066,24 @@ class Solver implements BoardReader {
         public boolean[] tchX = new boolean[MAX + 1];
         public boolean[] tchY = new boolean[MAX + 1];
         public boolean[][] noSet = new boolean[MAX + 1][MAX + 1];
+
+        public Dot[] dataX(int y) {
+            int len = lenX;
+            Dot[] result = new Dot[len + 1];
+            for (int x = 1; x <= len; x++) {
+                result[x] = data[x][y];
+            }
+            return result;
+        }
+
+        public Dot[] dataY(int x) {
+            int len = lenY;
+            Dot[] result = new Dot[len + 1];
+            for (int y = 1; y <= len; y++) {
+                result[y] = data[x][y];
+            }
+            return result;
+        }
 
         @Override
         public int size() {
