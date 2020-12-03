@@ -54,26 +54,14 @@ class Solver implements BoardReader {
     }
     
     public void clear(boolean all) {
-        for (int x = 1; x <= width; x++) {
-            for (int y = 1; y <= height; y++) {
-                main.data[x][y] = Dot.UNSET;
-                main.probability[x][y][Dot.BLACK.code()] = UNKNOWN;
-                main.probability[x][y][Dot.WHITE.code()] = UNKNOWN;
-            }
-        }
-        for (int x = 1; x <= width; x++) {
-            if (all) {
+        main.clear();
+        if (all) {
+            for (int x = 1; x <= width; x++) {
                 countNumbersY[x] = 0;
             }
-            main.finY[x] = false;
-            main.chY[x] = true;
-        }
-        for (int y = 1; y <= height; y++) {
-            if (all) {
+            for (int y = 1; y <= height; y++) {
                 countNumbersX[y] = 0;
             }
-            main.finX[y] = false;
-            main.chX[y] = true;
         }
     }
 

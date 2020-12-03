@@ -8,6 +8,7 @@ import com.codenjoy.dojo.services.printer.BoardReader;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.codenjoy.dojo.japanese.model.portable.Solver.UNKNOWN;
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
 public class AllData implements BoardReader {
@@ -88,5 +89,23 @@ public class AllData implements BoardReader {
             }
         }
         return result;
+    }
+
+    public void clear() {
+        for (int x = 1; x <= width; x++) {
+            for (int y = 1; y <= height; y++) {
+                data[x][y] = Dot.UNSET;
+                probability[x][y][Dot.BLACK.code()] = UNKNOWN;
+                probability[x][y][Dot.WHITE.code()] = UNKNOWN;
+            }
+        }
+        for (int x = 1; x <= width; x++) {
+            finY[x] = false;
+            chY[x] = true;
+        }
+        for (int y = 1; y <= height; y++) {
+            finX[y] = false;
+            chX[y] = true;
+        }
     }
 }
