@@ -4,7 +4,7 @@ import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 
 public class LineSolver {
 
-    public static class TRjad10Record {
+    public static class Info {
         public int c;
         public boolean b;
     }
@@ -19,7 +19,7 @@ public class LineSolver {
     private int[] numbers;
     private int countNumbers;
     private int cr;
-    private TRjad10Record[] numbers10;
+    private Info[] numbers10;
 
     private int cutFrom;
     private int cutTo;
@@ -33,9 +33,9 @@ public class LineSolver {
 
         combinations = new boolean[len + 1];
         probability = new double[len + 1];
-        numbers10 = new TRjad10Record[len + 1];
+        numbers10 = new Info[len + 1];
         for (int i = 1; i < numbers10.length; i++) {
-            numbers10[i] = new TRjad10Record();
+            numbers10[i] = new Info();
         }
 
         boolean b1;
