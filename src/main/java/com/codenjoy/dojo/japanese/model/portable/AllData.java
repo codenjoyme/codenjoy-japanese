@@ -10,7 +10,7 @@ import java.util.List;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
-public class TAllData implements BoardReader {
+public class AllData implements BoardReader {
 
     private final int width;
     private final int height;
@@ -24,7 +24,7 @@ public class TAllData implements BoardReader {
     public boolean[] tchY;
     public boolean[][] noSet;
 
-    public TAllData(int width, int height) {
+    public AllData(int width, int height) {
         this.width = width;
         this.height = height;
 

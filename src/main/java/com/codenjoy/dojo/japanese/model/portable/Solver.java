@@ -3,7 +3,6 @@ package com.codenjoy.dojo.japanese.model.portable;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.level.Level;
-import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 
@@ -25,9 +24,9 @@ class Solver implements BoardReader {
 
     public boolean withAssumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
 
-    private TAllData main; // тут решение точное
-    private TAllData assumptionBlack; // тут предполагаем black
-    private TAllData assumptionWhite;// тут предполагаем white
+    private AllData main; // тут решение точное
+    private AllData assumptionBlack; // тут предполагаем black
+    private AllData assumptionWhite;// тут предполагаем white
 
     private Assumption assumption;
     public int width, height;
@@ -162,7 +161,7 @@ class Solver implements BoardReader {
         getNumbersX();
     }
 
-    public TPoint check() {
+    public Point check() {
         int a1, a2;
         a1 = 0;
         for (int x = 1; x <= width; x++) {
@@ -176,7 +175,7 @@ class Solver implements BoardReader {
                 a2 = a2 + numbersX[x][y];
             }
         }
-        return new TPoint(a1, a2);  // разница рядов
+        return new Point(a1, a2);  // разница рядов
     }
 
     
@@ -200,8 +199,8 @@ class Solver implements BoardReader {
         int h; 
         double max1, max2;
         double a1, a2; 
-        TPoint pt;
-        TAllData data;
+        Point pt;
+        AllData data;
 
         // проверка на совпадение рядов
         pt = check();
@@ -424,7 +423,7 @@ class Solver implements BoardReader {
                                     if (main.noSet[x][y]) continue;
                                     max1 = main.probability[x][y][Dot.BLACK.code()];
                                     max2 = main.probability[x][y][Dot.WHITE.code()];
-                                    pt = new TPoint(x, y);
+                                    pt = new Point(x, y);
                                     foundMaxProbDot = true;
                                 }
                             }
@@ -486,7 +485,7 @@ class Solver implements BoardReader {
     // 3) если и 2) привело к ошибке, значит ошибка кроссворда, потому что ни черную ни белую мы не можем поставить
     // 4) может случиться так, что ни в 1) ни в 2) ошибок нет (в решении продвинулись но не до конца), тогда мы точно не знаем какого цвета там точка
     // и тогда нам надо вернуться в основной режим с объектом main и порпобовать то же где-то еще
-    private TAllData getData() {
+    private AllData getData() {
         if (assumption.isBlack()) {
             return assumptionBlack;
         }
@@ -528,13 +527,13 @@ class Solver implements BoardReader {
         }
     }
 
-    private void draw(TPoint pt) {
+    private void draw(Point pt) {
 
     }
     
     public void updateAssumptionDot(Dot dot) {
-        TAllData data = getAssumptionData(dot);
-        TPoint pt = assumption.at();
+        AllData data = getAssumptionData(dot);
+        Point pt = assumption.at();
         if (dot.isBlack()) {
             data.data[pt.x][pt.y] = Dot.BLACK;
             // меняем вероятности
@@ -555,7 +554,7 @@ class Solver implements BoardReader {
     }
     
     public void applyAssumptionData(Dot dot) {
-        TAllData data;
+        AllData data;
         if (dot.isBlack()) {
             data = main;
             main = assumptionBlack;
@@ -567,10 +566,10 @@ class Solver implements BoardReader {
         }
     }
     
-    public void tryAssumption(TPoint pt, Dot dot) {
+    public void tryAssumption(Point pt, Dot dot) {
         assumption.start(pt, dot);
 
-        TAllData data = getAssumptionData(dot);
+        AllData data = getAssumptionData(dot);
         for (int x = 1; x <= width; x++) { // по всему полю
             for (int y = 1; y <= height; y++) {
                 data.data[x][y] = main.data[x][y];
@@ -600,7 +599,7 @@ class Solver implements BoardReader {
         updateAssumptionDot(dot);
     }
 
-    private TAllData getAssumptionData(Dot dot) {
+    private AllData getAssumptionData(Dot dot) {
         if (dot.isBlack()) {
             return assumptionBlack;
         } else {
@@ -608,7 +607,7 @@ class Solver implements BoardReader {
         }
     }
 
-    public boolean getFin(TAllData data) {
+    public boolean getFin(AllData data) {
         // заполнение поля
         boolean c2 = true;
         for (int y = 1; y <= height; y++) {
@@ -656,7 +655,7 @@ class Solver implements BoardReader {
         if (input.charAt(1) == '.') input = input.substring(2, input.length() - 1);
         if (input.equals("")) return true;
         a = parseSplitted(input, '.', 0); // количество цифер
-        TPoint pt = new TPoint(1, 1); // координаты
+        Point pt = new Point(1, 1); // координаты
         boolean xy = true; // ряд / столбец
         if (!xy) { // столбцы
             // заполнение
@@ -758,9 +757,9 @@ class Solver implements BoardReader {
     }
 
     @Override
-    public Iterable<? extends Point> elements() {
+    public Iterable<? extends com.codenjoy.dojo.services.Point> elements() {
         return new LinkedList<>(){{
-            List<Point> pixels = (List<Point>) main.elements();
+            List<com.codenjoy.dojo.services.Point> pixels = (List<com.codenjoy.dojo.services.Point>) main.elements();
             pixels.forEach(pixel -> pixel.change(pt(offsetX, 0)));
             addAll(pixels);
 
@@ -816,7 +815,7 @@ class Solver implements BoardReader {
     // TODO только для квадратных полей с одинаковой шириной зоны с цифрами
     private void getOffset(Level level) {
         List<Nan> nans = level.nans();
-        Point pt = pt(0, level.size() - 1);
+        com.codenjoy.dojo.services.Point pt = pt(0, level.size() - 1);
         while (nans.contains(pt)) {
             pt.change(pt(1, -1));
         }
@@ -845,9 +844,9 @@ class Solver implements BoardReader {
         this.width = width;
         this.height = height;
 
-        main = new TAllData(width, height);
-        assumptionBlack = new TAllData(width, height);
-        assumptionWhite = new TAllData(width, height);
+        main = new AllData(width, height);
+        assumptionBlack = new AllData(width, height);
+        assumptionWhite = new AllData(width, height);
     }
 
     public void offset(int x, int y) {
