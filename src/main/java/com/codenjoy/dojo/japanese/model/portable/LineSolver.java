@@ -22,11 +22,11 @@ public class LineSolver {
     private boolean[] combinations = new boolean[MAX + 1];
     private int combinationCount;
 
-    private Solver.Dot[] array = new Solver.Dot[MAX + 1];
+    private Solver.Dot[] dots = new Solver.Dot[MAX + 1];
     private double[] probability = new double[MAX + 1];
     private int len;
 
-    private int[] numbers = new int[MAX + 1];
+    private int[] numbers;
     private int countNumbers;
     private int cr;
     private TNumbers10 numbers10 = new TNumbers10();
@@ -35,27 +35,29 @@ public class LineSolver {
     private int cutTo;
     private int cutLen;
 
-    public void prepareNumbersX(TAllData data, int y, int len, int countNumbers, int[][] numbers) {
+    public void prepareNumbersX(Dot[][] data, int y, int len, int countNumbers, int[][] numbers) {
         // подготовка строки
         this.len = len;
         for (int x = 1; x <= len; x++) {
-            array[x] = data.data[x][y]; // данные
+            dots[x] = data[x][y]; // данные
         }
         this.countNumbers = countNumbers; // длинна ряда
+        this.numbers = new int[countNumbers + 1];
         for (int x = 1; x <= countNumbers; x++) {
             this.numbers[x] = numbers[x][y];  // сам ряд
         }
     }
 
-    public void prepareNumbersY(TAllData data, int x, int len, int countNumbers, int[][] numbers) {
+    public void prepareNumbersY(Dot[][] data, int x, int len, int countNumbers, int[][] numbers) {
         // подготовка столбца
         this.len = len;
         for (int y = 1; y <= len; y++) {
-            array[y] = data.data[x][y];  // данные
+            dots[y] = data[x][y];
         }
-        this.countNumbers = countNumbers; // длинна ряда
+        this.countNumbers = countNumbers;
+        this.numbers = new int[countNumbers + 1];
         for (int y = 1; y <= countNumbers; y++) {
-            this.numbers[y] = numbers[x][y]; // сам ряд
+            this.numbers[y] = numbers[x][y];
         }
     }
 
@@ -65,10 +67,10 @@ public class LineSolver {
         if (countNumbers == 0) {
             result = true;
             for (int i = 1; i <= len; i++) {
-                if (array[i] == Solver.Dot.BLACK) {
+                if (dots[i] == Solver.Dot.BLACK) {
                     result = false;
                 } else {
-                    array[i] = Solver.Dot.WHITE;
+                    dots[i] = Solver.Dot.WHITE;
                 }
             }
             return result;
@@ -144,10 +146,10 @@ public class LineSolver {
         //-----------
         for (int i = 1; i <= len; i++) {
             if (probability[i] == EXACTLY_BLACK) {
-                array[i] = Solver.Dot.BLACK;
+                dots[i] = Solver.Dot.BLACK;
             }
             if (probability[i] == EXACTLY_WHITE) {
-                array[i] = Solver.Dot.WHITE;
+                dots[i] = Solver.Dot.WHITE;
             }
         }
 
@@ -156,7 +158,7 @@ public class LineSolver {
 
     public boolean testCombination() {
         for (int i = cutFrom; i <= cutTo; i++) {
-            switch (array[i]) {
+            switch (dots[i]) {
                 case UNSET:
                     break;                                         // ничего нет
                 case BLACK:
@@ -323,7 +325,7 @@ public class LineSolver {
         cutFrom = i;
         boolean result;
         do {
-            switch (array[i]) {
+            switch (dots[i]) {
                 case UNSET: {
                     if (dot) { // предидущая точка?
                         // ничего после точки - надо заканчивать ряд
@@ -388,7 +390,7 @@ public class LineSolver {
         cd = 0; // количество точек
         cutTo = i;
         do {
-            switch (array[i]) {
+            switch (dots[i]) {
                 case UNSET: {
                     if (dot) // предидущая точка?
                     { // ничего после точки - надо заканчивать ряд
@@ -454,6 +456,6 @@ public class LineSolver {
     }
 
     public Dot array(int x) {
-        return array[x];
+        return dots[x];
     }
 }
