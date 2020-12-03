@@ -10,31 +10,46 @@ import java.util.List;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
-class TAllData implements BoardReader {
+public class TAllData implements BoardReader {
 
-    public double[][][] probability = new double[Solver.MAX + 1][Solver.MAX + 1][3];
-    public boolean[] finX = new boolean[Solver.MAX + 1];
-    public boolean[] finY = new boolean[Solver.MAX + 1];
-    public boolean[] chX = new boolean[Solver.MAX + 1];
-    public boolean[] chY = new boolean[Solver.MAX + 1];
-    public Dot[][] data = new Dot[Solver.MAX + 1][Solver.MAX + 1];
-    public boolean[] tchX = new boolean[Solver.MAX + 1];
-    public boolean[] tchY = new boolean[Solver.MAX + 1];
-    public boolean[][] noSet = new boolean[Solver.MAX + 1][Solver.MAX + 1];
+    private final int width;
+    private final int height;
+    public double[][][] probability;
+    public boolean[] finX;
+    public boolean[] finY;
+    public boolean[] chX;
+    public boolean[] chY;
+    public Dot[][] data;
+    public boolean[] tchX;
+    public boolean[] tchY;
+    public boolean[][] noSet;
+
+    public TAllData(int width, int height) {
+        this.width = width;
+        this.height = height;
+
+        probability = new double[width + 1][height + 1][3];
+        finX = new boolean[height + 1];
+        finY = new boolean[width + 1];
+        chX = new boolean[height + 1];
+        chY = new boolean[width + 1];
+        data = new Dot[width + 1][height + 1];
+        tchX = new boolean[height + 1];
+        tchY = new boolean[width + 1];
+        noSet = new boolean[width + 1][height + 1];
+    }
 
     public Dot[] dataX(int y) {
-        int len = Solver.width;
-        Dot[] result = new Dot[len + 1];
-        for (int x = 1; x <= len; x++) {
+        Dot[] result = new Dot[width + 1];
+        for (int x = 1; x <= width; x++) {
             result[x] = data[x][y];
         }
         return result;
     }
 
     public Dot[] dataY(int x) {
-        int len = Solver.height;
-        Dot[] result = new Dot[len + 1];
-        for (int y = 1; y <= len; y++) {
+        Dot[] result = new Dot[height + 1];
+        for (int y = 1; y <= height; y++) {
             result[y] = data[x][y];
         }
         return result;
@@ -42,18 +57,18 @@ class TAllData implements BoardReader {
 
     @Override
     public int size() {
-        if (Solver.width != Solver.height) {
+        if (width != height) {
             throw new RuntimeException("Кроссворд не прямоугольный");
         }
 
-        return Solver.width;
+        return width;
     }
 
     @Override
     public Iterable<? extends Point> elements() {
         List<Pixel> result = new LinkedList<>();
-        for (int x = 1; x <= Solver.width; x++) {
-            for (int y = 1; y <= Solver.height; y++) {
+        for (int x = 1; x <= width; x++) {
+            for (int y = 1; y <= height; y++) {
                 // инвертирование потому что в этом коде черный и белый отличаются от codenjoy'ного
                 int inverted = Math.abs(data[x][y].code() - 1);
                 // так же надо отступить, потому что в этом коде индексы начинаются с 0

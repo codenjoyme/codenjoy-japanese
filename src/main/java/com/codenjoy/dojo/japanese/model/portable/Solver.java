@@ -23,13 +23,14 @@ class Solver implements BoardReader {
 
     public static final int MAX = 150;
 
-    private boolean mode;
     public boolean withAssumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
-    private TAllData main = new TAllData(); // тут решение точное
-    private TAllData assumptionBlack = new TAllData(); // тут предполагаем black
-    private TAllData assumptionWhite = new TAllData();// тут предполагаем white
-    private Assumption assumption; //данные предположения
-    public static int width = 15, height = 15; // длинна и высота кроссворда
+
+    private TAllData main; // тут решение точное
+    private TAllData assumptionBlack; // тут предполагаем black
+    private TAllData assumptionWhite;// тут предполагаем white
+
+    private Assumption assumption;
+    public int width, height;
     private int[][] numbersX = new int[MAX + 1][MAX + 1]; // тут хранятся цифры рядов
     private int[][] numbersY = new int[MAX + 1][MAX + 1];
     private int[] countNumbersX = new int[MAX + 1]; // тут хранятся количества цифер рядов
@@ -40,7 +41,7 @@ class Solver implements BoardReader {
     int offsetY;
 
     public Solver() {
-        init();
+        lineSolver = new LineSolver();
     }
 
     public String printData() {
@@ -54,32 +55,29 @@ class Solver implements BoardReader {
     }
     
     public void clear(boolean all) {
-        for (int x = 1; x <= MAX; x++) {
-            for (int y = 1; y <= MAX; y++) {
+        for (int x = 1; x <= width; x++) {
+            for (int y = 1; y <= height; y++) {
                 main.data[x][y] = Dot.UNSET;
                 main.probability[x][y][Dot.BLACK.code()] = UNKNOWN;
                 main.probability[x][y][Dot.WHITE.code()] = UNKNOWN;
             }
+        }
+        for (int x = 1; x <= width; x++) {
             if (all) {
-                countNumbersX[x] = 0;
                 countNumbersY[x] = 0;
             }
             main.finY[x] = false;
-            main.finX[x] = false;
             main.chY[x] = true;
-            main.chX[x] = true;
+        }
+        for (int y = 1; y <= height; y++) {
+            if (all) {
+                countNumbersX[y] = 0;
+            }
+            main.finX[y] = false;
+            main.chX[y] = true;
         }
     }
-    
-    private void init() {
-        lineSolver = new LineSolver();
-        main = new TAllData();
-        assumptionBlack = new TAllData();
-        assumptionWhite = new TAllData();
-        width = 15;
-        height = 15;
-    }
-    
+
     public void getNumbersX() {
         int a;
         for (int y = 1; y <= height; y++) {
@@ -680,7 +678,7 @@ class Solver implements BoardReader {
                 return true;
             }
             // прорисовать на поле если надо
-            if (mode) dataFromNumbersY(pt.x);
+            if (true) dataFromNumbersY(pt.x);
         } else { // строки
             // заполнение
             countNumbersX[pt.x] = a;
@@ -701,7 +699,7 @@ class Solver implements BoardReader {
                 return true;
             }
             // прорисовать на поле если надо
-            if (mode) dataFromNumbersX(pt.x);
+            if (true) dataFromNumbersX(pt.x);
         }
         return false;
     }
@@ -786,8 +784,8 @@ class Solver implements BoardReader {
         getOffset(level);
 
         // X рядки чисел
-        width = level.size() - offsetX;
-        height = width;
+        int width = level.size() - offsetX;
+        size(width, width);
 
         List<Numbers> linesX = lines(level, Number::getY)
                 .subList(0, width);
@@ -846,6 +844,10 @@ class Solver implements BoardReader {
     public void size(int width, int height) {
         this.width = width;
         this.height = height;
+
+        main = new TAllData(width, height);
+        assumptionBlack = new TAllData(width, height);
+        assumptionWhite = new TAllData(width, height);
     }
 
     public void offset(int x, int y) {
