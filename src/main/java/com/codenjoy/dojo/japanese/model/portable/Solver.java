@@ -429,18 +429,18 @@ class Solver implements BoardReader {
     }
 
     private int[] numbersX(int y) {
-        int countNumbers = countNumbersX[y];
-        int[] result = new int[countNumbers + 1];
-        for (int x = 1; x <= countNumbers; x++) {
+        int count = countNumbersX[y];
+        int[] result = new int[count + 1];
+        for (int x = 1; x <= count; x++) {
             result[x] = numbersX[x][y];
         }
         return result;
     }
 
     private int[] numbersY(int x) {
-        int countNumbers = countNumbersY[x];
-        int[] result = new int[countNumbers + 1];
-        for (int y = 1; y <= countNumbers; y++) {
+        int count = countNumbersY[x];
+        int[] result = new int[count + 1];
+        for (int y = 1; y <= count; y++) {
             result[y] = numbersY[x][y];
         }
         return result;
@@ -529,24 +529,25 @@ class Solver implements BoardReader {
             c2 = c2 && (!c);
             data.finY[x] = !c;
         }
-        boolean result = c2;
-        if (result) {
-            if (data == main) return result;
+        if (c2) {
+            if (data == main) {
+                return c2;
+            }
             applyAssumptionData(assumption.color());
         }
-        return result;
+        return c2;
     }
 
     public String getOpened() {
-        int a = 0;
+        int count = 0;
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {
                 if (main.data[x][y] != Dot.UNSET) {
-                    a++;
+                    count++;
                 }
             }
         }
-        return "Открыто: " + Double.toString(Math.round(1000 * a / (width * height)) / 10) + "%(" + a + ")";
+        return "Открыто: " + Double.toString(Math.round(1000 * count / (width * height)) / 10) + "%(" + count + ")";
     }
 
     @Override
