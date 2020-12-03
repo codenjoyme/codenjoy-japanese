@@ -70,7 +70,7 @@ public class LineSolver {
 //        }
         //-----------
         for (int i = 1; i <= len; i++) {
-            probability[i] = EXACTLY_WHITE;
+            probability[i] = EXACTLY_NOT;
         }
         //-----------
         result = true;
@@ -87,7 +87,7 @@ public class LineSolver {
                 cr = cr + 2;
             }
             cr = cr - 1;
-            if (j > cutLen) cr = cr - 1;
+            if (j > cutLen) cr--;
             if (j < cutLen) numbers10.arr[cr].c = numbers10.arr[cr].c + cutLen - j;
             //-------
             b1 = true;
@@ -95,13 +95,13 @@ public class LineSolver {
             while (b1) {
                 getCombinationsFromNumbers();
                 if (testCombination()) {
-                    combinationCount = combinationCount + 1;
+                    combinationCount++;
 
                     int i0 = cutFrom;
                     int leni = cutTo;
                     for (int i = i0; i <= leni; i++) {
                         if (combinations[i]) {
-                            probability[i] = probability[i] + 1;
+                            probability[i]++;
                         }
                     }
                 }
@@ -124,10 +124,10 @@ public class LineSolver {
         }
         //-----------
         for (int i = 1; i <= len; i++) {
-            if (probability[i] == EXACTLY_BLACK) {
+            if (probability[i] == EXACTLY) {
                 dots[i] = Dot.BLACK;
             }
-            if (probability[i] == EXACTLY_WHITE) {
+            if (probability[i] == EXACTLY_NOT) {
                 dots[i] = Dot.WHITE;
             }
         }
@@ -174,7 +174,7 @@ public class LineSolver {
         j = 1;
         cr = 1;
 
-        i0 = (cutFrom + 1);
+        i0 = cutFrom + 1;
         leni = cutTo;
         for (int i = i0; i <= leni; i++) {
             if (combinations[i] ^ b) {
@@ -200,7 +200,7 @@ public class LineSolver {
         boolean Result = true;
         while (true) {
             if (numbers10.arr[a].b) {
-                a = a - 1;
+                a--;
                 if (a <= 0) {
                     Result = false;
                     break;
@@ -221,8 +221,8 @@ public class LineSolver {
                             b2 = true;
                         }
                         while (numbers10.arr[a].c == 1) {
-                            a = a - 2;
-                            a2 = a2 + 2;
+                            a -= 2;
+                            a2 += 2;
                             if ((a <= 0) || (a2 == cr)) {
                                 b2 = true;
                                 break;
@@ -306,23 +306,23 @@ public class LineSolver {
         do {
             switch (dots[i]) {
                 case UNSET: {
-                    if (dot) { // предидущая точка?
+                    if (dot) { // предыдущая точка?
                         // ничего после точки - надо заканчивать ряд
                         if (cd < numbers[dr]) { // dr - ый ряд закончили?
                             // незакончили
-                            cd = cd + 1; // количество точек
-                            probability[i] = EXACTLY_BLACK; // потом тут будет точка
+                            cd++; // количество точек
+                            probability[i] = EXACTLY; // потом тут будет точка
                             dot = true;  // поставили точку
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
-                            probability[i] = EXACTLY_WHITE; // потом тут будет пустота
+                            probability[i] = EXACTLY_NOT; // потом тут будет пустота
                             SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
                             dot = false;  // поставили пустоту
-                            dr = dr - 1; // из за смещения
+                            dr--; // из за смещения
                         }
-                    } else { // ничего после пустоты - выходим вообшето
+                    } else { // ничего после пустоты - выходим вообщето
                         if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
-                            probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
+                            probability[i] = EXACTLY_NOT; // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
                             cutFrom = i;
                             b = true; // иначе выходим
@@ -332,12 +332,12 @@ public class LineSolver {
                 break;
                 case BLACK: {
                     if (!dot) {
-                        dr = dr + 1;
+                        dr++;
                         cd = 0;
                         dot = true; // точка у нас
                     }
-                    probability[i] = EXACTLY_BLACK; // потом тут будет точка
-                    cd = cd + 1; // точек стало больше
+                    probability[i] = EXACTLY; // потом тут будет точка
+                    cd++; // точек стало больше
                 }
                 break;
                 case WHITE: {
@@ -349,9 +349,9 @@ public class LineSolver {
                         }
                         dot = false; // теперь точки нет
                         SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                        dr = dr - 1; // из за смещения
+                        dr--; // из за смещения
                     }
-                    probability[i] = EXACTLY_WHITE; // пустота
+                    probability[i] = EXACTLY_NOT; // пустота
                 }
                 break;
             }
@@ -371,22 +371,22 @@ public class LineSolver {
         do {
             switch (dots[i]) {
                 case UNSET: {
-                    if (dot) // предидущая точка?
-                    { // ничего после точки - надо заканчивать ряд
+                    if (dot) { // предыдущая точка?
+                        // ничего после точки - надо заканчивать ряд
                         if (cd < numbers[dr]) { // dr - ый ряд закончили?
                             // незакончили
-                            cd = cd + 1; // количество точек
-                            probability[i] = EXACTLY_BLACK; // потом тут будет точка
+                            cd++; // количество точек
+                            probability[i] = EXACTLY; // потом тут будет точка
                             dot = true;  // поставили точку
                         } else { // закончили ряд
                             cd = 0; // новы ряд еще не начали
-                            probability[i] = EXACTLY_WHITE; // потом тут будет пустота
-                            countNumbers = countNumbers - 1;
+                            probability[i] = EXACTLY_NOT; // потом тут будет пустота
+                            countNumbers--;
                             dot = false; // поставили пустоту
                         }
-                    } else { // ничего после пустоты - выходим вообшето
+                    } else { // ничего после пустоты - выходим вообщето
                         if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
-                            probability[i] = EXACTLY_WHITE; // канчаем его:) // /TODO тут странно ставить white
+                            probability[i] = EXACTLY_NOT; // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
                             cutTo = i;
                             b = true; // иначе выходим
@@ -396,12 +396,12 @@ public class LineSolver {
                 break;
                 case BLACK: {
                     if (!dot) {
-                        dr = dr - 1;
+                        dr--;
                         cd = 0;
                         dot = true; // точка у нас
                     }
-                    probability[i] = EXACTLY_BLACK; // потом тут будет точка
-                    cd = cd + 1; // точек стало больше
+                    probability[i] = EXACTLY; // потом тут будет точка
+                    cd++; // точек стало больше
                 }
                 break;
                 case WHITE: {
@@ -412,9 +412,9 @@ public class LineSolver {
                             return result;
                         }
                         dot = false; // теперь точки нет
-                        countNumbers = countNumbers - 1;
+                        countNumbers--;
                     }
-                    probability[i] = EXACTLY_WHITE; // пустота
+                    probability[i] = EXACTLY_NOT; // пустота
                 }
                 break;
             }

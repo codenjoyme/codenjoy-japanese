@@ -16,8 +16,8 @@ import static java.util.stream.Collectors.toList;
 
 class Solver implements BoardReader {
 
-    public static final double EXACTLY_BLACK = 1.0;
-    public static final double EXACTLY_WHITE = 0.0;
+    public static final double EXACTLY = 1.0;
+    public static final double EXACTLY_NOT = 0.0;
     public static final double UNKNOWN = -1.0;
 
     public static final int MAX = 150;
@@ -448,13 +448,13 @@ class Solver implements BoardReader {
             for (int y = 1; y <= height; y++) {
                 switch (main.data[x][y]) {
                     case BLACK: {
-                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_BLACK;
-                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_BLACK;
+                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY;
+                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_NOT;
                     }
                     break;
                     case WHITE: {
-                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_WHITE;
-                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_WHITE;
+                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_NOT;
+                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY;
                     }
                     break;
                 }
@@ -513,13 +513,13 @@ class Solver implements BoardReader {
         if (dot.isBlack()) {
             data.data[pt.x][pt.y] = Dot.BLACK;
             // меняем вероятности
-            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_BLACK;
-            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_BLACK;
+            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY;
+            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_NOT;
         } else {
             data.data[pt.x][pt.y] = Dot.WHITE;
             // меняем вероятности
-            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_WHITE;
-            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_WHITE;
+            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_NOT;
+            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY;
         }
         // строка и солбец, содержащие эту точку пересчитать
         data.chX[pt.y] = true;
