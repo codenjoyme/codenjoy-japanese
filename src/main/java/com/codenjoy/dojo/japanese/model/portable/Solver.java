@@ -555,6 +555,7 @@ class Solver implements BoardReader {
         return Math.max(width + offsetX, height + offsetY);
     }
 
+    // используется для отрисовки состояния кроссворда в текстовом представлении принтером
     @Override
     public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
