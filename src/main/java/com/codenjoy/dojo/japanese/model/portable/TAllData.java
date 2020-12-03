@@ -23,7 +23,7 @@ class TAllData implements BoardReader {
     public boolean[][] noSet = new boolean[Solver.MAX + 1][Solver.MAX + 1];
 
     public Dot[] dataX(int y) {
-        int len = Solver.lenX;
+        int len = Solver.width;
         Dot[] result = new Dot[len + 1];
         for (int x = 1; x <= len; x++) {
             result[x] = data[x][y];
@@ -32,7 +32,7 @@ class TAllData implements BoardReader {
     }
 
     public Dot[] dataY(int x) {
-        int len = Solver.lenY;
+        int len = Solver.height;
         Dot[] result = new Dot[len + 1];
         for (int y = 1; y <= len; y++) {
             result[y] = data[x][y];
@@ -42,18 +42,18 @@ class TAllData implements BoardReader {
 
     @Override
     public int size() {
-        if (Solver.lenX != Solver.lenY) {
+        if (Solver.width != Solver.height) {
             throw new RuntimeException("Кроссворд не прямоугольный");
         }
 
-        return Solver.lenX;
+        return Solver.width;
     }
 
     @Override
     public Iterable<? extends Point> elements() {
         List<Pixel> result = new LinkedList<>();
-        for (int x = 1; x <= Solver.lenX; x++) {
-            for (int y = 1; y <= Solver.lenY; y++) {
+        for (int x = 1; x <= Solver.width; x++) {
+            for (int y = 1; y <= Solver.height; y++) {
                 // инвертирование потому что в этом коде черный и белый отличаются от codenjoy'ного
                 int inverted = Math.abs(data[x][y].code() - 1);
                 // так же надо отступить, потому что в этом коде индексы начинаются с 0
