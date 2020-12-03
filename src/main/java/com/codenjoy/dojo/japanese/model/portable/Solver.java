@@ -48,6 +48,20 @@ class Solver implements BoardReader {
         public boolean isBlack() {
             return this == BLACK;
         }
+
+        public boolean isWhite() {
+            return this == WHITE;
+        }
+
+        public Dot invert() {
+            if (this == BLACK) {
+                return WHITE;
+            } else if (this == WHITE) {
+                return BLACK;
+            } else {
+                return UNSET;
+            }
+        }
     }
 
     public static final double EXACTLY_BLACK = 1.0;
@@ -125,7 +139,6 @@ class Solver implements BoardReader {
         current.pt = new TPoint(1, 1);
         lenX = 15;
         lenY = 15;
-        assumption = new Assumption();
     }
     
     public void getNumbersX() {
@@ -235,9 +248,8 @@ class Solver implements BoardReader {
     }
     
     public void solve() {
-        boolean wasChanges, assumptionError, ableToNewAssumption, foundMaxProbDot, b7, wasError, b11;
+        boolean wasChanges, ableToNewAssumption, foundMaxProbDot, b7, wasError, b11;
         // wasChanges - произошли ли изменения,
-        // assumptionError - была ли ошибка,
         // b3 - ,
         // b4 - ,
         // ableToNewAssumption - предполагать максимальной вероятности с учетом массива NoSet,
@@ -251,7 +263,6 @@ class Solver implements BoardReader {
         double a1, a2; 
         TPoint pt;
         TAllData data;
-        boolean errorOnBlack, errorOnWhite;
 
         // проверка на совпадение рядов
         pt = check();
@@ -314,29 +325,30 @@ class Solver implements BoardReader {
         }
         b11 = (a1 / lenY > a2 / lenX);
         //----------------------------------------------------------
-        assumption.color = Dot.UNSET;
+        assumption = new Assumption();
         wasChanges = false; // для b11
-        errorOnBlack = false;
-        errorOnWhite = false;
         do {
             if (wasChanges && b11) b11 = false;
             wasChanges = false;
-            assumptionError = false;
 
             data = getData();
 
-            if (!(ableToNewAssumption || b11)) { // при поиске другой точки, или если LenX больше LenY (в начале) пропускаем этот шаг
+            if (!ableToNewAssumption && !b11) {
+                // при поиске другой точки
+                // или если LenX больше LenY (в начале)
                 for (int y = 1; y <= lenY; y++) {
                     if (data.finX[y]) continue;
                     if (!data.chX[y]) continue;
-                    if (!lineSolver.calculate(numbersX(y), data.dataX(y))) { // расчет ... если нет ни одной комбины - ошибка
+
+                    if (!lineSolver.calculate(numbersX(y), data.dataX(y))) {
+                        // если нет ни одной комбинации - ошибка
                         if (!withAssumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
                             wasError = true;
                             break;
                         }
                         wasChanges = false;
-                        assumptionError = true;
+                        assumption.error();
                         break;
                     }
                     for (int x = 1; x <= lenX; x++) {
@@ -367,7 +379,10 @@ class Solver implements BoardReader {
                 wasError = getFin(data); // если небыло ошибки, то если сложили все wasError = GetFin; выходим как если была бы ошибка
             }
 
-            if ((!assumptionError) && (!ableToNewAssumption) && (!wasError)) { // если была ошибка (assumptionError) или надо найти другую точку (ableToNewAssumption) или была ошибка (wasError) то пропускаем этот шаг
+            if (!assumption.wasError() && !ableToNewAssumption && !wasError) {
+                // если была ошибка (assumptionError)
+                // или надо найти другую точку (ableToNewAssumption)
+                // или была ошибка (wasError) то пропускаем этот шаг
                 for (int x = 1; x <= lenX; x++) { // дальше то же только для столбцов
                     if (data.finY[x]) continue;
                     if (!data.chY[x]) continue;
@@ -378,7 +393,7 @@ class Solver implements BoardReader {
                             break;
                         }
                         wasChanges = false;
-                        assumptionError = true;
+                        assumption.error();
                         break;
                     }
 
@@ -408,10 +423,13 @@ class Solver implements BoardReader {
                 if (b11) wasChanges = true; // чтобы после прогона по х пошел прогон по у
             }
             if (!wasError) {
-                wasError = getFin(data); // если небыло ошибки, то если сложили все wasError = GetFin; выходим как если была бы ошибка
+                // если небыло ошибки, то если сложили все wasError = GetFin
+                // выходим как если была бы ошибка
+                wasError = getFin(data);
             }
 
             if (b7) wasChanges = false; // все конец
+
             if (withAssumption && !wasChanges && !b7 && !wasError) {
                 // если включено предположение (tryAssumption)
                 // и ничего не получается решить точно (wasChanges)
@@ -420,52 +438,37 @@ class Solver implements BoardReader {
 
                 if (b11) b11 = false;
 
-                if (assumption.inProgress()) { // предполагали?
-                    if (assumption.isBlack()) { // на чем ошибка была?
-                        errorOnBlack = assumptionError;
-                    } else {
-                        errorOnWhite = assumptionError;
-                    }
-                    if (assumptionError) {
-                        assumptionError = false;
-                    }
+                if (assumption.inProgress()) {
                     if (assumption.isBlack()) {
-                        tryAssumption(assumption.at, Dot.WHITE); // была точка, теперь пустота
-                        wasChanges = true; // произошли изменения
-                    } else { // ыбли предположения на WHITE (а до этого на BLACK), значит будем определять что нам записывать в клетку
-                        if (errorOnBlack) {
-                            if (errorOnWhite) {
-                                // ошибка на WHITE и на BLACK - ошибка где-то в кроссворде
-                                System.out.println("Ошибка в кроссворде.");
-                                wasError = true;
-                            } else {
-                                // ошибка на BLACK и нет ее на WHITE - значит стами WHITE
-                                applyAssumptionData(Dot.WHITE);
-                                printField();
-                                ableToNewAssumption = true;
-                                wasChanges = true;
-                            }
+                        // после BLACK пробуем предположить WHITE
+                        tryAssumption(assumption.at, Dot.WHITE);
+                        wasChanges = true;
+                    } else {
+                        // были предположения на WHITE (а до этого на BLACK),
+                        // значит будем определять что нам записывать в клетку
+                        if (assumption.errorOnBoth()) {
+                            // ошибка на WHITE и на BLACK - ошибка где-то в кроссворде
+                            System.out.println("Ошибка в кроссворде.");
+                            wasError = true;
+                        } else if (assumption.noErrors()) {
+                            // нет ошибок ни там ни там - значит неизвестно
+                            pt = assumption.at;
+                            main.noSet[pt.x][pt.y] = true;
+                            main.data[pt.x][pt.y] = Dot.UNSET;
+                            draw(pt);
+                            ableToNewAssumption = true;
+                            wasChanges = true;
                         } else {
-                            if (errorOnWhite) {
-                                // нету на BLACK и есть на WHITE - значит BLACK
-                                applyAssumptionData(Dot.BLACK);
-                                printField();
-                                ableToNewAssumption = true;
-                                wasChanges = true;
-                            } else {
-                                // нет ошибок ни там ни там - значит неизвестно, это потом сохранять будем
-                                pt = assumption.at;
-                                main.noSet[pt.x][pt.y] = true;
-                                main.data[pt.x][pt.y] = Dot.UNSET;
-                                draw(pt);
-                                ableToNewAssumption = true;
-                                wasChanges = true;
-                            }
+                            // ошибка была на одном из цветов, а значит точка другая
+                            applyAssumptionData(assumption.errorOn().invert());
+                            printField();
+                            ableToNewAssumption = true;
+                            wasChanges = true;
                         }
                         assumption.stop();
                     }
                 } else {
-                    if (assumptionError) { // ошибка была?
+                    if (assumption.wasError()) { // ошибка была?
                         // если была ошибка без предположений то в кросворде ошибка
                         System.out.println("Ошибка в кроссворде.");
                         wasError = true;
@@ -489,20 +492,21 @@ class Solver implements BoardReader {
                         }
 
                         foundMaxProbDot = foundMaxProbDot && ((max1 > 0) || (max2 > 0)); // критерий отбора
-                        if (foundMaxProbDot) { // нашли точку?
-                            // да
+                        if (foundMaxProbDot) {
+                            // нашли точку
                             if (!ableToNewAssumption) {
                                 tryAssumption(pt, Dot.BLACK); // сохраняемся только если искали макс вероятность без учета массива NoSet
                             }
                             main.data[pt.x][pt.y] = Dot.ASSUMPTION;
                             draw(pt);
                             wasChanges = true; // произошли изменения
-                        } else { // нет
+                        } else {
+                            // не нашли точку
                             if (ableToNewAssumption) {
                                 assumption.stop();
-                                printField(); //
+                                printField();
                             }
-                            wasChanges = true; // изменений нету
+                            wasChanges = true;
                             updateAllFinCh(false);
                             b7 = true; // последний прогон для нормального отображения вероятностей
                         }
@@ -628,7 +632,7 @@ class Solver implements BoardReader {
             data = main;
             main = assumptionBlack;
             assumptionBlack = data;
-        } else {
+        } else if (dot.isWhite()) {
             data = main;
             main = assumptionWhite;
             assumptionWhite = data;
@@ -1146,6 +1150,9 @@ class Solver implements BoardReader {
 
         private TPoint at; // координата, которую пытаемся подобрать
         private Dot color; // цвет в котором делали проверку подбором
+        private boolean error; // была ли ошибка в процессе подбора
+        private boolean errorOnBlack; // была ли ошибка в подборе BLACK точки
+        private boolean errorOnWhite; // была ли ошибка в подборе WHITE точки
 
         public Assumption() {
             stop();
@@ -1157,6 +1164,9 @@ class Solver implements BoardReader {
 
         public void stop() {
             color = Dot.UNSET;
+            error = false;
+            errorOnBlack = false;
+            errorOnWhite = false;
         }
 
         public void start(Dot color) {
@@ -1169,6 +1179,38 @@ class Solver implements BoardReader {
 
         public Dot color() {
             return color;
+        }
+
+        public void error() {
+            error = true;
+            if (inProgress()) {
+                if (isBlack()) {
+                    errorOnBlack = true;
+                } else {
+                    errorOnWhite = true;
+                }
+            }
+        }
+
+        public boolean wasError() {
+            return error;
+        }
+
+        public boolean errorOnBoth() {
+            return errorOnBlack && errorOnWhite;
+        }
+
+        public boolean noErrors() {
+            return !errorOnBlack && !errorOnWhite;
+        }
+
+        public Dot errorOn() {
+            if (errorOnBlack) {
+                return Dot.BLACK;
+            } else if (errorOnWhite) {
+                return Dot.WHITE;
+            }
+            return Dot.UNSET;
         }
     }
 
