@@ -20,8 +20,6 @@ class Solver implements BoardReader {
     public static final double EXACTLY_NOT = 0.0;
     public static final double UNKNOWN = -1.0;
 
-    public static final int MAX = 150;
-
     private boolean withAssumption; // гадать ли алгоритму, если нет вариантов точных на поле
 
     private AllData main; // тут решение точное

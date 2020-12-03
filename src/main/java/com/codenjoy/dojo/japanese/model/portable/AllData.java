@@ -82,10 +82,10 @@ public class AllData implements BoardReader {
         List<Pixel> result = new LinkedList<>();
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {
-                // инвертирование потому что в этом коде черный и белый отличаются от codenjoy'ного
-                int inverted = Math.abs(data[x][y].code() - 1);
+                // конвертирование потому что в этом коде черный и белый отличаются от codenjoy'ного
+                int color = data[x][y].code() - 1;
                 // так же надо отступить, потому что в этом коде индексы начинаются с 0
-                result.add(new Pixel(pt(x - 1, y - 1), Color.get(inverted)));
+                result.add(new Pixel(pt(x - 1, y - 1), Color.get(color)));
             }
         }
         return result;

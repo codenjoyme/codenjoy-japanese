@@ -9,27 +9,17 @@ public class LineSolver {
         public boolean b;
     }
 
-    public static class TNumbers10 {
-        public TRjad10Record[] arr = new TRjad10Record[MAX + 1];
-
-        public TNumbers10() {
-            for (int i = 1; i < arr.length; i++) {
-                arr[i] = new TRjad10Record();
-            }
-        }
-    }
-
-    private boolean[] combinations = new boolean[MAX + 1];
+    private boolean[] combinations;
     private int combinationCount;
 
     private Dot[] dots;
-    private double[] probability = new double[MAX + 1];
+    private double[] probability;
     private int len;
 
     private int[] numbers;
     private int countNumbers;
     private int cr;
-    private TNumbers10 numbers10 = new TNumbers10();
+    private TRjad10Record[] numbers10;
 
     private int cutFrom;
     private int cutTo;
@@ -40,6 +30,13 @@ public class LineSolver {
         this.dots = dots;
         this.countNumbers = numbers.length - 1;
         this.numbers = numbers;
+
+        combinations = new boolean[len + 1];
+        probability = new double[len + 1];
+        numbers10 = new TRjad10Record[len + 1];
+        for (int i = 1; i < numbers10.length; i++) {
+            numbers10[i] = new TRjad10Record();
+        }
 
         boolean b1;
         boolean result;
@@ -79,16 +76,16 @@ public class LineSolver {
             cr = 1;
             int j = 0;
             for (int i = 1; i <= countNumbers; i++) {
-                numbers10.arr[cr].b = true;
-                numbers10.arr[cr].c = numbers[i];
-                numbers10.arr[cr + 1].b = false;
-                numbers10.arr[cr + 1].c = 1;
+                numbers10[cr].b = true;
+                numbers10[cr].c = numbers[i];
+                numbers10[cr + 1].b = false;
+                numbers10[cr + 1].c = 1;
                 j = j + numbers[i] + 1;
                 cr = cr + 2;
             }
             cr = cr - 1;
             if (j > cutLen) cr--;
-            if (j < cutLen) numbers10.arr[cr].c = numbers10.arr[cr].c + cutLen - j;
+            if (j < cutLen) numbers10[cr].c = numbers10[cr].c + cutLen - j;
             //-------
             b1 = true;
             combinationCount = 0;
@@ -160,10 +157,13 @@ public class LineSolver {
     private void getCombinationsFromNumbers() {
         int x = cutFrom - 1;
         for (int i = 1; i <= cr; i++) {
-            for (int j = 1; j <= numbers10.arr[i].c; j++) {
-                combinations[x + j] = numbers10.arr[i].b;
+            for (int j = 1; j <= numbers10[i].c; j++) {
+                if (x + j > len || i > len) {
+                    break; // TODO этого не должно происходить, но происходит
+                }
+                combinations[x + j] = numbers10[i].b;
             }
-            x = x + numbers10.arr[i].c;
+            x = x + numbers10[i].c;
         }
     }
 
@@ -178,8 +178,8 @@ public class LineSolver {
         leni = cutTo;
         for (int i = i0; i <= leni; i++) {
             if (combinations[i] ^ b) {
-                numbers10.arr[cr].c = j;
-                numbers10.arr[cr].b = b;
+                numbers10[cr].c = j;
+                numbers10[cr].b = b;
                 cr++; ;
                 j = 0;
             }
@@ -187,8 +187,8 @@ public class LineSolver {
             b = combinations[i];
         }
         if (j != 0) {
-            numbers10.arr[cr].c = j;
-            numbers10.arr[cr].b = b;
+            numbers10[cr].c = j;
+            numbers10[cr].b = b;
         }
         this.cr = cr;
     }
@@ -199,7 +199,7 @@ public class LineSolver {
         a = cr;
         boolean Result = true;
         while (true) {
-            if (numbers10.arr[a].b) {
+            if (numbers10[a].b) {
                 a--;
                 if (a <= 0) {
                     Result = false;
@@ -214,13 +214,13 @@ public class LineSolver {
 
                     if ((a + 2) > cr) {
                         if ((a + 2) != (cr + 1)) break;
-                        if (!numbers10.arr[cr].b) break;
+                        if (!numbers10[cr].b) break;
 
                         b2 = false;
-                        if ((numbers10.arr[a].c != 1) && (cr == 2)) {
+                        if ((numbers10[a].c != 1) && (cr == 2)) {
                             b2 = true;
                         }
-                        while (numbers10.arr[a].c == 1) {
+                        while (numbers10[a].c == 1) {
                             a -= 2;
                             a2 += 2;
                             if ((a <= 0) || (a2 == cr)) {
@@ -232,11 +232,11 @@ public class LineSolver {
                         if (b2) break;
 
                         cr++;
-                        numbers10.arr[cr].b = false;
-                        numbers10.arr[cr].c = 0;
+                        numbers10[cr].b = false;
+                        numbers10[cr].c = 0;
                     }
-                    numbers10.arr[a + a2].c = numbers10.arr[a + a2].c + numbers10.arr[a].c - 2;
-                    numbers10.arr[a].c = 2;
+                    numbers10[a + a2].c = numbers10[a + a2].c + numbers10[a].c - 2;
+                    numbers10[a].c = 2;
                     break;
                 }
                 if (b2) {
@@ -252,28 +252,28 @@ public class LineSolver {
                     if (a < 1) break;
                     cr++;
                     for (int i = (cr - 1); i >= 1; i--) { // TODO downto
-                        numbers10.arr[i + 1].c = numbers10.arr[i].c;
-                        numbers10.arr[i + 1].b = numbers10.arr[i].b;
+                        numbers10[i + 1].c = numbers10[i].c;
+                        numbers10[i + 1].b = numbers10[i].b;
                     }
-                    numbers10.arr[1].c = 1;
-                    numbers10.arr[1].b = false;
+                    numbers10[1].c = 1;
+                    numbers10[1].b = false;
                     if (cr > 3) {
-                        numbers10.arr[3].c = 1;
+                        numbers10[3].c = 1;
                     }
                     if (cr == 3) {
-                        numbers10.arr[3].c = numbers10.arr[3].c - 1;
+                        numbers10[3].c = numbers10[3].c - 1;
                     }
                     break;
                 }
-                numbers10.arr[a - 2].c = numbers10.arr[a - 2].c + 1;
-                numbers10.arr[a].c = numbers10.arr[a].c - 1;
-                if (numbers10.arr[a].c == 0) {
+                numbers10[a - 2].c = numbers10[a - 2].c + 1;
+                numbers10[a].c = numbers10[a].c - 1;
+                if (numbers10[a].c == 0) {
                     if (a == cr) {
                         cr--;
                         break;
                     } else {
-                        numbers10.arr[a - 2].c = numbers10.arr[a - 2].c - 1;
-                        numbers10.arr[a].c = numbers10.arr[a].c + 1;
+                        numbers10[a - 2].c = numbers10[a - 2].c - 1;
+                        numbers10[a].c = numbers10[a].c + 1;
                         a = a - 2;
                     }
                     continue;
