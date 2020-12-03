@@ -2,7 +2,7 @@ package com.codenjoy.dojo.japanese.model.portable;
 
 class Assumption {
 
-    private Point at; // координата, которую пытаемся подобрать
+    private Pt at; // координата, которую пытаемся подобрать
     private Dot color; // цвет в котором делали проверку подбором
     private boolean error; // была ли ошибка в процессе подбора
     private boolean errorOnBlack; // была ли ошибка в подборе BLACK точки
@@ -23,7 +23,7 @@ class Assumption {
         errorOnWhite = false;
     }
 
-    public void start(Point at, Dot color) {
+    public void start(Pt at, Dot color) {
         this.at = at;
         this.color = color;
     }
@@ -73,7 +73,7 @@ class Assumption {
         return Dot.UNSET;
     }
 
-    public Point at() {
+    public Pt at() {
         return at;
     }
 }

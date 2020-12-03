@@ -8,7 +8,7 @@ import com.codenjoy.dojo.services.printer.BoardReader;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.codenjoy.dojo.japanese.model.portable.Solver.UNKNOWN;
+import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
 public class AllData implements BoardReader {
@@ -107,5 +107,25 @@ public class AllData implements BoardReader {
             finX[y] = false;
             chX[y] = true;
         }
+    }
+
+    public void update(Assumption assumption) {
+        Pt pt = assumption.at();
+        if (assumption.color().isBlack()) {
+            data[pt.x][pt.y] = Dot.BLACK;
+            // меняем вероятности
+            probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY;
+            probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_NOT;
+        } else {
+            data[pt.x][pt.y] = Dot.WHITE;
+            // меняем вероятности
+            probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_NOT;
+            probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY;
+        }
+        // строка и солбец, содержащие эту точку пересчитать
+        chX[pt.y] = true;
+        chY[pt.x] = true;
+        finX[pt.y] = false;
+        finY[pt.x] = false;
     }
 }

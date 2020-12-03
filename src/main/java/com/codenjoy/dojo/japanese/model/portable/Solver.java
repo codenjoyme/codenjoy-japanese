@@ -3,6 +3,7 @@ package com.codenjoy.dojo.japanese.model.portable;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.level.Level;
+import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 
@@ -148,7 +149,7 @@ class Solver implements BoardReader {
         getNumbersX();
     }
 
-    public Point check() {
+    public Pt check() {
         int a1, a2;
         a1 = 0;
         for (int x = 1; x <= width; x++) {
@@ -162,7 +163,7 @@ class Solver implements BoardReader {
                 a2 = a2 + numbersX[x][y];
             }
         }
-        return new Point(a1, a2);  // разница рядов
+        return new Pt(a1, a2);  // разница рядов
     }
 
     
@@ -185,7 +186,7 @@ class Solver implements BoardReader {
 
         double max1, max2;
         double a1, a2; 
-        Point pt;
+        Pt pt;
         AllData data;
 
         // проверка на совпадение рядов
@@ -388,7 +389,7 @@ class Solver implements BoardReader {
                                     if (main.noSet[x][y]) continue;
                                     max1 = main.probability[x][y][Dot.BLACK.code()];
                                     max2 = main.probability[x][y][Dot.WHITE.code()];
-                                    pt = new Point(x, y);
+                                    pt = new Pt(x, y);
                                     foundMaxProbDot = true;
                                 }
                             }
@@ -479,30 +480,14 @@ class Solver implements BoardReader {
         return result;
     }
 
-    private void draw(Point pt) {
+    private void draw(Pt pt) {
 
     }
     
     public void updateAssumptionDot(Dot dot) {
         AllData data = getAssumptionData(dot);
-        Point pt = assumption.at();
-        if (dot.isBlack()) {
-            data.data[pt.x][pt.y] = Dot.BLACK;
-            // меняем вероятности
-            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY;
-            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_NOT;
-        } else {
-            data.data[pt.x][pt.y] = Dot.WHITE;
-            // меняем вероятности
-            data.probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_NOT;
-            data.probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY;
-        }
-        // строка и солбец, содержащие эту точку пересчитать
-        data.chX[pt.y] = true;
-        data.chY[pt.x] = true;
-        data.finX[pt.y] = false;
-        data.finY[pt.x] = false;
-        draw(pt);
+        data.update(assumption);
+        draw(assumption.at());
     }
     
     public void applyAssumptionData(Dot dot) {
@@ -518,7 +503,7 @@ class Solver implements BoardReader {
         }
     }
     
-    public void tryAssumption(Point pt, Dot dot) {
+    public void tryAssumption(Pt pt, Dot dot) {
         assumption.start(pt, dot);
 
         AllData data = getAssumptionData(dot);
@@ -604,9 +589,9 @@ class Solver implements BoardReader {
     }
 
     @Override
-    public Iterable<? extends com.codenjoy.dojo.services.Point> elements() {
+    public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
-            List<com.codenjoy.dojo.services.Point> pixels = (List<com.codenjoy.dojo.services.Point>) main.elements();
+            List<Point> pixels = (List<Point>) main.elements();
             pixels.forEach(pixel -> pixel.change(pt(offsetX, 0)));
             addAll(pixels);
 
@@ -662,7 +647,7 @@ class Solver implements BoardReader {
     // TODO только для квадратных полей с одинаковой шириной зоны с цифрами
     private void getOffset(Level level) {
         List<Nan> nans = level.nans();
-        com.codenjoy.dojo.services.Point pt = pt(0, level.size() - 1);
+        Point pt = pt(0, level.size() - 1);
         while (nans.contains(pt)) {
             pt.change(pt(1, -1));
         }
