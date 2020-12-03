@@ -76,15 +76,15 @@ class Solver implements BoardReader {
                     if (a != 0) {
                         numbersX[countNumbersX[y]][y] = a;
                         a = 0;
-                        countNumbersX[y] = countNumbersX[y] + 1;
+                        countNumbersX[y]++;
                     }
                 }
             }
             if (a != 0) {
                 numbersX[countNumbersX[y]][y] = a;
-                countNumbersX[y] = countNumbersX[y] + 1;
+                countNumbersX[y]++;
             }
-            countNumbersX[y] = countNumbersX[y] - 1;
+            countNumbersX[y]--;
         }
     }
     
@@ -100,15 +100,15 @@ class Solver implements BoardReader {
                     if (a != 0) {
                         numbersY[x][countNumbersY[x]] = a;
                         a = 0;
-                        countNumbersY[x] = countNumbersY[x] + 1;
+                        countNumbersY[x]++;
                     }
                 }
             }
             if (a != 0) {
                 numbersY[x][countNumbersY[x]] = a;
-                countNumbersY[x] = countNumbersY[x] + 1;
+                countNumbersY[x]++;
             }
-            countNumbersY[x] = countNumbersY[x] - 1;
+            countNumbersY[x]--;
         }
     }
     
@@ -664,7 +664,7 @@ class Solver implements BoardReader {
                         numbersX[j - 1][y] = numbersX[j][y];
                     }
                 }
-                countNumbersX[y] = countNumbersX[y] - 1;
+                countNumbersX[y]--;
                 len--;
             } else {
                 i++;
@@ -682,7 +682,7 @@ class Solver implements BoardReader {
                         numbersY[x][j - 1] = numbersY[x][j];
                     }
                 }
-                countNumbersY[x] = countNumbersY[x] - 1;
+                countNumbersY[x]--;
                 len--;
             } else {
                 i++;
@@ -696,7 +696,7 @@ class Solver implements BoardReader {
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {
                 if (main.data[x][y] != Dot.UNSET) {
-                    a = a + 1;
+                    a++;
                 }
             }
         }
