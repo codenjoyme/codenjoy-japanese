@@ -133,7 +133,7 @@ public class SolverTest {
     @Test
     public void case4() {
         Solver solver = new Solver();
-        solver.tryAssumption = true; // не будем гадать, пробуем решить точно
+        solver.withAssumption = true; // не будем гадать, пробуем решить точно
 
         String folder = "src\\main\\resources\\data\\banzai\\";
         List<File> files = Arrays.asList(new File(folder).listFiles()).stream()
@@ -1337,7 +1337,7 @@ public class SolverTest {
     @Test
     public void case6() {
         Solver solver = new Solver();
-        solver.tryAssumption = true; // не будем гадать, пробуем решить точно
+        solver.withAssumption = true; // не будем гадать, пробуем решить точно
 
         String file = "src\\main\\resources\\data\\banzai\\1.jap";
         String board = process(solver, new File(file));
@@ -1383,7 +1383,7 @@ public class SolverTest {
     @Test
     public void case5() {
         Solver solver = new Solver();
-        solver.tryAssumption = true; // не будем гадать, пробуем решить точно
+        solver.withAssumption = true; // не будем гадать, пробуем решить точно
 
         String file = "src\\main\\resources\\data\\banzai\\13.jap";
         String board = process(solver, new File(file));
@@ -1442,7 +1442,7 @@ public class SolverTest {
     @Test
     public void case3() {
         Solver solver = new Solver();
-        solver.tryAssumption = true; // не будем гадать, пробуем решить точно
+        solver.withAssumption = true; // не будем гадать, пробуем решить точно
 
         String folder = "src\\main\\resources\\data\\jak\\";
         List<File> files = Arrays.asList(new File(folder).listFiles()).stream()
@@ -1938,7 +1938,7 @@ public class SolverTest {
     private void assertS(boolean tryAssumption, String map, String expected, String expected1) {
         // given
         Solver solver = new Solver();
-        solver.tryAssumption = tryAssumption;
+        solver.withAssumption = tryAssumption;
         solver.load(new LevelImpl(map));
         solver.clear(false);
         assertEquals(expected, solver.printAll());

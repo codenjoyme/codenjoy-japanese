@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
         Solver solver = new Solver();
-        solver.tryAssumption = true; // не будем гадать, пробуем решить точно
+        solver.withAssumption = true; // не будем гадать, пробуем решить точно
 
 //        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";
 //        solver.loadFile(true, folder + "5.jap", 1);
