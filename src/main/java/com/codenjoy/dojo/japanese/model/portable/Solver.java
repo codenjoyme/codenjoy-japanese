@@ -22,7 +22,7 @@ class Solver implements BoardReader {
 
     public static final int MAX = 150;
 
-    public boolean withAssumption = false; // гадать ли алгоритму, если нет вариантов точных на поле
+    private boolean withAssumption; // гадать ли алгоритму, если нет вариантов точных на поле
 
     private AllData main; // тут решение точное
     private AllData assumptionBlack; // тут предполагаем black
@@ -30,16 +30,17 @@ class Solver implements BoardReader {
 
     private Assumption assumption;
     public int width, height;
-    private int[][] numbersX = new int[MAX + 1][MAX + 1]; // тут хранятся цифры рядов
-    private int[][] numbersY = new int[MAX + 1][MAX + 1];
-    private int[] countNumbersX = new int[MAX + 1]; // тут хранятся количества цифер рядов
-    private int[] countNumbersY = new int[MAX + 1];
+    private int[][] numbersX; // тут хранятся цифры рядов
+    private int[][] numbersY;
+    private int[] countNumbersX; // тут хранятся количества цифер рядов
+    private int[] countNumbersY;
     private LineSolver lineSolver;
 
     int offsetX;
     int offsetY;
 
-    public Solver() {
+    public Solver(boolean withAssumption) {
+        this.withAssumption = withAssumption;
         lineSolver = new LineSolver();
     }
 
@@ -168,9 +169,9 @@ class Solver implements BoardReader {
 
     
     public void printField() {
-        System.out.println(printAll());
-        System.out.println();
-        System.out.println();
+//        System.out.println(printAll());
+//        System.out.println();
+//        System.out.println();
     }
     
     public void solve() {
@@ -184,7 +185,6 @@ class Solver implements BoardReader {
         // wasError - если остановка по ошибке,
         // b11 - нужно для пропуска прогона по у если LenX больше LenY
 
-        int h; 
         double max1, max2;
         double a1, a2; 
         Point pt;
@@ -197,28 +197,7 @@ class Solver implements BoardReader {
             System.out.println("Ошибка! Несовпадение на " + x0);
             return;
         }
-        //-----------------------------
-        // сам рачсет
-        for (int x = 1; x <= width; x++) {
-            h = 0;
-            for (int y = 1; y <= countNumbersX[x]; y++) {
-                h = h + numbersX[x][y];
-            }
-            if (h < (width / 2)) {
-                main.chY[x] = false;
-            }
-        }
-        for (int y = 1; y <= height; y++) {
-            h = 0;
-            for (int x = 1; x < countNumbersY[y]; x++) {
-                h = h + numbersY[x][y];
 
-            }
-            if (h < (height / 2)) {
-                main.chX[y] = false;
-            }
-        }
-        //----------
         for (int x = 1; x <= width; x++) {
             main.tchY[x] = true;
             assumptionBlack.tchY[x] = true;
@@ -462,7 +441,6 @@ class Solver implements BoardReader {
         }
 
         printField(); // прорисовка поля
-        printOpened();
     }
 
     // Так как если мы зайдем в тупик и явно ничего не сможем отгадать
@@ -715,7 +693,7 @@ class Solver implements BoardReader {
         return len;
     }
 
-    private void printOpened() {
+    public String getOpened() {
         int a = 0;
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {
@@ -724,7 +702,7 @@ class Solver implements BoardReader {
                 }
             }
         }
-        System.out.println("Открыто: " + Double.toString(Math.round(1000 * a / (width * height)) / 10) + "%(" + a + ")");
+        return "Открыто: " + Double.toString(Math.round(1000 * a / (width * height)) / 10) + "%(" + a + ")";
     }
 
     @Override
@@ -823,6 +801,11 @@ class Solver implements BoardReader {
         main = new AllData(width, height);
         assumptionBlack = new AllData(width, height);
         assumptionWhite = new AllData(width, height);
+
+        numbersX = new int[width + 1][height + 1];
+        numbersY = new int[width + 1][height + 1];
+        countNumbersX = new int[height + 1];
+        countNumbersY = new int[width + 1];
     }
 
     public void offset(int x, int y) {

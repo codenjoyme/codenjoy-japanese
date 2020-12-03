@@ -7,8 +7,7 @@ import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 public class Main {
 
     public static void main(String[] args) {
-        Solver solver = new Solver();
-        solver.withAssumption = true; // не будем гадать, пробуем решить точно
+        Solver solver = new Solver(true);
 
 //        String folder = "games\\japanese\\src\\main\\resources\\data\\jak\\";
 //        solver.loadFile(true, folder + "5.jap", 1);
