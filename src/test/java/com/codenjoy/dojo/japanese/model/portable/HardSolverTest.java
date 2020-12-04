@@ -3,6 +3,7 @@ package com.codenjoy.dojo.japanese.model.portable;
 import org.junit.Test;
 
 public class HardSolverTest extends AbstractSolverTest {
+
     @Test // TODO слетает из за переполнения массива в LineSolver
     public void case_b15() {
         assertF("b15.jap",

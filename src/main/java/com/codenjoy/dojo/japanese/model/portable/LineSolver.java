@@ -295,140 +295,135 @@ public class LineSolver {
     }
 
     private boolean cut() {
-        int i, dr, cd;
-        boolean b, dot;
-        b = false; // выход из цикла
-        i = 1; // по ряду
-        dot = false; // предидущая - точка, нет
-        dr = 0; // первый ряд точек
-        cd = 0; // количество точек
+        // идем по ряду в прямом порядке
+        Dot previous = Dot.WHITE;
+        int numbersIndex = 0;
+        int countDots = 0; // количество точек в ряду
+        int i = 1;
         cutFrom = i;
-        boolean result;
+        boolean stop = false;
         do {
             switch (dots[i]) {
                 case UNSET: {
-                    if (dot) { // предыдущая точка?
-                        // ничего после точки - надо заканчивать ряд
-                        if (cd < numbers[dr]) { // dr - ый ряд закончили?
-                            // незакончили
-                            cd++; // количество точек
-                            probability[i] = EXACTLY; // потом тут будет точка
-                            dot = true;  // поставили точку
-                        } else { // закончили ряд
-                            cd = 0; // новы ряд еще не начали
-                            probability[i] = EXACTLY_NOT; // потом тут будет пустота
+                    if (previous.isBlack()) {
+                        // UNSET после BLACK - надо заканчивать ряд
+                        if (countDots < numbers[numbersIndex]) {
+                            // незакончили numbersIndex'ный ряд
+                            countDots++; // количество точек
+                            probability[i] = EXACTLY;
+                            previous = Dot.BLACK;
+                        } else {
+                            // закончили numbersIndex'ный ряд
+                            countDots = 0; // новы ряд еще не начали
+                            probability[i] = EXACTLY_NOT;
+                            previous = Dot.WHITE;
+
                             SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                            dot = false;  // поставили пустоту
-                            dr--; // из за смещения
+                            numbersIndex--; // из за смещения
                         }
-                    } else { // ничего после пустоты - выходим вообщето
-                        if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
-                            probability[i] = EXACTLY_NOT; // кончаем его:) // TODO тут скорее UNKNOWN
+                    } else {
+                        // UNSET после WHITE
+                        if (countNumbers == 0) {
+                            // ряд пустой, тут все WHITE
+                            probability[i] = EXACTLY_NOT;
                         } else {
                             cutFrom = i;
-                            b = true; // иначе выходим
+                            stop = true; // иначе выходим
                         }
                     }
                 }
                 break;
                 case BLACK: {
-                    if (!dot) {
-                        dr++;
-                        cd = 0;
-                        dot = true; // точка у нас
+                    if (previous.isWhite()) {
+                        numbersIndex++;
+                        countDots = 0;
+                        previous = Dot.BLACK;
                     }
-                    probability[i] = EXACTLY; // потом тут будет точка
-                    cd++; // точек стало больше
+                    probability[i] = EXACTLY;
+                    countDots++;
                 }
                 break;
                 case WHITE: {
-                    if (dot) { // предыдущая - точка ?
-                        // да
-                        if (cd != numbers[dr]) {
-                            result = false;
-                            return result;
+                    if (previous.isBlack()) {
+                        if (countDots != numbers[numbersIndex]) {
+                            return false;
                         }
-                        dot = false; // теперь точки нет
+                        previous = Dot.WHITE;
+
                         SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                        dr--; // из за смещения
+                        numbersIndex--; // из за смещения
                     }
-                    probability[i] = EXACTLY_NOT; // пустота
+                    probability[i] = EXACTLY_NOT;
                 }
                 break;
             }
             i++;
-            if ((!b) & (i > len) | (countNumbers == 0)) { // достигли конца
-                result = true;
-                return result;
-            }
-        } while (!b);
+            if ((!stop && i > len) || countNumbers == 0) return true; // достигли конца
+        } while (!stop);
 
-        b = false; // выход из цикла
-        i = len; // по ряду
-        dot = false; // предидущая - точка, нет
-        dr = countNumbers + 1; // первый ряд точек
-        cd = 0; // количество точек
+        // идем по ряду в обратном порядке TODO зачем?
+        previous = Dot.WHITE;
+        numbersIndex = countNumbers + 1;
+        countDots = 0;
+        i = len;
         cutTo = i;
+        stop = false;
         do {
             switch (dots[i]) {
                 case UNSET: {
-                    if (dot) { // предыдущая точка?
-                        // ничего после точки - надо заканчивать ряд
-                        if (cd < numbers[dr]) { // dr - ый ряд закончили?
-                            // незакончили
-                            cd++; // количество точек
-                            probability[i] = EXACTLY; // потом тут будет точка
-                            dot = true;  // поставили точку
-                        } else { // закончили ряд
-                            cd = 0; // новы ряд еще не начали
-                            probability[i] = EXACTLY_NOT; // потом тут будет пустота
+                    if (previous.isBlack()) {
+                        // UNSET после BLACK - надо заканчивать ряд
+                        if (countDots < numbers[numbersIndex]) {
+                            // незакончили numbersIndex'ный ряд
+                            countDots++; // количество точек
+                            probability[i] = EXACTLY;
+                            previous = Dot.BLACK;
+                        } else {
+                            // закончили numbersIndex'ный ряд
+                            countDots = 0; // новы ряд еще не начали
+                            probability[i] = EXACTLY_NOT;
+                            previous = Dot.WHITE;
                             countNumbers--;
-                            dot = false; // поставили пустоту
                         }
-                    } else { // ничего после пустоты - выходим вообщето
+                    } else {
+                        // WHITE после пустоты
                         if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
                             probability[i] = EXACTLY_NOT; // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
                             cutTo = i;
-                            b = true; // иначе выходим
+                            stop = true; // иначе выходим
                         }
                     }
                 }
                 break;
                 case BLACK: {
-                    if (!dot) {
-                        dr--;
-                        cd = 0;
-                        dot = true; // точка у нас
+                    if (previous.isWhite()) {
+                        numbersIndex--;
+                        countDots = 0;
+                        previous = Dot.BLACK;
                     }
-                    probability[i] = EXACTLY; // потом тут будет точка
-                    cd++; // точек стало больше
+                    probability[i] = EXACTLY;
+                    countDots++;
                 }
                 break;
                 case WHITE: {
-                    if (dot) { // предидущая - точка ?
-                        // да
-                        if (cd != numbers[dr]) {
-                            result = false;
-                            return result;
+                    if (previous.isBlack()) {
+                        if (countDots != numbers[numbersIndex]) {
+                            return false;
                         }
-                        dot = false; // теперь точки нет
+                        previous = Dot.WHITE;
                         countNumbers--;
                     }
-                    probability[i] = EXACTLY_NOT; // пустота
+                    probability[i] = EXACTLY_NOT;
                 }
                 break;
             }
             i--;
-            if ((!b) && (i < 1) || (countNumbers == 0)) { // достигли конца
-                result = true;
-                return result;
-            }
-        } while (!b);
+            if ((!stop && i < 1) || countNumbers == 0)  return true; // достигли конца
+        } while (!stop);
 
         cutLen = cutTo - cutFrom + 1;
-        result = ((cutFrom > cutTo) || (countNumbers == 0));
-        return result;
+        return cutFrom > cutTo || countNumbers == 0;
     }
 
     public double probability(int x) {
