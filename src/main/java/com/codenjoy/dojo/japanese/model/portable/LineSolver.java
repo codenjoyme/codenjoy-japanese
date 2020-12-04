@@ -142,7 +142,7 @@ public class LineSolver {
         for (int i = from; i <= to; i++) {
             switch (dots[i]) {
                 case UNSET:
-                    break;                                         // ничего нет
+                    break;
                 case BLACK:
                     if (!combinations[i]) {
                         return false;
@@ -154,7 +154,7 @@ public class LineSolver {
                     }
                     break;
                 case ASSUMPTION:
-                    break;                                         // предполагаемая точка
+                    break;
             }
         }
         return true;
@@ -195,20 +195,17 @@ public class LineSolver {
     }
 
     private boolean manipuleNumbers() {
-        int a, a2;
-        boolean b, b2 = false;
-        a = cr;
-        boolean result = true;
+        boolean b2 = false;
+        int a = cr;
         while (true) {
             if (numbers10[a].b) {
                 a--;
                 if (a <= 0) {
-                    result = false;
-                    break;
+                    return false;
                 }
-                b = true;
+                boolean b = true;
                 while (true) {
-                    a2 = 2;
+                    int a2 = 2;
                     if (!b) {
                         continue;
                     }
@@ -241,18 +238,16 @@ public class LineSolver {
                     break;
                 }
                 if (b2) {
-                    result = false;
-                    break;
+                    return false;
                 }
             } else {
                 if (cr == 1) {
-                    result = false;
-                    break;
+                    return false;
                 }
                 if ((a - 2) <= 0) {
                     if (a < 1) break;
                     cr++;
-                    for (int i = (cr - 1); i >= 1; i--) { // TODO downto
+                    for (int i = cr - 1; i >= 1; i--) {
                         numbers10[i + 1].c = numbers10[i].c;
                         numbers10[i + 1].b = numbers10[i].b;
                     }
@@ -284,7 +279,7 @@ public class LineSolver {
                 }
             }
         }
-        return result;
+        return true;
     }
 
     private void SHLNumbers() {
