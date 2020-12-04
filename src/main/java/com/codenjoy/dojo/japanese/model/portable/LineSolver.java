@@ -1,5 +1,7 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
+import java.util.Arrays;
+
 import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 
 public class LineSolver {
@@ -31,14 +33,7 @@ public class LineSolver {
         len = dots.length - 1;
         countNumbers = numbers.length - 1;
 
-        // инициализация всех массивов
-        // TODO тут в некоторых тестах case_b15 случается переполнение, потому тут массив большой
-        combinations = new boolean[len + 1 + 100];
-        probability = new double[len + 1 + 100];
-        numbers10 = new Info[len + 1];
-        for (int i = 1; i < numbers10.length; i++) {
-            numbers10[i] = new Info();
-        }
+        resetArrays();
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
         // если кто-то в ходе проверки гипотезы все же сделал это, то
@@ -74,9 +69,18 @@ public class LineSolver {
         return result;
     }
 
+    private void resetArrays() {
+        // инициализация всех массивов
+        // TODO тут в некоторых тестах case_b15 случается переполнение, потому тут массив большой
+        combinations = new boolean[len + 1 + 100];
+        probability = new double[len + 1 + 100];
+        numbers10 = new Info[len + 1];
+        for (int i = 1; i < numbers10.length; i++) {
+            numbers10[i] = new Info();
+        }
+    }
+
     private boolean generateCombinations() {
-        boolean b1;
-        boolean result;
         cr = 1;
         int j = 0;
         for (int i = 1; i <= countNumbers; i++) {
@@ -88,12 +92,15 @@ public class LineSolver {
             cr = cr + 2;
         }
         cr = cr - 1;
-        if (j > cutLen) cr--;
-        if (j < cutLen) numbers10[cr].c = numbers10[cr].c + cutLen - j;
+        if (j > cutLen) {
+            cr--;
+        }
+        if (j < cutLen) {
+            numbers10[cr].c = numbers10[cr].c + cutLen - j;
+        }
         //-------
-        b1 = true;
         combinationCount = 0;
-        while (b1) {
+        do {
             getCombinationsFromNumbers();
             if (testCombination()) {
                 combinationCount++;
@@ -105,8 +112,7 @@ public class LineSolver {
                 }
             }
             getNumbersFromCombination();
-            b1 = manipuleNumbers();
-        }
+        } while (manipuleNumbers());
 
         for (var i = from; i <= to; i++) {
             if (combinationCount != 0) {
@@ -115,8 +121,7 @@ public class LineSolver {
                 probability[i] = UNKNOWN;
             }
         }
-        result = (combinationCount != 0);
-        return result;
+        return combinationCount != 0;
     }
 
     // после того, как у нас есть массив вероятностей для всех возможных комбинаций
@@ -139,12 +144,12 @@ public class LineSolver {
                 case UNSET:
                     break;                                         // ничего нет
                 case BLACK:
-                    if (combinations[i] != true) {
+                    if (!combinations[i]) {
                         return false;
                     }
                     break;
                 case WHITE:
-                    if (combinations[i] != false) {
+                    if (combinations[i]) {
                         return false;
                     }
                     break;
@@ -169,15 +174,10 @@ public class LineSolver {
     }
 
     private void getNumbersFromCombination() {
-        int j, cr;
-        int leni, i0;
         boolean b = combinations[from];
-        j = 1;
+        int j = 1;
         cr = 1;
-
-        i0 = from + 1;
-        leni = to;
-        for (int i = i0; i <= leni; i++) {
+        for (int i = from + 1; i <= to; i++) {
             if (i >= combinations.length) break; // TODO этого не должно происходить но происходит
             if (combinations[i] ^ b) {
                 numbers10[cr].c = j;
@@ -192,7 +192,6 @@ public class LineSolver {
             numbers10[cr].c = j;
             numbers10[cr].b = b;
         }
-        this.cr = cr;
     }
 
     private boolean manipuleNumbers() {
@@ -440,7 +439,19 @@ public class LineSolver {
         return probability[x];
     }
 
-    public Dot array(int x) {
+    public double[] probability() {
+        return Arrays.copyOf(probability, len + 1);
+    }
+
+    public Dot dots(int x) {
         return dots[x];
+    }
+
+    public Dot[] dots() {
+        return Arrays.copyOf(dots, len + 1);
+    }
+
+    public int length() {
+        return len;
     }
 }

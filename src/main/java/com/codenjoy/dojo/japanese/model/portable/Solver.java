@@ -224,8 +224,8 @@ class Solver implements BoardReader {
                     for (int x = 1; x <= width; x++) {
                         data.probability[x][y][Dot.BLACK.code()] = lineSolver.probability(x);
 
-                        if (data.data[x][y] != lineSolver.array(x)) {
-                            data.data[x][y] = lineSolver.array(x);
+                        if (data.data[x][y] != lineSolver.dots(x)) {
+                            data.data[x][y] = lineSolver.dots(x);
                             if (!wasChanges) {
                                 wasChanges = true;
                             }
@@ -270,8 +270,8 @@ class Solver implements BoardReader {
                     for (int y = 1; y <= height; y++) {
                         data.probability[x][y][Dot.WHITE.code()] = lineSolver.probability(y);
 
-                        if (data.data[x][y] != lineSolver.array(y)) {
-                            data.data[x][y] = lineSolver.array(y);
+                        if (data.data[x][y] != lineSolver.dots(y)) {
+                            data.data[x][y] = lineSolver.dots(y);
                             if (!wasChanges) {
                                 wasChanges = true;
                             }
