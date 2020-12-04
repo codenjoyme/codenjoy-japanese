@@ -21,8 +21,8 @@ public class LineSolver {
     private int cr;
     private Info[] numbers10;
 
-    private int cutFrom;
-    private int cutTo;
+    private int from;
+    private int to;
     private int cutLen;
 
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
@@ -60,10 +60,11 @@ public class LineSolver {
             probability[i] = EXACTLY_NOT;
         }
 
-        // TODO дальше мы если не cut что бы это не значило, делаем вторую попытку cut2
+        // обрезаем слева и справа уже отгаданные числа
         boolean result = true;
-        if (!cut()) {
-            result = cut2();
+        if (cut()) {
+            // дальше работаем в диапазоне from...to
+            result = generateCombinations();
         }
 
         // и превращаем явные (1.0, 0.0) probabilities в dots
@@ -73,7 +74,7 @@ public class LineSolver {
         return result;
     }
 
-    private boolean cut2() {
+    private boolean generateCombinations() {
         boolean b1;
         boolean result;
         cr = 1;
@@ -97,7 +98,7 @@ public class LineSolver {
             if (testCombination()) {
                 combinationCount++;
 
-                for (int i = cutFrom; i <= cutTo; i++) {
+                for (int i = from; i <= to; i++) {
                     if (combinations[i]) {
                         probability[i]++;
                     }
@@ -107,7 +108,7 @@ public class LineSolver {
             b1 = manipuleNumbers();
         }
 
-        for (var i = cutFrom; i <= cutTo; i++) {
+        for (var i = from; i <= to; i++) {
             if (combinationCount != 0) {
                 probability[i] = probability[i] / combinationCount;
             } else {
@@ -133,7 +134,7 @@ public class LineSolver {
     }
 
     private boolean testCombination() {
-        for (int i = cutFrom; i <= cutTo; i++) {
+        for (int i = from; i <= to; i++) {
             switch (dots[i]) {
                 case UNSET:
                     break;                                         // ничего нет
@@ -155,7 +156,7 @@ public class LineSolver {
     }
 
     private void getCombinationsFromNumbers() {
-        int x = cutFrom - 1;
+        int x = from - 1;
         for (int i = 1; i <= cr; i++) {
             for (int j = 1; j <= numbers10[i].c; j++) {
                 if (x + j > len || i > len) {
@@ -170,12 +171,12 @@ public class LineSolver {
     private void getNumbersFromCombination() {
         int j, cr;
         int leni, i0;
-        boolean b = combinations[cutFrom];
+        boolean b = combinations[from];
         j = 1;
         cr = 1;
 
-        i0 = cutFrom + 1;
-        leni = cutTo;
+        i0 = from + 1;
+        leni = to;
         for (int i = i0; i <= leni; i++) {
             if (i >= combinations.length) break; // TODO этого не должно происходить но происходит
             if (combinations[i] ^ b) {
@@ -198,12 +199,12 @@ public class LineSolver {
         int a, a2;
         boolean b, b2 = false;
         a = cr;
-        boolean Result = true;
+        boolean result = true;
         while (true) {
             if (numbers10[a].b) {
                 a--;
                 if (a <= 0) {
-                    Result = false;
+                    result = false;
                     break;
                 }
                 b = true;
@@ -241,12 +242,12 @@ public class LineSolver {
                     break;
                 }
                 if (b2) {
-                    Result = false;
+                    result = false;
                     break;
                 }
             } else {
                 if (cr == 1) {
-                    Result = false;
+                    result = false;
                     break;
                 }
                 if ((a - 2) <= 0) {
@@ -284,7 +285,7 @@ public class LineSolver {
                 }
             }
         }
-        return Result;
+        return result;
     }
 
     private void SHLNumbers() {
@@ -294,13 +295,17 @@ public class LineSolver {
         countNumbers--;
     }
 
+    // метод пытается с начала и конца ряда определить ряды точек, которые уже открыты полностью.
+    // возвращает true если есть над чем гонять комбинации и даем возможность перебрать их
+    // но перебирать будем только на тех числах, которые остались после оптимизации и в диапазоне точек
+    // from ... to
     private boolean cut() {
         // идем по ряду в прямом порядке
         Dot previous = Dot.WHITE;
         int numbersIndex = 0;
         int countDots = 0; // количество точек в ряду
         int i = 1;
-        cutFrom = i;
+        from = i;
         boolean stop = false;
         do {
             switch (dots[i]) {
@@ -314,7 +319,7 @@ public class LineSolver {
                             previous = Dot.BLACK;
                         } else {
                             // закончили numbersIndex'ный ряд
-                            countDots = 0; // новы ряд еще не начали
+                            countDots = 0; // новый ряд еще не начали
                             probability[i] = EXACTLY_NOT;
                             previous = Dot.WHITE;
 
@@ -327,7 +332,7 @@ public class LineSolver {
                             // ряд пустой, тут все WHITE
                             probability[i] = EXACTLY_NOT;
                         } else {
-                            cutFrom = i;
+                            from = i;
                             stop = true; // иначе выходим
                         }
                     }
@@ -346,7 +351,8 @@ public class LineSolver {
                 case WHITE: {
                     if (previous.isBlack()) {
                         if (countDots != numbers[numbersIndex]) {
-                            return false;
+                            // TODO подумать почему тут можно перебирать комбинации
+                            return true;
                         }
                         previous = Dot.WHITE;
 
@@ -358,15 +364,16 @@ public class LineSolver {
                 break;
             }
             i++;
-            if ((!stop && i > len) || countNumbers == 0) return true; // достигли конца
+            // TODO подумать почему тут нельзя перебирать комбинации
+            if ((!stop && i > len) || countNumbers == 0) return false; // достигли конца
         } while (!stop);
 
-        // идем по ряду в обратном порядке TODO зачем?
+        // идем по ряду в обратном порядке
         previous = Dot.WHITE;
         numbersIndex = countNumbers + 1;
         countDots = 0;
         i = len;
-        cutTo = i;
+        to = i;
         stop = false;
         do {
             switch (dots[i]) {
@@ -380,7 +387,7 @@ public class LineSolver {
                             previous = Dot.BLACK;
                         } else {
                             // закончили numbersIndex'ный ряд
-                            countDots = 0; // новы ряд еще не начали
+                            countDots = 0; // новый ряд еще не начали
                             probability[i] = EXACTLY_NOT;
                             previous = Dot.WHITE;
                             countNumbers--;
@@ -390,7 +397,7 @@ public class LineSolver {
                         if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
                             probability[i] = EXACTLY_NOT; // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
-                            cutTo = i;
+                            to = i;
                             stop = true; // иначе выходим
                         }
                     }
@@ -409,7 +416,8 @@ public class LineSolver {
                 case WHITE: {
                     if (previous.isBlack()) {
                         if (countDots != numbers[numbersIndex]) {
-                            return false;
+                            // TODO подумать почему тут можно перебирать комбинации
+                            return true;
                         }
                         previous = Dot.WHITE;
                         countNumbers--;
@@ -419,11 +427,13 @@ public class LineSolver {
                 break;
             }
             i--;
-            if ((!stop && i < 1) || countNumbers == 0)  return true; // достигли конца
+            // TODO подумать почему тут нельзя перебирать комбинации
+            if ((!stop && i < 1) || countNumbers == 0) return false; // достигли конца
         } while (!stop);
 
-        cutLen = cutTo - cutFrom + 1;
-        return cutFrom > cutTo || countNumbers == 0;
+        cutLen = to - from + 1;
+        // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
+        return countNumbers != 0 && from <= to;
     }
 
     public double probability(int x) {
