@@ -1,6 +1,7 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
 import com.codenjoy.dojo.japanese.model.level.LevelImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -1461,7 +1462,7 @@ public class SolverTest {
                 .map(file -> process(solver, file))
                 .collect(toList());
 
-        assertEquals("[10.jap\n" +
+        assertEquals(StringUtils.join(new String[]{"[10.jap\n" +
                 "Открыто: 100.0%(900)\n" +
                 "                                   \n" +
                 "                                   \n" +
@@ -2124,7 +2125,7 @@ public class SolverTest {
                 "     c--------************-----\n" +
                 "     1------------*------------\n" +
                 "     3-----------***-----------\n" +
-                "\n" +
+                "\n",
                 "\n" +
                 ", 28.jap\n" +
                 "Открыто: 100.0%(875)\n" +
@@ -2815,7 +2816,7 @@ public class SolverTest {
                 " 2524--**--*****---**-****----\n" +
                 "   27-------**-----*******----\n" +
                 "    5---------------*****-----\n" +
-                "\n" +
+                "\n",
                 "\n" +
                 ", 45.jap\n" +
                 "Открыто: 100.0%(625)\n" +
@@ -3856,7 +3857,7 @@ public class SolverTest {
                 "    4-----------------****----    \n" +
                 "\n" +
                 "\n" +
-                "]", boards.toString());
+                "]"}), boards.toString());
     }
 
     @Test
