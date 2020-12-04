@@ -7,6 +7,7 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -564,16 +565,18 @@ class Solver implements BoardReader {
             addAll(pixels);
 
             int dx = offsetX; // горизонтальные циферки вверху, должны быть
-            int dy = height;     // потому мы их смещаем туда
+            int dy = height;  // потому мы их смещаем туда
             for (int x = 1; x <= width; x++) {
                 for (int y = 1; y <= countNumbersY[x]; y++) {
-                    add(new Number(pt(x - 1 + dx, y - 1 + dy), numbersY[x][y]));
+                    int dyy = countNumbersY[x] + 1; // зеркальное отображение по вертикали
+                    add(new Number(pt(x - 1 + dx, dyy - y - 1 + dy), numbersY[x][y]));
                 }
             }
             for (int y = 1; y <= height; y++) {
                 for (int x = 1; x <= countNumbersX[y]; x++) {
                     int dxx = offsetX - countNumbersX[y]; // атут надо смещать хитрее
-                    add(new Number(pt(x - 1 + dxx, y - 1), numbersX[x][y]));
+                    int dyy = height + 1; // зеркальное отображение по вертикали
+                    add(new Number(pt(x - 1 + dxx, dyy - y - 1), numbersX[x][y]));
                 }
             }
         }};
@@ -589,13 +592,14 @@ class Solver implements BoardReader {
         List<Numbers> linesX = lines(level, Number::getY)
                 .subList(0, width);
         linesX.forEach(numbers -> numbers.fill(offsetX, false));
+        Collections.reverse(linesX); // зеркально отображаем по вертикали
 
         // Y стобики чисел
         List<Numbers> lines = lines(level, Number::getX);
         List<Numbers> linesY = lines
                 .subList(offsetX, lines.size());
+        linesY.forEach(Numbers::reverse); // зеркально отображаем по вертикали
         linesY.forEach(numbers -> numbers.fill(offsetX, false));
-
 
         for (int y = 1; y <= offsetX; y++) {
             for (int x = 1; x <= width; x++) {

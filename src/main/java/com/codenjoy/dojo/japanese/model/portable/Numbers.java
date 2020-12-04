@@ -2,6 +2,7 @@ package com.codenjoy.dojo.japanese.model.portable;
 
 import com.codenjoy.dojo.japanese.model.items.Number;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,5 +34,9 @@ class Numbers {
 
     public int get(int i) {
         return line.get(i);
+    }
+
+    public void reverse() {
+        Collections.reverse(line);
     }
 }

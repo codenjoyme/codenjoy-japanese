@@ -85,7 +85,8 @@ public class AllData implements BoardReader {
                 // конвертирование потому что в этом коде черный и белый отличаются от codenjoy'ного
                 int color = data[x][y].code() - 1;
                 // так же надо отступить, потому что в этом коде индексы начинаются с 0
-                result.add(new Pixel(pt(x - 1, y - 1), Color.get(color)));
+                int dy = height + 1; // зеркальное отображение по вертикали
+                result.add(new Pixel(pt(x - 1, (dy) - y - 1), Color.get(color)));
             }
         }
         return result;
