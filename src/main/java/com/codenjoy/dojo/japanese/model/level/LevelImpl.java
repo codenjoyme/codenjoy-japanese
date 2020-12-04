@@ -61,7 +61,7 @@ public class LevelImpl implements Level, BoardReader {
 
         if (!pixelsExists()) {
             // TODO рисунка нет - надо решить паззл и нарисовать
-            return;
+            throw new IllegalArgumentException();
         }
 
         // нет цифер - надо сгенерить
