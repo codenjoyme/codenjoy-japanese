@@ -177,6 +177,7 @@ public class LineSolver {
         i0 = cutFrom + 1;
         leni = cutTo;
         for (int i = i0; i <= leni; i++) {
+            // if (i >= combinations.length) break; // TODO этого не должно происходить но происходит
             if (combinations[i] ^ b) {
                 numbers10[cr].c = j;
                 numbers10[cr].b = b;

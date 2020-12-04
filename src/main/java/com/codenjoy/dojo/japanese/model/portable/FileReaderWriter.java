@@ -1,9 +1,12 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
 import com.codenjoy.dojo.services.Point;
+import com.codenjoy.dojo.services.multiplayer.TriFunction;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
@@ -23,11 +26,37 @@ public class FileReaderWriter {
         file.open(fileName);
         file.loadData();
 
-        solver.size(Integer.valueOf(file.readLine()), // ширина
-                Integer.valueOf(file.readLine()));    // высота
+        Integer width = Integer.valueOf(file.readLine());
+        Integer height = Integer.valueOf(file.readLine());
+        solver.size(width, height);
 
-        loadNumbers(file, (x, y) -> pt(x, y), solver.countNumbersX(), solver.numbersX(), solver.height());
-        loadNumbers(file, (x, y) -> pt(y, x), solver.countNumbersY(), solver.numbersY(), solver.width());
+//        loadNumbers(file,
+//                (x, y, len) -> pt(x, y),
+//                y -> y,
+//                solver.countNumbersX(),
+//                solver.numbersX(),
+//                solver.height());
+//
+//        loadNumbers(file,
+//                (x, y, len) -> pt(y, x),
+//                x -> x,
+//                solver.countNumbersY(),
+//                solver.numbersY(),
+//                solver.width());
+
+        loadNumbers(file,
+                (x, y, len) -> pt(x, height + 1 - y),
+                y -> height + 1 - y,
+                solver.countNumbersX(),
+                solver.numbersX(),
+                solver.height());
+
+        loadNumbers(file,
+                (x, y, len) -> pt(y, len + 1 - x),
+                x -> x,
+                solver.countNumbersY(),
+                solver.numbersY(),
+                solver.width());
 
         int maxX = 0;
         for (int y = 1; y <= solver.height(); y++) {
@@ -43,11 +72,16 @@ public class FileReaderWriter {
         file.close();
     }
 
-    private void loadNumbers(TextFile file, BiFunction<Integer, Integer, Point> mirror, int[] counts, int[][] numbers, int len) {
+    private void loadNumbers(TextFile file, TriFunction<Integer, Integer, Integer, Point> mirror,
+                             Function<Integer, Integer> mirror2,
+                             int[] counts, int[][] numbers, int len)
+    {
         for (int y = 1; y <= len; y++) { ;
-            counts[y] = Integer.valueOf(file.readLine()); // длинна y строки
-            for (int x = 1; x <= counts[y]; x++) {
-                Point pt = mirror.apply(x, y);
+            int yy = mirror2.apply(y);
+            int numbersCount = Integer.valueOf(file.readLine()); // длинна y строки
+            counts[yy] = numbersCount;
+            for (int x = 1; x <= numbersCount; x++) {
+                Point pt = mirror.apply(x, y, numbersCount);
                 numbers[pt.getX()][pt.getY()] = Integer.valueOf(file.readLine()); // числа y строки
             }
         }
