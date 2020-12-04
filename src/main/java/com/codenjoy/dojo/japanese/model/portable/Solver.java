@@ -601,6 +601,13 @@ class Solver implements BoardReader {
         linesY.forEach(Numbers::reverse); // зеркально отображаем по вертикали
         linesY.forEach(numbers -> numbers.fill(offsetX, false));
 
+
+        for (int x = 1; x <= width; x++) {
+            for (int y = 1; y <= height; y++) {
+                main.data[x][y] = Dot.UNSET;
+            }
+        }
+
         for (int y = 1; y <= offsetX; y++) {
             for (int x = 1; x <= width; x++) {
                 numbersX[y][x] = linesX.get(x - 1).get(y - 1);
