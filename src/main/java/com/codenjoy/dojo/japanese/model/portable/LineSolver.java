@@ -25,12 +25,13 @@ public class LineSolver {
     private int cutTo;
     private int cutLen;
 
-    public boolean calculate(int[] numbers, Dot[] dots) {
-        this.len = dots.length - 1;
-        this.dots = dots;
-        this.countNumbers = numbers.length - 1;
-        this.numbers = numbers;
+    public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
+        dots = inputDots;
+        numbers = inputNumbers;
+        len = dots.length - 1;
+        countNumbers = numbers.length - 1;
 
+        // инициализация всех массивов
         // TODO тут в некоторых тестах case_b15 случается переполнение, потому тут массив большой
         combinations = new boolean[len + 1 + 100];
         probability = new double[len + 1 + 100];
@@ -39,88 +40,88 @@ public class LineSolver {
             numbers10[i] = new Info();
         }
 
-        boolean b1;
-        boolean result;
+        // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
+        // если кто-то в ходе проверки гипотезы все же сделал это, то
+        // мы все равно поставим все белые и скажем что calculate этого сценария невозможен
         if (countNumbers == 0) {
-            result = true;
+            boolean foundBlack = false;
             for (int i = 1; i <= len; i++) {
                 if (dots[i] == Dot.BLACK) {
-                    result = false;
-                } else {
-                    dots[i] = Dot.WHITE;
+                    foundBlack = true;
                 }
+                dots[i] = Dot.WHITE;
+                probability[i] = EXACTLY_NOT;
             }
-            return result;
+            return !foundBlack;
         }
-        //-----------
-//        b1 = false;
-//        for (int i = 1; i <= glLen; i++) {
-//            b1 = b1 | (glData.arr[i] != 0);
-//            if (b1) break;
-//        }
-//        if (!b1) {
-//            j = 0;
-//            for (int i = 1; i <= glCountRjad; i++) j = j + glRjad.arr[i];
-//            if (j < (glLen / 2)) {
-//                result = true;
-//                return result;
-//            }
-//        }
-        //-----------
+
+        // TODO почему-то чистим все вероятности и ставим их в WHITE
         for (int i = 1; i <= len; i++) {
             probability[i] = EXACTLY_NOT;
         }
-        //-----------
-        result = true;
-        if (!cut()) {
-            result = false;
-            cr = 1;
-            int j = 0;
-            for (int i = 1; i <= countNumbers; i++) {
-                numbers10[cr].b = true;
-                numbers10[cr].c = numbers[i];
-                numbers10[cr + 1].b = false;
-                numbers10[cr + 1].c = 1;
-                j = j + numbers[i] + 1;
-                cr = cr + 2;
-            }
-            cr = cr - 1;
-            if (j > cutLen) cr--;
-            if (j < cutLen) numbers10[cr].c = numbers10[cr].c + cutLen - j;
-            //-------
-            b1 = true;
-            combinationCount = 0;
-            while (b1) {
-                getCombinationsFromNumbers();
-                if (testCombination()) {
-                    combinationCount++;
 
-                    int i0 = cutFrom;
-                    int leni = cutTo;
-                    for (int i = i0; i <= leni; i++) {
-                        if (combinations[i]) {
-                            probability[i]++;
-                        }
+        // TODO дальше мы если не cut что бы это не значило, делаем вторую попытку cut2
+        boolean result = true;
+        if (!cut()) {
+            result = cut2();
+        }
+
+        // и превращаем явные (1.0, 0.0) probabilities в dots
+        getDotsFromProbabilities();
+
+        // возвращаем возможность этой комбинации случиться для этого ряда чисел
+        return result;
+    }
+
+    private boolean cut2() {
+        boolean b1;
+        boolean result;
+        cr = 1;
+        int j = 0;
+        for (int i = 1; i <= countNumbers; i++) {
+            numbers10[cr].b = true;
+            numbers10[cr].c = numbers[i];
+            numbers10[cr + 1].b = false;
+            numbers10[cr + 1].c = 1;
+            j = j + numbers[i] + 1;
+            cr = cr + 2;
+        }
+        cr = cr - 1;
+        if (j > cutLen) cr--;
+        if (j < cutLen) numbers10[cr].c = numbers10[cr].c + cutLen - j;
+        //-------
+        b1 = true;
+        combinationCount = 0;
+        while (b1) {
+            getCombinationsFromNumbers();
+            if (testCombination()) {
+                combinationCount++;
+
+                for (int i = cutFrom; i <= cutTo; i++) {
+                    if (combinations[i]) {
+                        probability[i]++;
                     }
                 }
-                getNumbersFromCombination();
-                b1 = manipuleNumbers();
             }
+            getNumbersFromCombination();
+            b1 = manipuleNumbers();
+        }
 
-            for (var i = cutFrom; i <= cutTo; i++) {
-                if (combinationCount != 0) {
-                    probability[i] = probability[i] / combinationCount;
-                } else {
-                    probability[i] = UNKNOWN;
-                }
-            }
-            if (combinationCount == 0) {
-                return result;
+        for (var i = cutFrom; i <= cutTo; i++) {
+            if (combinationCount != 0) {
+                probability[i] = probability[i] / combinationCount;
             } else {
-                result = true;
+                probability[i] = UNKNOWN;
             }
         }
-        //-----------
+        result = (combinationCount != 0);
+        return result;
+    }
+
+    // после того, как у нас есть массив вероятностей для всех возможных комбинаций
+    // мы в праве утверждать, что ячейки с вероятностями 1.0 и 0.0 могут быть
+    // заполнены BLACK и WHITE соответственно
+    private void getDotsFromProbabilities() {
         for (int i = 1; i <= len; i++) {
             if (probability[i] == EXACTLY) {
                 dots[i] = Dot.BLACK;
@@ -129,8 +130,6 @@ public class LineSolver {
                 dots[i] = Dot.WHITE;
             }
         }
-
-        return result;
     }
 
     private boolean testCombination() {
