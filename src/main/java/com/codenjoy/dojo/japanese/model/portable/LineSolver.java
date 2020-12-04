@@ -262,19 +262,19 @@ public class LineSolver {
                         numbers10[3].c = 1;
                     }
                     if (cr == 3) {
-                        numbers10[3].c = numbers10[3].c - 1;
+                        numbers10[3].c--;
                     }
                     break;
                 }
-                numbers10[a - 2].c = numbers10[a - 2].c + 1;
-                numbers10[a].c = numbers10[a].c - 1;
+                numbers10[a - 2].c++;
+                numbers10[a].c--;
                 if (numbers10[a].c == 0) {
                     if (a == cr) {
                         cr--;
                         break;
                     } else {
-                        numbers10[a - 2].c = numbers10[a - 2].c - 1;
-                        numbers10[a].c = numbers10[a].c + 1;
+                        numbers10[a - 2].c--;
+                        numbers10[a].c++;
                         a = a - 2;
                     }
                     continue;
@@ -290,8 +290,8 @@ public class LineSolver {
     private void SHLNumbers() {
         for (int j = 2; j <= countNumbers; j++) {
             numbers[j - 1] = numbers[j];
-        } // TODO может нижняя строчка тоже
-        countNumbers = countNumbers - 1;
+        }
+        countNumbers--;
     }
 
     private boolean cut() {
