@@ -31,8 +31,9 @@ public class LineSolver {
         this.countNumbers = numbers.length - 1;
         this.numbers = numbers;
 
-        combinations = new boolean[len + 1];
-        probability = new double[len + 1];
+        // TODO тут в некоторых тестах case_b15 случается переполнение, потому тут массив большой
+        combinations = new boolean[len + 1 + 100];
+        probability = new double[len + 1 + 100];
         numbers10 = new Info[len + 1];
         for (int i = 1; i < numbers10.length; i++) {
             numbers10[i] = new Info();
