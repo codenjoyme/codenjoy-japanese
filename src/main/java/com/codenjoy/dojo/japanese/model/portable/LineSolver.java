@@ -164,12 +164,12 @@ public class LineSolver {
         int x = from - 1;
         for (int i = 1; i <= cr; i++) {
             for (int j = 1; j <= numbers10[i].c; j++) {
-                if (x + j > len || i > len) {
-                    break; // TODO этого не должно происходить, но происходит
-                }
+//                if (x + j > len || i > len) {
+//                    break; // TODO этого не должно происходить, но происходит
+//                }
                 combinations[x + j] = numbers10[i].b;
             }
-            x = x + numbers10[i].c;
+            x += numbers10[i].c;
         }
     }
 
@@ -178,7 +178,7 @@ public class LineSolver {
         int j = 1;
         cr = 1;
         for (int i = from + 1; i <= to; i++) {
-            if (i >= combinations.length) break; // TODO этого не должно происходить но происходит
+//            if (i >= combinations.length) break; // TODO этого не должно происходить но происходит
             if (combinations[i] ^ b) {
                 numbers10[cr].c = j;
                 numbers10[cr].b = b;

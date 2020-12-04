@@ -12,6 +12,13 @@ public enum Dot {
         this.code = code;
     }
 
+    public static Dot get(char ch) {
+        return Arrays.stream(Dot.values())
+                .filter(dot -> dot.name().charAt(0) == ch)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Верный символ для Dot"));
+    }
+
     public static Dot get(String data) {
         return Arrays.stream(Dot.values())
                 .filter(dot -> dot.code == Integer.valueOf(data))
@@ -39,5 +46,9 @@ public enum Dot {
 
     public int code() {
         return code;
+    }
+
+    public char ch() {
+        return name().charAt(0);
     }
 }
