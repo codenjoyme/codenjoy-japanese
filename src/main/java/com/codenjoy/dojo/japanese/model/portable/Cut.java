@@ -14,6 +14,7 @@ public class Cut {
     private int countDots;  // количество точек в ряду
     private int index;
     private boolean stop;
+    private boolean order;
 
     public Cut(LineSolver solver) {
         this.solver = solver;
@@ -37,24 +38,27 @@ public class Cut {
     }
 
     private Boolean go(boolean order) {
-        init(order);
+        this.order = order;
+        init();
         do {
             switch (solver.dots(index)) {
                 case UNSET: {
-                    processUnset(order);
+                    processUnset();
                 }
                 break;
                 case BLACK: {
-                    processBlack(order);
+                    processBlack();
                 }
                 break;
                 case WHITE: {
-                    if (processWhite(order)) return true;
+                    if (processWhite()) {
+                        return true;
+                    }
                 }
                 break;
             }
-            changeIndex(order);
-            if ((!stop && checkOutOf(order)) || solver.countNumbers() == 0) {
+            changeIndex();
+            if ((!stop && checkOutOf()) || solver.countNumbers() == 0) {
                 // TODO подумать почему тут нельзя перебирать комбинации
                 return false; // достигли конца
             }
@@ -63,7 +67,7 @@ public class Cut {
         return null;
     }
 
-    private boolean processWhite(boolean order) {
+    private boolean processWhite() {
         if (previous.isBlack()) {
             // WHITE после BLACK
             if (countDots != solver.numbers(numbersIndex)) {
@@ -71,23 +75,23 @@ public class Cut {
                 return true;
             }
 
-            removeNumbers(order);
+            removeNumbers();
         }
         setDot(Dot.WHITE);
         return false;
     }
 
-    private void processBlack(boolean order) {
+    private void processBlack() {
         if (previous.isWhite()) {
             // BLACK после WHITE
-            changeNumberIndex(order);
+            changeNumberIndex();
             countDots = 0;
         }
         setDot(Dot.BLACK);
         countDots++;
     }
 
-    private void processUnset(boolean order) {
+    private void processUnset() {
         if (previous.isBlack()) {
             // UNSET после BLACK - надо заканчивать ряд
             if (countDots < solver.numbers(numbersIndex)) {
@@ -98,7 +102,7 @@ public class Cut {
                 // закончили numbersIndex'ный ряд
                 countDots = 0; // новый ряд еще не начали
                 setDot(Dot.WHITE);
-                removeNumbers(order);
+                removeNumbers();
             }
         } else {
             // UNSET после WHITE
@@ -106,7 +110,7 @@ public class Cut {
                 // ряд пустой, тут все WHITE
                 setDot(Dot.WHITE);
             } else {
-                updateRange(order);
+                updateRange();
                 stop = true; // иначе выходим
             }
         }
@@ -118,7 +122,7 @@ public class Cut {
                 (color.isBlack()) ? EXACTLY_BLACK : EXACTLY_NOT_BLACK);
     }
 
-    private boolean checkOutOf(boolean order) {
+    private boolean checkOutOf() {
         if (order == FORWARD) {
             return index > solver.length();
         } else {
@@ -126,7 +130,7 @@ public class Cut {
         }
     }
 
-    private void changeIndex(boolean order) {
+    private void changeIndex() {
         if (order == FORWARD) {
             index++;
         } else {
@@ -134,7 +138,7 @@ public class Cut {
         }
     }
 
-    private void changeNumberIndex(boolean order) {
+    private void changeNumberIndex() {
         if (order == FORWARD) {
             numbersIndex++;
         } else {
@@ -142,7 +146,7 @@ public class Cut {
         }
     }
 
-    private void updateRange(boolean order) {
+    private void updateRange() {
         if (order == FORWARD) {
             solver.range().from(index);
         } else {
@@ -150,7 +154,7 @@ public class Cut {
         }
     }
 
-    private void removeNumbers(boolean order) {
+    private void removeNumbers() {
         if (order == FORWARD) {
             solver.shlNumbers(); // сдвигаем ряд (удаляем первый элемент)
             numbersIndex--; // из за смещения
@@ -159,7 +163,7 @@ public class Cut {
         }
     }
 
-    private void init(boolean order) {
+    private void init() {
         countDots = 0;
         stop = false;
         previous = Dot.WHITE;
