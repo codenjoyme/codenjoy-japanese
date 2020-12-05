@@ -17,18 +17,6 @@ public class LineSolverTest {
         assertCombinations("{3,1}UUUUU->[B-100%, B-100%, B-100%, W-0%, B-100%]");
     }
 
-    private void assertCombinations(String data) {
-        String[] split = data.split("->");
-        String left = split[0];
-        String expected = split[1];
-
-        String[] inputs = left.split("}");
-        String numbers = inputs[0].replaceAll("\\{", "");
-        String dots = inputs[1];
-
-        assertCombinations(expected, dots, numbers);
-    }
-
     @Test
     public void test2() {
         assertCombinations("{2}UU->[B-100%, B-100%]");
@@ -57,6 +45,18 @@ public class LineSolverTest {
     @Test
     public void test7() {
         assertCombinations("{3,1}UUUUUU->[U-67%, B-100%, B-100%, U-33%, U-33%, U-67%]");
+    }
+
+    private void assertCombinations(String data) {
+        String[] split = data.split("->");
+        String left = split[0];
+        String expected = split[1];
+
+        String[] inputs = left.split("}");
+        String numbers = inputs[0].replaceAll("\\{", "");
+        String dots = inputs[1];
+
+        assertCombinations(expected, dots, numbers);
     }
 
     private void assertCombinations(String expected, String dots, String inputNumbers) {
