@@ -22,7 +22,8 @@ public class Cut {
     // from ... to
     public boolean process() {
         // идем по ряду в прямом порядке
-        init(true);
+        boolean order = true;
+        init(order);
         do {
             switch (solver.dots(index)) {
                 case UNSET: {
@@ -39,8 +40,7 @@ public class Cut {
                             solver.probabilities().set(index, EXACTLY_NOT_BLACK);
                             previous = Dot.WHITE;
 
-                            solver.SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                            numbersIndex--; // из за смещения
+                            removeNumbers(order);
                         }
                     } else {
                         // UNSET после WHITE
@@ -72,8 +72,7 @@ public class Cut {
                         }
                         previous = Dot.WHITE;
 
-                        solver.SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                        numbersIndex--; // из за смещения
+                        removeNumbers(order);
                     }
                     solver.probabilities().set(index, EXACTLY_NOT_BLACK);
                 }
@@ -84,7 +83,8 @@ public class Cut {
             if ((!stop && index > solver.length()) || solver.countNumbers() == 0) return false; // достигли конца
         } while (!stop);
 
-        init(false);
+        order = false;
+        init(order);
         do {
             switch (solver.dots(index)) {
                 case UNSET: {
@@ -100,7 +100,7 @@ public class Cut {
                             countDots = 0; // новый ряд еще не начали
                             solver.probabilities().set(index, EXACTLY_NOT_BLACK);
                             previous = Dot.WHITE;
-                            solver.countNumbers(solver.countNumbers() - 1);
+                            removeNumbers(order);
                         }
                     } else {
                         // WHITE после пустоты
@@ -130,7 +130,7 @@ public class Cut {
                             return true;
                         }
                         previous = Dot.WHITE;
-                        solver.countNumbers(solver.countNumbers() - 1);
+                        removeNumbers(order);
                     }
                     solver.probabilities().set(index, EXACTLY_NOT_BLACK);
                 }
@@ -144,6 +144,15 @@ public class Cut {
         solver.range().calcLength();
         // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
         return solver.countNumbers() != 0 && solver.range().exists();
+    }
+
+    private void removeNumbers(boolean order) {
+        if (order) {
+            solver.SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
+            numbersIndex--; // из за смещения
+        } else {
+            solver.countNumbers(solver.countNumbers() - 1);
+        }
     }
 
     private void init(boolean order) {
