@@ -39,7 +39,6 @@ public class Cut {
                             countDots = 0; // новый ряд еще не начали
                             solver.probabilities().set(index, EXACTLY_NOT_BLACK);
                             previous = Dot.WHITE;
-
                             removeNumbers(order);
                         }
                     } else {
@@ -48,7 +47,7 @@ public class Cut {
                             // ряд пустой, тут все WHITE
                             solver.probabilities().set(index, EXACTLY_NOT_BLACK);
                         } else {
-                            solver.range().from(index);
+                            updateRange(order);
                             stop = true; // иначе выходим
                         }
                     }
@@ -56,7 +55,7 @@ public class Cut {
                 break;
                 case BLACK: {
                     if (previous.isWhite()) {
-                        numbersIndex++;
+                        changeNumberIndex(order);
                         countDots = 0;
                         previous = Dot.BLACK;
                     }
@@ -107,7 +106,7 @@ public class Cut {
                         if (solver.countNumbers() == 0) { // в этом ряде ничего больше делать нечего
                             solver.probabilities().set(index, EXACTLY_NOT_BLACK); // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
-                            solver.range().to(index);
+                            updateRange(order);
                             stop = true; // иначе выходим
                         }
                     }
@@ -115,7 +114,7 @@ public class Cut {
                 break;
                 case BLACK: {
                     if (previous.isWhite()) {
-                        numbersIndex--;
+                        changeNumberIndex(order);
                         countDots = 0;
                         previous = Dot.BLACK;
                     }
@@ -144,6 +143,22 @@ public class Cut {
         solver.range().calcLength();
         // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
         return solver.countNumbers() != 0 && solver.range().exists();
+    }
+
+    private void changeNumberIndex(boolean order) {
+        if (order) {
+            numbersIndex++;
+        } else {
+            numbersIndex--;
+        }
+    }
+
+    private void updateRange(boolean order) {
+        if (order) {
+            solver.range().from(index);
+        } else {
+            solver.range().to(index);
+        }
     }
 
     private void removeNumbers(boolean order) {
