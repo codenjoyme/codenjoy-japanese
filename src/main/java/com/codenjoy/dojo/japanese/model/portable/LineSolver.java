@@ -7,8 +7,8 @@ import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 public class LineSolver {
 
     public static class Info {
-        public int c;
-        public boolean b;
+        public int length;
+        public boolean isBlack;
     }
 
     private boolean[] combinations;
@@ -20,12 +20,12 @@ public class LineSolver {
 
     private int[] numbers;
     private int countNumbers;
-    private int cr;
-    private Info[] numbers10;
+    private int currentBlock;
+    private Info[] blocks;
 
     private int from;
     private int to;
-    private int cutLen;
+    private int range;
 
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
         dots = inputDots;
@@ -74,34 +74,19 @@ public class LineSolver {
         // TODO тут в некоторых тестах case_b15 случается переполнение, потому тут массив большой
         combinations = new boolean[len + 1 + 100];
         probability = new double[len + 1 + 100];
-        numbers10 = new Info[len + 1];
-        for (int i = 1; i < numbers10.length; i++) {
-            numbers10[i] = new Info();
+        blocks = new Info[len + 1];
+        for (int i = 1; i < blocks.length; i++) {
+            blocks[i] = new Info();
         }
     }
 
     private boolean generateCombinations() {
-        cr = 1;
-        int j = 0;
-        for (int i = 1; i <= countNumbers; i++) {
-            numbers10[cr].b = true;
-            numbers10[cr].c = numbers[i];
-            numbers10[cr + 1].b = false;
-            numbers10[cr + 1].c = 1;
-            j = j + numbers[i] + 1;
-            cr = cr + 2;
-        }
-        cr = cr - 1;
-        if (j > cutLen) {
-            cr--;
-        }
-        if (j < cutLen) {
-            numbers10[cr].c = numbers10[cr].c + cutLen - j;
-        }
-        //-------
+        currentBlock = packBlocksTightToTheLeft();
+
+        // пошли генерить комбинации
         combinationCount = 0;
         do {
-            getCombinationsFromNumbers();
+            getCombinationsFromNumbers(currentBlock);
             if (testCombination()) {
                 combinationCount++;
 
@@ -111,8 +96,8 @@ public class LineSolver {
                     }
                 }
             }
-            getNumbersFromCombination();
-        } while (manipuleNumbers());
+            currentBlock = getNumbersFromCombination();
+        } while (manipulateNumbers());
 
         for (var i = from; i <= to; i++) {
             if (combinationCount != 0) {
@@ -122,6 +107,38 @@ public class LineSolver {
             }
         }
         return combinationCount != 0;
+    }
+
+    // упаковываем максимально все блоки слева впритык друг к другу
+    // возвращаем количество блоков, которые удалось упаковать
+    private int packBlocksTightToTheLeft() {
+        int block = 1;
+        int j = 0;
+        for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
+            // работаем попарно черный как сказано в числах
+            blocks[block].isBlack = true;
+            blocks[block].length = numbers[numIndex];
+
+            // потом 1 пиксель белый
+            blocks[block + 1].isBlack = false;
+            blocks[block + 1].length = 1;
+
+            // отступаем в ряду размеры новосозданных блоков
+            j += blocks[block].length + blocks[block + 1].length;
+            // всегда чередуются черный-белый попарно
+            block += 2;
+        }
+        block--; // сбрасываем последний increase чтобы block ссылался на WHITE из последней пары BLACK-WHITE
+
+        if (j > range) {
+            // убираем последний WHITE блок, если сумарная длинна не вписывается в range
+            block--;
+        } else if (j < range) {
+            // последний WHITE блок мы делаем длинной так, чтобы он заполнил остаток рабочей зоны range (от from до to)
+            // по умолчанию он длинной 1
+            blocks[block].length = blocks[block].length + range - j;
+        }
+        return block;
     }
 
     // после того, как у нас есть массив вероятностей для всех возможных комбинаций
@@ -160,45 +177,46 @@ public class LineSolver {
         return true;
     }
 
-    private void getCombinationsFromNumbers() {
-        int x = from - 1;
-        for (int i = 1; i <= cr; i++) {
-            for (int j = 1; j <= numbers10[i].c; j++) {
-//                if (x + j > len || i > len) {
+    private void getCombinationsFromNumbers(int countBlocks) {
+        int offset = from - 1;
+        for (int block = 1; block <= countBlocks; block++) {
+            for (int len = 1; len <= blocks[block].length; len++) {
+//                if (offset + len > len || block > len) {
 //                    break; // TODO этого не должно происходить, но происходит
 //                }
-                combinations[x + j] = numbers10[i].b;
+                combinations[offset + len] = blocks[block].isBlack;
             }
-            x += numbers10[i].c;
+            offset += blocks[block].length;
         }
     }
 
-    private void getNumbersFromCombination() {
-        boolean b = combinations[from];
-        int j = 1;
-        cr = 1;
-        for (int i = from + 1; i <= to; i++) {
-//            if (i >= combinations.length) break; // TODO этого не должно происходить но происходит
-            if (combinations[i] ^ b) {
-                numbers10[cr].c = j;
-                numbers10[cr].b = b;
-                cr++; ;
-                j = 0;
+    private int getNumbersFromCombination() {
+        boolean color = combinations[from];
+        int blockLength = 1;
+        int block = 1;
+        for (int offset = from + 1; offset <= to; offset++) {
+//            if (offset >= combinations.length) break; // TODO этого не должно происходить но происходит
+            if (combinations[offset] ^ color) {
+                blocks[block].length = blockLength;
+                blocks[block].isBlack = color;
+                block++; ;
+                blockLength = 0;
             }
-            j++;
-            b = combinations[i];
+            blockLength++;
+            color = combinations[offset];
         }
-        if (j != 0) {
-            numbers10[cr].c = j;
-            numbers10[cr].b = b;
+        if (blockLength != 0) {
+            blocks[block].length = blockLength;
+            blocks[block].isBlack = color;
         }
+        return block;
     }
 
-    private boolean manipuleNumbers() {
+    private boolean manipulateNumbers() {
         boolean b2 = false;
-        int a = cr;
+        int a = currentBlock;
         while (true) {
-            if (numbers10[a].b) {
+            if (blocks[a].isBlack) {
                 a--;
                 if (a <= 0) {
                     return false;
@@ -210,18 +228,18 @@ public class LineSolver {
                         continue;
                     }
 
-                    if ((a + 2) > cr) {
-                        if ((a + 2) != (cr + 1)) break;
-                        if (!numbers10[cr].b) break;
+                    if (a + 2 > currentBlock) {
+                        if (a + 2 != currentBlock + 1) break;
+                        if (!blocks[currentBlock].isBlack) break;
 
                         b2 = false;
-                        if ((numbers10[a].c != 1) && (cr == 2)) {
+                        if (blocks[a].length != 1 && currentBlock == 2) {
                             b2 = true;
                         }
-                        while (numbers10[a].c == 1) {
+                        while (blocks[a].length == 1) {
                             a -= 2;
                             a2 += 2;
-                            if ((a <= 0) || (a2 == cr)) {
+                            if (a <= 0 || a2 == currentBlock) {
                                 b2 = true;
                                 break;
                             }
@@ -229,52 +247,52 @@ public class LineSolver {
 
                         if (b2) break;
 
-                        cr++;
-                        numbers10[cr].b = false;
-                        numbers10[cr].c = 0;
+                        currentBlock++;
+                        blocks[currentBlock].isBlack = false;
+                        blocks[currentBlock].length = 0;
                     }
-                    numbers10[a + a2].c = numbers10[a + a2].c + numbers10[a].c - 2;
-                    numbers10[a].c = 2;
+                    blocks[a + a2].length = blocks[a + a2].length + blocks[a].length - 2;
+                    blocks[a].length = 2;
                     break;
                 }
                 if (b2) {
                     return false;
                 }
             } else {
-                if (cr == 1) {
+                if (currentBlock == 1) {
                     return false;
                 }
-                if ((a - 2) <= 0) {
+                if (a - 2 <= 0) {
                     if (a < 1) break;
-                    cr++;
-                    for (int i = cr - 1; i >= 1; i--) {
-                        numbers10[i + 1].c = numbers10[i].c;
-                        numbers10[i + 1].b = numbers10[i].b;
+                    currentBlock++;
+                    for (int i = currentBlock - 1; i >= 1; i--) {
+                        blocks[i + 1].length = blocks[i].length;
+                        blocks[i + 1].isBlack = blocks[i].isBlack;
                     }
-                    numbers10[1].c = 1;
-                    numbers10[1].b = false;
-                    if (cr > 3) {
-                        numbers10[3].c = 1;
+                    blocks[1].length = 1;
+                    blocks[1].isBlack = false;
+                    if (currentBlock > 3) {
+                        blocks[3].length = 1;
                     }
-                    if (cr == 3) {
-                        numbers10[3].c--;
+                    if (currentBlock == 3) {
+                        blocks[3].length--;
                     }
                     break;
                 }
-                numbers10[a - 2].c++;
-                numbers10[a].c--;
-                if (numbers10[a].c == 0) {
-                    if (a == cr) {
-                        cr--;
+                blocks[a - 2].length++;
+                blocks[a].length--;
+                if (blocks[a].length == 0) {
+                    if (a == currentBlock) {
+                        currentBlock--;
                         break;
                     } else {
-                        numbers10[a - 2].c--;
-                        numbers10[a].c++;
+                        blocks[a - 2].length--;
+                        blocks[a].length++;
                         a = a - 2;
                     }
                     continue;
                 } else {
-//                   cr--;
+//                   currentBlock--;
                     break;
                 }
             }
@@ -425,7 +443,7 @@ public class LineSolver {
             if ((!stop && i < 1) || countNumbers == 0) return false; // достигли конца
         } while (!stop);
 
-        cutLen = to - from + 1;
+        range = to - from + 1;
         // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
         return countNumbers != 0 && from <= to;
     }
