@@ -22,7 +22,18 @@ public class Cut {
     // from ... to
     public boolean process() {
         // идем по ряду в прямом порядке
-        boolean order = true;
+        Boolean result = go(true);
+        if (result != null) return result;
+        // идем по ряду в обратном порядке
+        result = go(false);
+        if (result != null) return result;
+
+        solver.range().calcLength();
+        // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
+        return solver.countNumbers() != 0 && solver.range().exists();
+    }
+
+    private Boolean go(boolean order) {
         init(order);
         do {
             switch (solver.dots(index)) {
@@ -79,70 +90,12 @@ public class Cut {
             }
             changeIndex(order);
             // TODO подумать почему тут нельзя перебирать комбинации
-            if ((!stop && checkOutOf(order)) || solver.countNumbers() == 0) return false; // достигли конца
-        } while (!stop);
-
-        order = false;
-        init(order);
-        do {
-            switch (solver.dots(index)) {
-                case UNSET: {
-                    if (previous.isBlack()) {
-                        // UNSET после BLACK - надо заканчивать ряд
-                        if (countDots < solver.numbers(numbersIndex)) {
-                            // незакончили numbersIndex'ный ряд
-                            countDots++; // количество точек
-                            solver.probabilities().set(index, EXACTLY_BLACK);
-                            previous = Dot.BLACK;
-                        } else {
-                            // закончили numbersIndex'ный ряд
-                            countDots = 0; // новый ряд еще не начали
-                            solver.probabilities().set(index, EXACTLY_NOT_BLACK);
-                            previous = Dot.WHITE;
-                            removeNumbers(order);
-                        }
-                    } else {
-                        // WHITE после пустоты
-                        if (solver.countNumbers() == 0) { // в этом ряде ничего больше делать нечего
-                            solver.probabilities().set(index, EXACTLY_NOT_BLACK); // кончаем его:) // TODO тут скорее UNKNOWN
-                        } else {
-                            updateRange(order);
-                            stop = true; // иначе выходим
-                        }
-                    }
-                }
-                break;
-                case BLACK: {
-                    if (previous.isWhite()) {
-                        changeNumberIndex(order);
-                        countDots = 0;
-                        previous = Dot.BLACK;
-                    }
-                    solver.probabilities().set(index, EXACTLY_BLACK);
-                    countDots++;
-                }
-                break;
-                case WHITE: {
-                    if (previous.isBlack()) {
-                        if (countDots != solver.numbers(numbersIndex)) {
-                            // TODO подумать почему тут можно перебирать комбинации
-                            return true;
-                        }
-                        previous = Dot.WHITE;
-                        removeNumbers(order);
-                    }
-                    solver.probabilities().set(index, EXACTLY_NOT_BLACK);
-                }
-                break;
+            if ((!stop && checkOutOf(order)) || solver.countNumbers() == 0) {
+                return false; // достигли конца
             }
-            changeIndex(order);
-            // TODO подумать почему тут нельзя перебирать комбинации
-            if ((!stop && checkOutOf(order)) || solver.countNumbers() == 0) return false; // достигли конца
         } while (!stop);
 
-        solver.range().calcLength();
-        // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
-        return solver.countNumbers() != 0 && solver.range().exists();
+        return null;
     }
 
     private boolean checkOutOf(boolean order) {
