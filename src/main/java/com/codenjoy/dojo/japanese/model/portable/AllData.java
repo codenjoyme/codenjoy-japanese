@@ -115,13 +115,13 @@ public class AllData implements BoardReader {
         if (assumption.color().isBlack()) {
             data[pt.x][pt.y] = Dot.BLACK;
             // меняем вероятности
-            probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY;
-            probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_NOT;
+            probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_BLACK;
+            probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_NOT_BLACK;
         } else {
             data[pt.x][pt.y] = Dot.WHITE;
             // меняем вероятности
-            probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_NOT;
-            probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY;
+            probability[pt.x][pt.y][Dot.BLACK.code()] = EXACTLY_NOT_BLACK;
+            probability[pt.x][pt.y][Dot.WHITE.code()] = EXACTLY_BLACK;
         }
         // строка и солбец, содержащие эту точку пересчитать
         chX[pt.y] = true;

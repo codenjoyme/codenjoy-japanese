@@ -82,7 +82,8 @@ public class Blocks {
         }
     }
 
-    public boolean next() {
+    // TODO надо дорефакторить
+    public boolean hasNext() {
         boolean b2 = false;
         int a = current;
         while (true) {

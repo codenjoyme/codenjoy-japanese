@@ -18,8 +18,8 @@ import static java.util.stream.Collectors.toList;
 
 class Solver implements BoardReader {
 
-    public static final double EXACTLY = 1.0;
-    public static final double EXACTLY_NOT = 0.0;
+    public static final double EXACTLY_BLACK = 1.0;
+    public static final double EXACTLY_NOT_BLACK = 0.0;
     public static final double UNKNOWN = -1.0;
 
     private boolean withAssumption; // гадать ли алгоритму, если нет вариантов точных на поле
@@ -140,7 +140,8 @@ class Solver implements BoardReader {
 //        System.out.println();
 //        System.out.println();
     }
-    
+
+    // TODO порефакторить
     public void solve() {
         boolean wasChanges, ableToNewAssumption, foundMaxProbDot, b7, wasError, b11;
         // wasChanges - произошли ли изменения,
@@ -393,13 +394,13 @@ class Solver implements BoardReader {
             for (int y = 1; y <= height; y++) {
                 switch (main.data[x][y]) {
                     case BLACK: {
-                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY;
-                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_NOT;
+                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_BLACK;
+                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_NOT_BLACK;
                     }
                     break;
                     case WHITE: {
-                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_NOT;
-                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY;
+                        main.probability[x][y][Dot.BLACK.code()] = EXACTLY_NOT_BLACK;
+                        main.probability[x][y][Dot.WHITE.code()] = EXACTLY_BLACK;
                     }
                     break;
                 }
@@ -469,7 +470,8 @@ class Solver implements BoardReader {
             assumptionWhite = data;
         }
     }
-    
+
+    // TODO порефакторить
     public void tryAssumption(Pt pt, Dot dot) {
         assumption.start(pt, dot);
 
@@ -511,6 +513,7 @@ class Solver implements BoardReader {
         }
     }
 
+    // TODO порефакторить
     public boolean getFin(AllData data) {
         // заполнение поля
         boolean c2 = true;

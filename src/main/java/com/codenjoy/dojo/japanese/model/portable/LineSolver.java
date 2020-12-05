@@ -1,22 +1,18 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-import java.util.Arrays;
-
-import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
+import static com.codenjoy.dojo.japanese.model.portable.Solver.EXACTLY_BLACK;
+import static com.codenjoy.dojo.japanese.model.portable.Solver.EXACTLY_NOT_BLACK;
 
 public class LineSolver {
 
-    private boolean[] combinations;
-    private int combinationCount;
-
     private Dot[] dots;
-    private double[] probability;
-    private int len;
+    private int length;
 
     private int[] numbers;
     private int countNumbers;
 
     private Blocks blocks;
+    private Probabilities probabilities;
 
     private int from;
     private int to;
@@ -25,117 +21,55 @@ public class LineSolver {
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
         dots = inputDots;
         numbers = inputNumbers;
-        len = dots.length - 1;
+        length = dots.length - 1;
         countNumbers = numbers.length - 1;
 
-        resetArrays();
+        probabilities = new Probabilities(length);
+        blocks = new Blocks(length);
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
         // если кто-то в ходе проверки гипотезы все же сделал это, то
         // мы все равно поставим все белые и скажем что calculate этого сценария невозможен
         if (countNumbers == 0) {
             boolean foundBlack = false;
-            for (int i = 1; i <= len; i++) {
+            for (int i = 1; i <= length; i++) {
                 if (dots[i] == Dot.BLACK) {
                     foundBlack = true;
                 }
                 dots[i] = Dot.WHITE;
-                probability[i] = EXACTLY_NOT;
+                probabilities.set(i, EXACTLY_NOT_BLACK);
             }
             return !foundBlack;
         }
 
-        // TODO почему-то чистим все вероятности и ставим их в WHITE
-        for (int i = 1; i <= len; i++) {
-            probability[i] = EXACTLY_NOT;
-        }
-
-        // обрезаем слева и справа уже отгаданные числа
         boolean result = true;
+        // обрезаем слева и справа уже отгаданные числа
         if (cut()) {
             // дальше работаем в диапазоне from...to
             result = generateCombinations();
         }
 
         // и превращаем явные (1.0, 0.0) probabilities в dots
-        getDotsFromProbabilities();
+        probabilities.updateDots(dots);
 
         // возвращаем возможность этой комбинации случиться для этого ряда чисел
         return result;
-    }
-
-    private void resetArrays() {
-        // инициализация всех массивов
-        // TODO тут в некоторых тестах case_b15 случается переполнение, потому тут массив большой
-        combinations = new boolean[len + 1 + 100];
-        probability = new double[len + 1 + 100];
-
-        blocks = new Blocks(len);
     }
 
     private boolean generateCombinations() {
         blocks.packTightToTheLeft(numbers, countNumbers, range);
 
         // пошли генерить комбинации
-        combinationCount = 0;
         do {
-            blocks.saveCombinations(from, to, combinations);
-            if (testCombination()) {
-                combinationCount++;
+            blocks.saveCombinations(from, to, probabilities.combinations());
+            if (probabilities.isApplicable(from, to, dots)) {
+                probabilities.addCombination(from, to);
+            }
+            blocks.loadCombination(from, to, probabilities.combinations());
+        } while (blocks.hasNext());
 
-                for (int i = from; i <= to; i++) {
-                    if (combinations[i]) {
-                        probability[i]++;
-                    }
-                }
-            }
-            blocks.loadCombination(from, to, combinations);
-        } while (blocks.next());
-
-        for (var i = from; i <= to; i++) {
-            if (combinationCount != 0) {
-                probability[i] = probability[i] / combinationCount;
-            } else {
-                probability[i] = UNKNOWN;
-            }
-        }
-        return combinationCount != 0;
-    }
-
-    // после того, как у нас есть массив вероятностей для всех возможных комбинаций
-    // мы в праве утверждать, что ячейки с вероятностями 1.0 и 0.0 могут быть
-    // заполнены BLACK и WHITE соответственно
-    private void getDotsFromProbabilities() {
-        for (int i = 1; i <= len; i++) {
-            if (probability[i] == EXACTLY) {
-                dots[i] = Dot.BLACK;
-            }
-            if (probability[i] == EXACTLY_NOT) {
-                dots[i] = Dot.WHITE;
-            }
-        }
-    }
-
-    private boolean testCombination() {
-        for (int i = from; i <= to; i++) {
-            switch (dots[i]) {
-                case UNSET:
-                    break;
-                case BLACK:
-                    if (!combinations[i]) {
-                        return false;
-                    }
-                    break;
-                case WHITE:
-                    if (combinations[i]) {
-                        return false;
-                    }
-                    break;
-                case ASSUMPTION:
-                    break;
-            }
-        }
-        return true;
+        probabilities.calculate(from, to);
+        return probabilities.isAny();
     }
 
     private void SHLNumbers() {
@@ -149,6 +83,7 @@ public class LineSolver {
     // возвращает true если есть над чем гонять комбинации и даем возможность перебрать их
     // но перебирать будем только на тех числах, которые остались после оптимизации и в диапазоне точек
     // from ... to
+    // TODO продолжить рефакторить
     private boolean cut() {
         // идем по ряду в прямом порядке
         Dot previous = Dot.WHITE;
@@ -165,12 +100,12 @@ public class LineSolver {
                         if (countDots < numbers[numbersIndex]) {
                             // незакончили numbersIndex'ный ряд
                             countDots++; // количество точек
-                            probability[i] = EXACTLY;
+                            probabilities.set(i, EXACTLY_BLACK);
                             previous = Dot.BLACK;
                         } else {
                             // закончили numbersIndex'ный ряд
                             countDots = 0; // новый ряд еще не начали
-                            probability[i] = EXACTLY_NOT;
+                            probabilities.set(i, EXACTLY_NOT_BLACK);
                             previous = Dot.WHITE;
 
                             SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
@@ -180,7 +115,7 @@ public class LineSolver {
                         // UNSET после WHITE
                         if (countNumbers == 0) {
                             // ряд пустой, тут все WHITE
-                            probability[i] = EXACTLY_NOT;
+                            probabilities.set(i, EXACTLY_NOT_BLACK);
                         } else {
                             from = i;
                             stop = true; // иначе выходим
@@ -194,7 +129,7 @@ public class LineSolver {
                         countDots = 0;
                         previous = Dot.BLACK;
                     }
-                    probability[i] = EXACTLY;
+                    probabilities.set(i, EXACTLY_BLACK);
                     countDots++;
                 }
                 break;
@@ -209,20 +144,20 @@ public class LineSolver {
                         SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
                         numbersIndex--; // из за смещения
                     }
-                    probability[i] = EXACTLY_NOT;
+                    probabilities.set(i, EXACTLY_NOT_BLACK);
                 }
                 break;
             }
             i++;
             // TODO подумать почему тут нельзя перебирать комбинации
-            if ((!stop && i > len) || countNumbers == 0) return false; // достигли конца
+            if ((!stop && i > length) || countNumbers == 0) return false; // достигли конца
         } while (!stop);
 
         // идем по ряду в обратном порядке
         previous = Dot.WHITE;
         numbersIndex = countNumbers + 1;
         countDots = 0;
-        i = len;
+        i = length;
         to = i;
         stop = false;
         do {
@@ -233,19 +168,19 @@ public class LineSolver {
                         if (countDots < numbers[numbersIndex]) {
                             // незакончили numbersIndex'ный ряд
                             countDots++; // количество точек
-                            probability[i] = EXACTLY;
+                            probabilities.set(i, EXACTLY_BLACK);
                             previous = Dot.BLACK;
                         } else {
                             // закончили numbersIndex'ный ряд
                             countDots = 0; // новый ряд еще не начали
-                            probability[i] = EXACTLY_NOT;
+                            probabilities.set(i, EXACTLY_NOT_BLACK);
                             previous = Dot.WHITE;
                             countNumbers--;
                         }
                     } else {
                         // WHITE после пустоты
                         if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
-                            probability[i] = EXACTLY_NOT; // кончаем его:) // TODO тут скорее UNKNOWN
+                            probabilities.set(i, EXACTLY_NOT_BLACK); // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
                             to = i;
                             stop = true; // иначе выходим
@@ -259,7 +194,7 @@ public class LineSolver {
                         countDots = 0;
                         previous = Dot.BLACK;
                     }
-                    probability[i] = EXACTLY;
+                    probabilities.set(i, EXACTLY_BLACK);
                     countDots++;
                 }
                 break;
@@ -272,7 +207,7 @@ public class LineSolver {
                         previous = Dot.WHITE;
                         countNumbers--;
                     }
-                    probability[i] = EXACTLY_NOT;
+                    probabilities.set(i, EXACTLY_NOT_BLACK);
                 }
                 break;
             }
@@ -287,22 +222,14 @@ public class LineSolver {
     }
 
     public double probability(int x) {
-        return probability[x];
-    }
-
-    public double[] probability() {
-        return Arrays.copyOf(probability, len + 1);
+        return probabilities.get(x);
     }
 
     public Dot dots(int x) {
         return dots[x];
     }
 
-    public Dot[] dots() {
-        return Arrays.copyOf(dots, len + 1);
-    }
-
     public int length() {
-        return len;
+        return length;
     }
 }
