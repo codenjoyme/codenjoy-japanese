@@ -77,7 +77,7 @@ public class Cut {
                 }
                 break;
             }
-            index++;
+            changeIndex(order);
             // TODO подумать почему тут нельзя перебирать комбинации
             if ((!stop && index > solver.length()) || solver.countNumbers() == 0) return false; // достигли конца
         } while (!stop);
@@ -135,7 +135,7 @@ public class Cut {
                 }
                 break;
             }
-            index--;
+            changeIndex(order);
             // TODO подумать почему тут нельзя перебирать комбинации
             if ((!stop && index < 1) || solver.countNumbers() == 0) return false; // достигли конца
         } while (!stop);
@@ -143,6 +143,14 @@ public class Cut {
         solver.range().calcLength();
         // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
         return solver.countNumbers() != 0 && solver.range().exists();
+    }
+
+    private void changeIndex(boolean order) {
+        if (order) {
+            index++;
+        } else {
+            index--;
+        }
     }
 
     private void changeNumberIndex(boolean order) {
