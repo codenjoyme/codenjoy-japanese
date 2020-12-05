@@ -15,49 +15,50 @@ public class LineSolverTest {
     @Test
     public void test1() {
         assertCombinations("[B-100%, B-100%, B-100%, W-0%, B-100%]",
-                "UUUUU", 3, 1);
+                "UUUUU", "3,1");
     }
 
     @Test
     public void test2() {
         assertCombinations("[B-100%, B-100%]",
-                "UU", 2);
+                "UU", "2");
     }
 
     @Test
     public void test3() {
         assertCombinations("[U-33%, U-33%, U-33%]",
-                "UUU", 1);
+                "UUU", "1");
     }
 
     @Test
     public void test4() {
         assertCombinations("[U-50%, B-100%, U-50%]",
-                "UUU", 2);
+                "UUU", "2");
     }
 
     @Test
     public void test5() {
         assertCombinations("[U-33%, U-67%, U-67%, U-33%]",
-                "UUUU", 2);
+                "UUUU", "2");
     }
 
     @Test
     public void test6() {
         assertCombinations("[U-50%, B-100%, B-100%, U-50%]",
-                "UUUU", 3);
+                "UUUU", "3");
     }
 
     @Test
     public void test7() {
         assertCombinations("[U-67%, B-100%, B-100%, U-33%, U-33%, U-67%]",
-                "UUUUUU", 3, 1);
+                "UUUUUU", "3,1");
     }
 
-    private void assertCombinations(String expected, String dots, Integer... input) {
-        int[] numbers = new LinkedList<>(Arrays.asList(input)){{
-            add(0, 0);
-        }}.stream().mapToInt(i -> i).toArray();
+
+    private void assertCombinations(String expected, String dots, String inputNumbers) {
+        int[] numbers = Arrays.stream(("0," + inputNumbers).split(","))
+                .mapToInt(i -> Integer.valueOf(i))
+                .toArray();
 
         solver.calculate(numbers, parseDots(dots));
         assertEquals(expected, formatResult());
