@@ -41,51 +41,15 @@ public class Cut {
         do {
             switch (solver.dots(index)) {
                 case UNSET: {
-                    if (previous.isBlack()) {
-                        // UNSET после BLACK - надо заканчивать ряд
-                        if (countDots < solver.numbers(numbersIndex)) {
-                            // незакончили numbersIndex'ный ряд
-                            countDots++;
-                            setDot(Dot.BLACK);
-                        } else {
-                            // закончили numbersIndex'ный ряд
-                            countDots = 0; // новый ряд еще не начали
-                            setDot(Dot.WHITE);
-                            removeNumbers(order);
-                        }
-                    } else {
-                        // UNSET после WHITE
-                        if (solver.countNumbers() == 0) {
-                            // ряд пустой, тут все WHITE
-                            setDot(Dot.WHITE);
-                        } else {
-                            updateRange(order);
-                            stop = true; // иначе выходим
-                        }
-                    }
+                    processUnset(order);
                 }
                 break;
                 case BLACK: {
-                    if (previous.isWhite()) {
-                        // BLACK после WHITE
-                        changeNumberIndex(order);
-                        countDots = 0;
-                    }
-                    setDot(Dot.BLACK);
-                    countDots++;
+                    processBlack(order);
                 }
                 break;
                 case WHITE: {
-                    if (previous.isBlack()) {
-                        // WHITE после BLACK
-                        if (countDots != solver.numbers(numbersIndex)) {
-                            // TODO подумать почему тут можно перебирать комбинации
-                            return true;
-                        }
-
-                        removeNumbers(order);
-                    }
-                    setDot(Dot.WHITE);
+                    if (processWhite(order)) return true;
                 }
                 break;
             }
@@ -97,6 +61,55 @@ public class Cut {
         } while (!stop);
 
         return null;
+    }
+
+    private boolean processWhite(boolean order) {
+        if (previous.isBlack()) {
+            // WHITE после BLACK
+            if (countDots != solver.numbers(numbersIndex)) {
+                // TODO подумать почему тут можно перебирать комбинации
+                return true;
+            }
+
+            removeNumbers(order);
+        }
+        setDot(Dot.WHITE);
+        return false;
+    }
+
+    private void processBlack(boolean order) {
+        if (previous.isWhite()) {
+            // BLACK после WHITE
+            changeNumberIndex(order);
+            countDots = 0;
+        }
+        setDot(Dot.BLACK);
+        countDots++;
+    }
+
+    private void processUnset(boolean order) {
+        if (previous.isBlack()) {
+            // UNSET после BLACK - надо заканчивать ряд
+            if (countDots < solver.numbers(numbersIndex)) {
+                // незакончили numbersIndex'ный ряд
+                countDots++;
+                setDot(Dot.BLACK);
+            } else {
+                // закончили numbersIndex'ный ряд
+                countDots = 0; // новый ряд еще не начали
+                setDot(Dot.WHITE);
+                removeNumbers(order);
+            }
+        } else {
+            // UNSET после WHITE
+            if (solver.countNumbers() == 0) {
+                // ряд пустой, тут все WHITE
+                setDot(Dot.WHITE);
+            } else {
+                updateRange(order);
+                stop = true; // иначе выходим
+            }
+        }
     }
 
     private void setDot(Dot color) {

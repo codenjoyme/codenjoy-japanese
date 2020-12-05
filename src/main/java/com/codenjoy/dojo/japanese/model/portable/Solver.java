@@ -194,7 +194,7 @@ class Solver implements BoardReader {
         b11 = (a1 / height > a2 / width);
         //----------------------------------------------------------
         assumption = new Assumption();
-        wasChanges = false; // для b11
+        wasChanges = false;
         AllData data;
         do {
             if (wasChanges && b11) {
