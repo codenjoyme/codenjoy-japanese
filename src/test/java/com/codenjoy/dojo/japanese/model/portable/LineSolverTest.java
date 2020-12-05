@@ -7,9 +7,23 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 public class LineSolverTest {
 
     LineSolver solver = new LineSolver();
+
+    @Test
+    public void test_1() {
+        assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]",
+                getCombinations("1,2", "WWBWW"));
+    }
+
+    @Test
+    public void test_2() {
+        assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]",
+                getCombinations("2,1", "WWBWW"));
+    }
 
     @Test
     public void test1() {
@@ -218,8 +232,7 @@ public class LineSolverTest {
                 .toArray();
 
         try {
-            solver.calculate(numbers, parseDots(dots));
-            return formatResult();
+            return formatResult(solver.calculate(numbers, parseDots(dots)));
         } catch (Exception e) {
             return e.getClass().getSimpleName();
         }
@@ -233,14 +246,14 @@ public class LineSolverTest {
         return result;
     }
 
-    private String formatResult() {
+    private String formatResult(boolean calculateResult) {
         List<String> data = new LinkedList<>();
         for (int i = 1; i <= solver.length(); i++) {
             data.add(String.format("%s:%s%%",
                     solver.dots(i).ch(),
                     Math.round(solver.probability(i) * 100)));
         }
-        return data.toString();
+        return calculateResult + ":" + data.toString();
     }
 
 }

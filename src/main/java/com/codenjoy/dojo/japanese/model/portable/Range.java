@@ -9,6 +9,12 @@ public class Range {
     private int to;
     private int length;
 
+    public Range(int length) {
+        from = 1;
+        to = length;
+        calcLength();
+    }
+
     public int length() {
         return length;
     }

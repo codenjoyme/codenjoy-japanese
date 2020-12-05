@@ -16,7 +16,7 @@ import static com.codenjoy.dojo.services.PointImpl.pt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
-class Solver implements BoardReader {
+public class Solver implements BoardReader {
 
     public static final double EXACTLY_BLACK = 1.0;
     public static final double EXACTLY_NOT_BLACK = 0.0;

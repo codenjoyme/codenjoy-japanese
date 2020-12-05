@@ -23,7 +23,7 @@ public class LineSolver {
 
         probabilities = new Probabilities(length);
         blocks = new Blocks(length);
-        range = new Range();
+        range = new Range(length);
         cut = new Cut(this);
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
@@ -43,10 +43,10 @@ public class LineSolver {
 
         boolean result = true;
         // обрезаем слева и справа уже отгаданные числа
-        if (cut.process()) {
+//        if (cut.process()) {
             // дальше работаем в диапазоне from...to
             result = generateCombinations();
-        }
+//        }
 
         // и превращаем явные (1.0, 0.0) probabilities в dots
         probabilities.updateDots(dots);
