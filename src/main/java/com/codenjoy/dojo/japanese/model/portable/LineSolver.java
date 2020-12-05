@@ -13,10 +13,7 @@ public class LineSolver {
 
     private Blocks blocks;
     private Probabilities probabilities;
-
-    private int from;
-    private int to;
-    private int range;
+    private Range range;
 
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
         dots = inputDots;
@@ -26,6 +23,7 @@ public class LineSolver {
 
         probabilities = new Probabilities(length);
         blocks = new Blocks(length);
+        range = new Range();
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
         // если кто-то в ходе проверки гипотезы все же сделал это, то
@@ -61,14 +59,14 @@ public class LineSolver {
 
         // пошли генерить комбинации
         do {
-            blocks.saveCombinations(from, to, probabilities.combinations());
-            if (probabilities.isApplicable(from, to, dots)) {
-                probabilities.addCombination(from, to);
+            blocks.saveCombinations(range, probabilities.combinations());
+            if (probabilities.isApplicable(range, dots)) {
+                probabilities.addCombination(range);
             }
-            blocks.loadCombination(from, to, probabilities.combinations());
+            blocks.loadCombination(range, probabilities.combinations());
         } while (blocks.hasNext());
 
-        probabilities.calculate(from, to);
+        probabilities.calculate(range);
         return probabilities.isAny();
     }
 
@@ -90,7 +88,7 @@ public class LineSolver {
         int numbersIndex = 0;
         int countDots = 0; // количество точек в ряду
         int i = 1;
-        from = i;
+        range.from(i);
         boolean stop = false;
         do {
             switch (dots[i]) {
@@ -117,7 +115,7 @@ public class LineSolver {
                             // ряд пустой, тут все WHITE
                             probabilities.set(i, EXACTLY_NOT_BLACK);
                         } else {
-                            from = i;
+                            range.from(i);
                             stop = true; // иначе выходим
                         }
                     }
@@ -158,7 +156,7 @@ public class LineSolver {
         numbersIndex = countNumbers + 1;
         countDots = 0;
         i = length;
-        to = i;
+        range.to(i);
         stop = false;
         do {
             switch (dots[i]) {
@@ -182,7 +180,7 @@ public class LineSolver {
                         if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
                             probabilities.set(i, EXACTLY_NOT_BLACK); // кончаем его:) // TODO тут скорее UNKNOWN
                         } else {
-                            to = i;
+                            range.to(i);
                             stop = true; // иначе выходим
                         }
                     }
@@ -216,9 +214,9 @@ public class LineSolver {
             if ((!stop && i < 1) || countNumbers == 0) return false; // достигли конца
         } while (!stop);
 
-        range = to - from + 1;
+        range.calcLength();
         // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
-        return countNumbers != 0 && from <= to;
+        return countNumbers != 0 && range.exists();
     }
 
     public double probability(int x) {

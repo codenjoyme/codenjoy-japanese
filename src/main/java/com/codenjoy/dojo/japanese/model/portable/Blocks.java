@@ -17,7 +17,7 @@ public class Blocks {
         }
     }
 
-    public void packTightToTheLeft(int[] numbers, int countNumbers, int range) {
+    public void packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
         // упаковываем максимально все блоки слева впритык друг к другу
         // возвращаем количество блоков, которые удалось упаковать
         current = 1;
@@ -38,18 +38,18 @@ public class Blocks {
         }
         current--; // сбрасываем последний increase чтобы block ссылался на WHITE из последней пары BLACK-WHITE
 
-        if (j > range) {
+        if (j > range.length()) {
             // убираем последний WHITE блок, если сумарная длинна не вписывается в range
             current--;
-        } else if (j < range) {
+        } else if (j < range.length()) {
             // последний WHITE блок мы делаем длинной так, чтобы он заполнил остаток рабочей зоны range (от from до to)
             // по умолчанию он длинной 1
-            items[current].length = items[current].length + range - j;
+            items[current].length = items[current].length + range.length() - j;
         }
     }
 
-    public void saveCombinations(int from, int to, boolean[] combinations) {
-        int offset = from - 1;
+    public void saveCombinations(Range range, boolean[] combinations) {
+        int offset = range.from() - 1;
         for (int block = 1; block <= items.length - 1; block++) {
             for (int len = 1; len <= items[block].length; len++) {
 //                if (offset + len > len || block > len) {
@@ -61,11 +61,11 @@ public class Blocks {
         }
     }
 
-    public void loadCombination(int from, int to, boolean[] combinations) {
-        boolean color = combinations[from];
+    public void loadCombination(Range range, boolean[] combinations) {
+        boolean color = combinations[range.from()];
         int blockLength = 1;
         current = 1;
-        for (int offset = from + 1; offset <= to; offset++) {
+        for (int offset = range.from() + 1; offset <= range.to(); offset++) {
 //            if (offset >= combinations.length) break; // TODO этого не должно происходить но происходит
             if (combinations[offset] ^ color) {
                 items[current].length = blockLength;

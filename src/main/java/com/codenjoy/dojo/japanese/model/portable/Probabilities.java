@@ -26,32 +26,32 @@ public class Probabilities {
         combinations = 0;
     }
 
-    public void addCombination(int from, int to) {
+    public void addCombination(Range range) {
         combinations++;
 
-        for (int i = from; i <= to; i++) {
+        range.iterate(i -> {
             if (dots[i]) {
                 probabilities[i]++;
             }
-        }
+        });
     }
 
     public boolean isAny() {
         return combinations != 0;
     }
 
-    public void calculate(int from, int to) {
-        for (var i = from; i <= to; i++) {
+    public void calculate(Range range) {
+        range.iterate(i -> {
             if (combinations != 0) {
                 probabilities[i] = probabilities[i] / combinations;
             } else {
                 probabilities[i] = UNKNOWN;
             }
-        }
+        });
     }
 
-        public boolean isApplicable(int from, int to, Dot[] reference) {
-        for (int i = from; i <= to; i++) {
+    public boolean isApplicable(Range range, Dot[] reference) {
+        for (int i = range.from(); i <= range.to(); i++) {
             boolean isBlack = dots[i];
             switch (reference[i]) {
                 case UNSET:
