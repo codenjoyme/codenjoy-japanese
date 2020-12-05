@@ -55,6 +55,7 @@ public class Probabilities {
             boolean isBlack = dots[i];
             switch (reference[i]) {
                 case UNSET:
+                case ASSUMPTION:
                     break;
                 case BLACK:
                     if (!isBlack) {
@@ -65,8 +66,6 @@ public class Probabilities {
                     if (isBlack) {
                         return false;
                     }
-                    break;
-                case ASSUMPTION:
                     break;
             }
         }
