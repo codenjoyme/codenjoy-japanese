@@ -14,46 +14,50 @@ public class LineSolverTest {
 
     @Test
     public void test1() {
-        assertCombinations("[B-100%, B-100%, B-100%, W-0%, B-100%]",
-                "UUUUU", "3,1");
+        assertCombinations("{3,1}UUUUU->[B-100%, B-100%, B-100%, W-0%, B-100%]");
+    }
+
+    private void assertCombinations(String data) {
+        String[] split = data.split("->");
+        String left = split[0];
+        String expected = split[1];
+
+        String[] inputs = left.split("}");
+        String numbers = inputs[0].replaceAll("\\{", "");
+        String dots = inputs[1];
+
+        assertCombinations(expected, dots, numbers);
     }
 
     @Test
     public void test2() {
-        assertCombinations("[B-100%, B-100%]",
-                "UU", "2");
+        assertCombinations("{2}UU->[B-100%, B-100%]");
     }
 
     @Test
     public void test3() {
-        assertCombinations("[U-33%, U-33%, U-33%]",
-                "UUU", "1");
+        assertCombinations("{1}UUU->[U-33%, U-33%, U-33%]");
     }
 
     @Test
     public void test4() {
-        assertCombinations("[U-50%, B-100%, U-50%]",
-                "UUU", "2");
+        assertCombinations("{2}UUU->[U-50%, B-100%, U-50%]");
     }
 
     @Test
     public void test5() {
-        assertCombinations("[U-33%, U-67%, U-67%, U-33%]",
-                "UUUU", "2");
+        assertCombinations("{2}UUUU->[U-33%, U-67%, U-67%, U-33%]");
     }
 
     @Test
     public void test6() {
-        assertCombinations("[U-50%, B-100%, B-100%, U-50%]",
-                "UUUU", "3");
+        assertCombinations("{3}UUUU->[U-50%, B-100%, B-100%, U-50%]");
     }
 
     @Test
     public void test7() {
-        assertCombinations("[U-67%, B-100%, B-100%, U-33%, U-33%, U-67%]",
-                "UUUUUU", "3,1");
+        assertCombinations("{3,1}UUUUUU->[U-67%, B-100%, B-100%, U-33%, U-33%, U-67%]");
     }
-
 
     private void assertCombinations(String expected, String dots, String inputNumbers) {
         int[] numbers = Arrays.stream(("0," + inputNumbers).split(","))
