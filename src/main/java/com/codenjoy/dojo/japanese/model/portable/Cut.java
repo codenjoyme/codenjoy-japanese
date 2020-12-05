@@ -44,7 +44,7 @@ public class Cut {
                         // UNSET после BLACK - надо заканчивать ряд
                         if (countDots < solver.numbers(numbersIndex)) {
                             // незакончили numbersIndex'ный ряд
-                            countDots++; // количество точек
+                            countDots++;
                             solver.probabilities().set(index, EXACTLY_BLACK);
                             previous = Dot.BLACK;
                         } else {
@@ -68,6 +68,7 @@ public class Cut {
                 break;
                 case BLACK: {
                     if (previous.isWhite()) {
+                        // BLACK после WHITE
                         changeNumberIndex(order);
                         countDots = 0;
                         previous = Dot.BLACK;
@@ -78,6 +79,7 @@ public class Cut {
                 break;
                 case WHITE: {
                     if (previous.isBlack()) {
+                        // WHITE после BLACK
                         if (countDots != solver.numbers(numbersIndex)) {
                             // TODO подумать почему тут можно перебирать комбинации
                             return true;
@@ -91,8 +93,8 @@ public class Cut {
                 break;
             }
             changeIndex(order);
-            // TODO подумать почему тут нельзя перебирать комбинации
             if ((!stop && checkOutOf(order)) || solver.countNumbers() == 0) {
+                // TODO подумать почему тут нельзя перебирать комбинации
                 return false; // достигли конца
             }
         } while (!stop);
@@ -101,7 +103,7 @@ public class Cut {
     }
 
     private boolean checkOutOf(boolean order) {
-        if (order) {
+        if (order == FORWARD) {
             return index > solver.length();
         } else {
             return index < 1;
@@ -109,7 +111,7 @@ public class Cut {
     }
 
     private void changeIndex(boolean order) {
-        if (order) {
+        if (order == FORWARD) {
             index++;
         } else {
             index--;
@@ -117,7 +119,7 @@ public class Cut {
     }
 
     private void changeNumberIndex(boolean order) {
-        if (order) {
+        if (order == FORWARD) {
             numbersIndex++;
         } else {
             numbersIndex--;
@@ -125,7 +127,7 @@ public class Cut {
     }
 
     private void updateRange(boolean order) {
-        if (order) {
+        if (order == FORWARD) {
             solver.range().from(index);
         } else {
             solver.range().to(index);
@@ -133,8 +135,8 @@ public class Cut {
     }
 
     private void removeNumbers(boolean order) {
-        if (order) {
-            solver.SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
+        if (order == FORWARD) {
+            solver.shlNumbers(); // сдвигаем ряд (удаляем первый элемент)
             numbersIndex--; // из за смещения
         } else {
             solver.countNumbers(solver.countNumbers() - 1);
@@ -145,13 +147,11 @@ public class Cut {
         countDots = 0;
         stop = false;
         previous = Dot.WHITE;
-        if (order) {
-            // идем по ряду в прямом порядке
+        if (order == FORWARD) {
             numbersIndex = 0;
             index = 1;
             solver.range().from(index);
         } else {
-            // идем по ряду в обратном порядке
             numbersIndex = solver.countNumbers() + 1;
             index = solver.length();
             solver.range().to(index);

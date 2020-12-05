@@ -71,7 +71,7 @@ public class LineSolver {
         return probabilities.isAny();
     }
 
-    public void SHLNumbers() {
+    public void shlNumbers() {
         for (int j = 2; j <= countNumbers; j++) {
             numbers[j - 1] = numbers[j];
         }
