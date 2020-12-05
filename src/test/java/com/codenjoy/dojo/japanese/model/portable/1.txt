@@ -1,0 +1,67 @@
+        // идем по ряду в прямом порядке
+        Dot previous = Dot.WHITE;
+        int numbersIndex = 0;
+        int countDots = 0; // количество точек в ряду
+        int i = 1;
+        range.from(i);
+        boolean stop = false;
+        do {
+            switch (dots[i]) {
+                case UNSET: {
+                    if (previous.isBlack()) {
+                        // UNSET после BLACK - надо заканчивать ряд
+                        if (countDots < numbers[numbersIndex]) {
+                            // незакончили numbersIndex'ный ряд
+                            countDots++; // количество точек
+                            probabilities.set(i, EXACTLY_BLACK);
+                            previous = Dot.BLACK;
+                        } else {
+                            // закончили numbersIndex'ный ряд
+                            countDots = 0; // новый ряд еще не начали
+                            probabilities.set(i, EXACTLY_NOT_BLACK);
+                            previous = Dot.WHITE;
+
+                            SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
+                            numbersIndex--; // из за смещения
+                        }
+                    } else {
+                        // UNSET после WHITE
+                        if (countNumbers == 0) {
+                            // ряд пустой, тут все WHITE
+                            probabilities.set(i, EXACTLY_NOT_BLACK);
+                        } else {
+                            range.from(i);
+                            stop = true; // иначе выходим
+                        }
+                    }
+                }
+                break;
+                case BLACK: {
+                    if (previous.isWhite()) {
+                        numbersIndex++;
+                        countDots = 0;
+                        previous = Dot.BLACK;
+                    }
+                    probabilities.set(i, EXACTLY_BLACK);
+                    countDots++;
+                }
+                break;
+                case WHITE: {
+                    if (previous.isBlack()) {
+                        if (countDots != numbers[numbersIndex]) {
+                            // TODO подумать почему тут можно перебирать комбинации
+                            return true;
+                        }
+                        previous = Dot.WHITE;
+
+                        SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
+                        numbersIndex--; // из за смещения
+                    }
+                    probabilities.set(i, EXACTLY_NOT_BLACK);
+                }
+                break;
+            }
+            i++;
+            // TODO подумать почему тут нельзя перебирать комбинации
+            if ((!stop && i > length) || countNumbers == 0) return false; // достигли конца
+        } while (!stop);
