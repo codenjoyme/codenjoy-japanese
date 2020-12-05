@@ -5,6 +5,9 @@ import static com.codenjoy.dojo.japanese.model.portable.Solver.EXACTLY_NOT_BLACK
 
 public class Cut {
 
+    public static final boolean FORWARD = true;
+    public static final boolean BACKWARD = false;
+
     private LineSolver solver;
     private Dot previous;
     private int numbersIndex;
@@ -21,11 +24,10 @@ public class Cut {
     // но перебирать будем только на тех числах, которые остались после оптимизации и в диапазоне точек
     // from ... to
     public boolean process() {
-        // идем по ряду в прямом порядке
-        Boolean result = go(true);
+        Boolean result = go(FORWARD);
         if (result != null) return result;
-        // идем по ряду в обратном порядке
-        result = go(false);
+
+        result = go(BACKWARD);
         if (result != null) return result;
 
         solver.range().calcLength();
