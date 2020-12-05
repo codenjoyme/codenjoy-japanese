@@ -1,6 +1,5 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-import static com.codenjoy.dojo.japanese.model.portable.Solver.EXACTLY_BLACK;
 import static com.codenjoy.dojo.japanese.model.portable.Solver.EXACTLY_NOT_BLACK;
 
 public class LineSolver {
@@ -14,6 +13,7 @@ public class LineSolver {
     private Blocks blocks;
     private Probabilities probabilities;
     private Range range;
+    private Cut cut;
 
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
         dots = inputDots;
@@ -24,6 +24,7 @@ public class LineSolver {
         probabilities = new Probabilities(length);
         blocks = new Blocks(length);
         range = new Range();
+        cut = new Cut(this);
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
         // если кто-то в ходе проверки гипотезы все же сделал это, то
@@ -42,7 +43,7 @@ public class LineSolver {
 
         boolean result = true;
         // обрезаем слева и справа уже отгаданные числа
-        if (cut()) {
+        if (cut.process()) {
             // дальше работаем в диапазоне from...to
             result = generateCombinations();
         }
@@ -70,153 +71,11 @@ public class LineSolver {
         return probabilities.isAny();
     }
 
-    private void SHLNumbers() {
+    public void SHLNumbers() {
         for (int j = 2; j <= countNumbers; j++) {
             numbers[j - 1] = numbers[j];
         }
         countNumbers--;
-    }
-
-    // метод пытается с начала и конца ряда определить ряды точек, которые уже открыты полностью.
-    // возвращает true если есть над чем гонять комбинации и даем возможность перебрать их
-    // но перебирать будем только на тех числах, которые остались после оптимизации и в диапазоне точек
-    // from ... to
-    // TODO продолжить рефакторить
-    private boolean cut() {
-        // идем по ряду в прямом порядке
-        Dot previous = Dot.WHITE;
-        int numbersIndex = 0;
-        int countDots = 0; // количество точек в ряду
-        int i = 1;
-        range.from(i);
-        boolean stop = false;
-        do {
-            switch (dots[i]) {
-                case UNSET: {
-                    if (previous.isBlack()) {
-                        // UNSET после BLACK - надо заканчивать ряд
-                        if (countDots < numbers[numbersIndex]) {
-                            // незакончили numbersIndex'ный ряд
-                            countDots++; // количество точек
-                            probabilities.set(i, EXACTLY_BLACK);
-                            previous = Dot.BLACK;
-                        } else {
-                            // закончили numbersIndex'ный ряд
-                            countDots = 0; // новый ряд еще не начали
-                            probabilities.set(i, EXACTLY_NOT_BLACK);
-                            previous = Dot.WHITE;
-
-                            SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                            numbersIndex--; // из за смещения
-                        }
-                    } else {
-                        // UNSET после WHITE
-                        if (countNumbers == 0) {
-                            // ряд пустой, тут все WHITE
-                            probabilities.set(i, EXACTLY_NOT_BLACK);
-                        } else {
-                            range.from(i);
-                            stop = true; // иначе выходим
-                        }
-                    }
-                }
-                break;
-                case BLACK: {
-                    if (previous.isWhite()) {
-                        numbersIndex++;
-                        countDots = 0;
-                        previous = Dot.BLACK;
-                    }
-                    probabilities.set(i, EXACTLY_BLACK);
-                    countDots++;
-                }
-                break;
-                case WHITE: {
-                    if (previous.isBlack()) {
-                        if (countDots != numbers[numbersIndex]) {
-                            // TODO подумать почему тут можно перебирать комбинации
-                            return true;
-                        }
-                        previous = Dot.WHITE;
-
-                        SHLNumbers(); // сдвигаем ряд (удаляем первый элемент)
-                        numbersIndex--; // из за смещения
-                    }
-                    probabilities.set(i, EXACTLY_NOT_BLACK);
-                }
-                break;
-            }
-            i++;
-            // TODO подумать почему тут нельзя перебирать комбинации
-            if ((!stop && i > length) || countNumbers == 0) return false; // достигли конца
-        } while (!stop);
-
-        // идем по ряду в обратном порядке
-        previous = Dot.WHITE;
-        numbersIndex = countNumbers + 1;
-        countDots = 0;
-        i = length;
-        range.to(i);
-        stop = false;
-        do {
-            switch (dots[i]) {
-                case UNSET: {
-                    if (previous.isBlack()) {
-                        // UNSET после BLACK - надо заканчивать ряд
-                        if (countDots < numbers[numbersIndex]) {
-                            // незакончили numbersIndex'ный ряд
-                            countDots++; // количество точек
-                            probabilities.set(i, EXACTLY_BLACK);
-                            previous = Dot.BLACK;
-                        } else {
-                            // закончили numbersIndex'ный ряд
-                            countDots = 0; // новый ряд еще не начали
-                            probabilities.set(i, EXACTLY_NOT_BLACK);
-                            previous = Dot.WHITE;
-                            countNumbers--;
-                        }
-                    } else {
-                        // WHITE после пустоты
-                        if (countNumbers == 0) { // в этом ряде ничего больше делать нечего
-                            probabilities.set(i, EXACTLY_NOT_BLACK); // кончаем его:) // TODO тут скорее UNKNOWN
-                        } else {
-                            range.to(i);
-                            stop = true; // иначе выходим
-                        }
-                    }
-                }
-                break;
-                case BLACK: {
-                    if (previous.isWhite()) {
-                        numbersIndex--;
-                        countDots = 0;
-                        previous = Dot.BLACK;
-                    }
-                    probabilities.set(i, EXACTLY_BLACK);
-                    countDots++;
-                }
-                break;
-                case WHITE: {
-                    if (previous.isBlack()) {
-                        if (countDots != numbers[numbersIndex]) {
-                            // TODO подумать почему тут можно перебирать комбинации
-                            return true;
-                        }
-                        previous = Dot.WHITE;
-                        countNumbers--;
-                    }
-                    probabilities.set(i, EXACTLY_NOT_BLACK);
-                }
-                break;
-            }
-            i--;
-            // TODO подумать почему тут нельзя перебирать комбинации
-            if ((!stop && i < 1) || countNumbers == 0) return false; // достигли конца
-        } while (!stop);
-
-        range.calcLength();
-        // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
-        return countNumbers != 0 && range.exists();
     }
 
     public double probability(int x) {
@@ -229,5 +88,25 @@ public class LineSolver {
 
     public int length() {
         return length;
+    }
+
+    public int numbers(int index) {
+        return numbers[index];
+    }
+
+    public Range range() {
+        return range;
+    }
+
+    public Probabilities probabilities() {
+        return probabilities;
+    }
+
+    public int countNumbers() {
+        return countNumbers;
+    }
+
+    public void countNumbers(int count) {
+        countNumbers = count;
     }
 }
