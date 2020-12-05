@@ -30,8 +30,10 @@ public class Cut {
         result = go(BACKWARD);
         if (result != null) return result;
 
-        // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
-        return solver.countNumbers() != 0 && solver.range().exists();
+        // если остались ряды точек то надо прогнать генератор,
+        // чем сообщаем возвращая true
+        return solver.countNumbers() != 0
+                && solver.range().exists();
     }
 
     private Boolean go(boolean order) {
@@ -44,20 +46,18 @@ public class Cut {
                         if (countDots < solver.numbers(numbersIndex)) {
                             // незакончили numbersIndex'ный ряд
                             countDots++;
-                            solver.probabilities().set(index, EXACTLY_BLACK);
-                            previous = Dot.BLACK;
+                            setDot(Dot.BLACK);
                         } else {
                             // закончили numbersIndex'ный ряд
                             countDots = 0; // новый ряд еще не начали
-                            solver.probabilities().set(index, EXACTLY_NOT_BLACK);
-                            previous = Dot.WHITE;
+                            setDot(Dot.WHITE);
                             removeNumbers(order);
                         }
                     } else {
                         // UNSET после WHITE
                         if (solver.countNumbers() == 0) {
                             // ряд пустой, тут все WHITE
-                            solver.probabilities().set(index, EXACTLY_NOT_BLACK);
+                            setDot(Dot.WHITE);
                         } else {
                             updateRange(order);
                             stop = true; // иначе выходим
@@ -70,9 +70,8 @@ public class Cut {
                         // BLACK после WHITE
                         changeNumberIndex(order);
                         countDots = 0;
-                        previous = Dot.BLACK;
                     }
-                    solver.probabilities().set(index, EXACTLY_BLACK);
+                    setDot(Dot.BLACK);
                     countDots++;
                 }
                 break;
@@ -83,11 +82,10 @@ public class Cut {
                             // TODO подумать почему тут можно перебирать комбинации
                             return true;
                         }
-                        previous = Dot.WHITE;
 
                         removeNumbers(order);
                     }
-                    solver.probabilities().set(index, EXACTLY_NOT_BLACK);
+                    setDot(Dot.WHITE);
                 }
                 break;
             }
@@ -99,6 +97,12 @@ public class Cut {
         } while (!stop);
 
         return null;
+    }
+
+    private void setDot(Dot color) {
+        previous = color;
+        solver.probabilities().set(index,
+                (color.isBlack()) ? EXACTLY_BLACK : EXACTLY_NOT_BLACK);
     }
 
     private boolean checkOutOf(boolean order) {
