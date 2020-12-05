@@ -29,13 +29,15 @@ public class Range {
 
     public void from(int input) {
         from = input;
+        calcLength();
     }
 
     public void to(int input) {
         to = input;
+        calcLength();
     }
 
-    public void calcLength() {
+    private void calcLength() {
         length = to - from + 1;
     }
 

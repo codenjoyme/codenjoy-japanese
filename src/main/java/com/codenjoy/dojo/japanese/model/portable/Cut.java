@@ -30,7 +30,6 @@ public class Cut {
         result = go(BACKWARD);
         if (result != null) return result;
 
-        solver.range().calcLength();
         // если остались ряды точек то надо прогнать генератор, чем сообщаем возвращая true
         return solver.countNumbers() != 0 && solver.range().exists();
     }
