@@ -34,7 +34,13 @@ public class Blocks {
 
         // упаковываем максимально все блоки слева впритык друг к другу
         // возвращаем количество блоков, которые удалось упаковать
-        current = 0;
+        current = 1;
+
+        // первым идет WHITE, который нулевой длинны
+        // позже нам он понадобится для подбора комбинаций
+        items[current].isBlack = false;
+        items[current].length = 0;
+
         int offset = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
 
