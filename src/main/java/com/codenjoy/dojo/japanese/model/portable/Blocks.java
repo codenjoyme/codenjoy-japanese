@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Blocks {
 
+    private static final int SMALLEST_WHITE = 1;
+
     public static class Info {
 
         public int length;
@@ -16,7 +18,6 @@ public class Blocks {
         }
     }
     
-    private int current;
     private Info[] items;
 
     public Blocks(int length) {
@@ -32,7 +33,7 @@ public class Blocks {
             if (size != 0) {
                 // WHITE только после BLACK блока
                 // BLACK всегда идет первым
-                size += 1; // WHITE
+                size += SMALLEST_WHITE; // WHITE
             }
             size += numbers[numIndex]; // BLACK
         }
@@ -43,7 +44,7 @@ public class Blocks {
 
         // упаковываем максимально все блоки слева впритык друг к другу
         // возвращаем количество блоков, которые удалось упаковать
-        current = 1;
+        int current = 1;
 
         // первым идет WHITE, который нулевой длинны
         // позже нам он понадобится для подбора комбинаций
@@ -65,7 +66,7 @@ public class Blocks {
             // если нарисовали BLACK ряд после обязательно WHITE
             // за каждым BLACK идет WHITE
             items[current].isBlack = false;
-            items[current].length = 1;
+            items[current].length = SMALLEST_WHITE;
             // отступаем в ряду размер новосозданного блока
             offset += items[current].length;
         }
@@ -92,27 +93,41 @@ public class Blocks {
         }
     }
 
+    // метод перебирает варианты рсположения заданного набора рядов
+    // true возвращает, если есть еще комбинация
     public boolean hasNext() {
+        // мы идем от хвоста в голову последовательности
+        // что мы ищем - так это WHITE блок длинной больше 1
         for (int i = items.length - 1; i >= 1; i--) {
+            // если текущий элемент BLACK идем дальше
             if (items[i].isBlack) {
                 continue;
             }
 
-            int skipWhiteLength = (i == items.length - 1) ? 0 : 1;
+            // мы так же пропускаем
+            // 1) первый (с хвоста) WHITE если его длинна = 0
+            // 2) каждый последующий WHITE если его длинна = 1
+            int skipWhiteLength = (i == items.length - 1) ? 0 : SMALLEST_WHITE;
             if (items[i].length == skipWhiteLength) {
                 continue;
             }
 
+            // мы выходим если достигли начала последовательности
             if (i == 1) {
                 break;
             }
 
-            items[i - 2].length++;
+            // нашли WHITE блок длинной больше 1
+            // 1 пиксель с него перекидываем через BLACK ряд к следующему со стороны головы WHITE ряду
+            // так мы как бы перемещаем BLACK к хвосту
+            int odd = 2;
+            items[i - odd].length++;
             items[i].length--;
 
-            for (int j = i; j < items.length - 2; j = j + 2) {
-                items[j + 2].length += items[j].length - 1;
-                items[j].length = 1;
+            // но это не все - все последующие BLACK рядки надо сомкнуть к текущему WHITE впритык
+            for (int j = i; j < items.length - 2; j += odd) {
+                items[j + odd].length += items[j].length - SMALLEST_WHITE;
+                items[j].length = SMALLEST_WHITE;
             }
 
             return true;
