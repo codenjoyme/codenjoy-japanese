@@ -7,22 +7,36 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.assertEquals;
 
 public class LineSolverTest {
 
-    LineSolver solver = new LineSolver();
-
     @Test
     public void test_1() {
-        assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]",
+        assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]\n" +
+                        "\t-[1,2]:*.**.\n" +
+                        "\t-[1,2]:*..**\n" +
+                        "\t-[1,2]:.*.**",
                 getCombinations("1,2", "WWBWW"));
     }
 
     @Test
     public void test_2() {
-        assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]",
+        assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]\n" +
+                        "\t-[2,1]:**.*.\n" +
+                        "\t-[2,1]:**..*\n" +
+                        "\t-[2,1]:.**.*",
                 getCombinations("2,1", "WWBWW"));
+    }
+
+    @Test
+    public void test_3() {
+        assertEquals("true:[U:67%, B:100%, U:33%, U:33%, U:67%]\n" +
+                        "\t+[2,1]:**.*.\n" +
+                        "\t+[2,1]:**..*\n" +
+                        "\t+[2,1]:.**.*",
+                getCombinations("2,1", "UUUUU"));
     }
 
     @Test
@@ -223,16 +237,28 @@ public class LineSolverTest {
                 "{4}",
                 "{2,3}",
         };
-        LegacyApprovals.LockDown(this, "getCombinations", numbers, dots);
+        LegacyApprovals.LockDown(this, "getCombinationsWithoutHistory", numbers, dots);
+    }
+
+    public String getCombinationsWithoutHistory(String inputNumbers, String dots) {
+        return getCombinations(inputNumbers, dots, false);
     }
 
     public String getCombinations(String inputNumbers, String dots) {
+        return getCombinations(inputNumbers, dots, true);
+    }
+
+    public String getCombinations(String inputNumbers, String dots, boolean history) {
+        LineSolver solver = new LineSolver(){{
+            enableHistory = history;
+        }};
+
         int[] numbers = Arrays.stream(("0," + inputNumbers.replaceAll("[\\{\\}]", "")).split(","))
                 .mapToInt(i -> Integer.valueOf(i))
                 .toArray();
 
         try {
-            return formatResult(solver.calculate(numbers, parseDots(dots)));
+            return formatResult(solver, solver.calculate(numbers, parseDots(dots)));
         } catch (Exception e) {
             return e.getClass().getSimpleName();
         }
@@ -246,14 +272,22 @@ public class LineSolverTest {
         return result;
     }
 
-    private String formatResult(boolean calculateResult) {
+    private String formatResult(LineSolver solver, boolean calculateResult) {
         List<String> data = new LinkedList<>();
         for (int i = 1; i <= solver.length(); i++) {
             data.add(String.format("%s:%s%%",
                     solver.dots(i).ch(),
                     Math.round(solver.probability(i) * 100)));
         }
-        return calculateResult + ":" + data.toString();
+
+        String historyResult = solver.history().stream()
+                .map(line -> "\n\t" + line)
+                .collect(joining(""));
+
+        return String.format("%s:%s%s",
+                calculateResult,
+                data.toString(),
+                historyResult);
     }
 
 }

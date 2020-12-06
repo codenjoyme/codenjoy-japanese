@@ -1,6 +1,11 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.IntStream;
+
 import static com.codenjoy.dojo.japanese.model.portable.Solver.EXACTLY_NOT_BLACK;
+import static java.util.stream.Collectors.joining;
 
 public class LineSolver {
 
@@ -15,6 +20,9 @@ public class LineSolver {
     private Range range;
     private Cut cut;
 
+    protected boolean enableHistory = false;
+    private List<String> history;
+
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
         dots = inputDots;
         numbers = inputNumbers;
@@ -25,6 +33,7 @@ public class LineSolver {
         blocks = new Blocks(length);
         range = new Range(length);
         cut = new Cut(this);
+        history = new LinkedList<>();
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
         // если кто-то в ходе проверки гипотезы все же сделал это, то
@@ -55,13 +64,32 @@ public class LineSolver {
         return result;
     }
 
+    public String toString(boolean applicable) {
+        String nums = IntStream.range(1, numbers.length)
+                .mapToObj(index -> numbers[index])
+                .map(number -> String.valueOf(number))
+                .collect(joining(","));
+
+        boolean[] combinations = probabilities.combinations();
+        String dots = IntStream.range(1, length + 1)
+                .mapToObj(index -> combinations[index])
+                .map(b -> (b)?"*":".")
+                .collect(joining(""));
+
+        return String.format("%s[%s]:%s", applicable ? "+" : "-", nums, dots);
+    }
+
     private boolean generateCombinations() {
         blocks.packTightToTheLeft(numbers, countNumbers, range);
 
         // пошли генерить комбинации
         do {
             blocks.saveCombinations(range, probabilities.combinations());
-            if (probabilities.isApplicable(range, dots)) {
+            boolean applicable = probabilities.isApplicable(range, dots);
+            if (enableHistory) {
+                history.add(toString(applicable));
+            }
+            if (applicable) {
                 probabilities.addCombination(range);
             }
             blocks.loadCombination(range, probabilities.combinations());
@@ -108,5 +136,9 @@ public class LineSolver {
 
     public void countNumbers(int count) {
         countNumbers = count;
+    }
+
+    public List<String> history() {
+        return history;
     }
 }
