@@ -14,6 +14,9 @@ public class LineSolverTest {
 
     @Test
     public void test_1() {
+        // если предложен ряд, который не совпадет ни с одной комбинацией
+        // probability везде будут -1
+        // а solver ответит false
         assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]\n" +
                         "\t-[1,2]:*.**.\n" +
                         "\t-[1,2]:*..**\n" +
@@ -23,6 +26,9 @@ public class LineSolverTest {
 
     @Test
     public void test_2() {
+        // если предложен ряд, который не совпадет ни с одной комбинацией
+        // probability везде будут -1
+        // а solver ответит false
         assertEquals("false:[W:-100%, W:-100%, B:-100%, W:-100%, W:-100%]\n" +
                         "\t-[2,1]:**.*.\n" +
                         "\t-[2,1]:**..*\n" +
@@ -32,6 +38,8 @@ public class LineSolverTest {
 
     @Test
     public void test_3() {
+        // тут нормальное размещение рядов в неоткрытом диапазоне
+        // а solver ответит true и даст валидные вероятности
         assertEquals("true:[U:67%, B:100%, U:33%, U:33%, U:67%]\n" +
                         "\t+[2,1]:**.*.\n" +
                         "\t+[2,1]:**..*\n" +
@@ -41,6 +49,8 @@ public class LineSolverTest {
 
     @Test
     public void test_4() {
+        // ряд чисел отсутствует
+        // это значит только одно на UNSET будет WHITE
         assertEquals("true:[W:0%]\n" +
                         "\t+[0]:.",
                 getCombinations("0", "U"));
@@ -48,6 +58,9 @@ public class LineSolverTest {
 
     @Test
     public void test_5() {
+        // ряд чисел отсутствует, но предложенa BLACK точка
+        // это значит что solver Вернет false и вероятность ее = -1
+        // это маркер ошибки рассчета
         assertEquals("false:[B:-100%]\n" +
                         "\t-[0]:.",
                 getCombinations("0", "B"));
@@ -55,9 +68,23 @@ public class LineSolverTest {
 
     @Test
     public void test_6() {
+        // ряд чисел отсутствует
+        // предложен 1 WHITE пиксель
+        // это ок для solver и он ответит true
+        // при этом вероятность = 0%, но стоит понимать что в probability
+        // у нас хранятся вероятности BLACK, а не WHITE - так что все ок
         assertEquals("true:[W:0%]\n" +
                         "\t+[0]:.",
                 getCombinations("0", "W"));
+    }
+
+    @Test
+    public void test_7() {
+        // пытаемся разместить ряд, который физически не может поместиться
+        // solver вернет false с вероятностями -1 что бы на вход не было предложено
+        assertEquals("true:[B:100%]\n" +
+                        "\t+[1,1]:*",
+                getCombinations("1,1", "U"));
     }
 
     @Test
@@ -281,6 +308,9 @@ public class LineSolverTest {
         try {
             return formatResult(solver, solver.calculate(numbers, parseDots(dots)));
         } catch (Exception e) {
+            if (history) {
+                e.printStackTrace();
+            }
             return e.getClass().getSimpleName();
         }
     }

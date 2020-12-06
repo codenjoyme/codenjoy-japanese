@@ -24,14 +24,15 @@ public class Blocks {
         int offset = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
             current++;
-
-            // если размер BLACK блока больше 0 тогда мы рисуем его
-            if (numbers[numIndex] > 0) {
-                items[current].isBlack = true;
-                items[current].length = numbers[numIndex];
-                // отступаем в ряду размер новосозданного блока
-                offset += items[current].length;
-                current++;
+            if (current < items.length) {
+                // если размер BLACK блока больше 0 тогда мы рисуем его
+                if (numbers[numIndex] > 0) {
+                    items[current].isBlack = true;
+                    items[current].length = numbers[numIndex];
+                    // отступаем в ряду размер новосозданного блока
+                    offset += items[current].length;
+                    current++;
+                }
             }
 
             // за каждым BLACK идет WHITE -
