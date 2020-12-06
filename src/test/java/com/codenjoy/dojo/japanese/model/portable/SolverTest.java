@@ -1,12 +1,6 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
-import com.codenjoy.dojo.japanese.model.level.LevelImpl;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import java.io.File;
-
-import static org.junit.Assert.assertEquals;
 
 public class SolverTest extends AbstractSolverTest {
 
@@ -3014,13 +3008,6 @@ public class SolverTest extends AbstractSolverTest {
                         "\n");
     }
 
-    @Ignore
-    @Test
-    public void case_b9П() {
-        assertF("b9П.jap",
-                "");
-    }
-
     @Test
     public void case_b10() {
         assertF("b10.jap",
@@ -3082,13 +3069,6 @@ public class SolverTest extends AbstractSolverTest {
                         "    4----------****---------------------               \n" +
                         "\n" +
                         "\n");
-    }
-
-    @Ignore
-    @Test
-    public void case_b10П() {
-        assertF("b10П.jap",
-                "От");
     }
 
     @Test
@@ -3671,7 +3651,6 @@ public class SolverTest extends AbstractSolverTest {
                         "\n");
     }
 
-    @Ignore
     @Test
     public void case_j3П() {
         assertF("j3П.jap",
@@ -3721,60 +3700,6 @@ public class SolverTest extends AbstractSolverTest {
                         "    1----*-----------------------------------\n" +
                         "31a35***-*------**********-----***------*****\n" +
                         "  a78--**********--------*******-********----\n" +
-                        "\n" +
-                        "\n");
-    }
-
-    
-    @Test
-    public void case_j4() {
-        assertF("j4-.jap",
-                "Открыто: 0.0%(0)\n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "                                             \n" +
-                        "           11   111   111112111 1  1         \n" +
-                        "          12211121221122222222312 12211      \n" +
-                        "        1121122211122211111111131121222 2    \n" +
-                        "      2542b12111212111211111111b121441232    \n" +
-                        "     1222211244411144411111111111c112432282  \n" +
-                        "     5211111111111112111111211111333355522211\n" +
-                        "   fe                                        \n" +
-                        "  292                                        \n" +
-                        "  213                                        \n" +
-                        "  233                                        \n" +
-                        " 2224                                        \n" +
-                        " 2432                                        \n" +
-                        " 3333                                        \n" +
-                        "   77                                        \n" +
-                        "   44                                        \n" +
-                        "    5                                        \n" +
-                        "  m13                                        \n" +
-                        " 1112                                        \n" +
-                        "11132                                        \n" +
-                        "11142                                        \n" +
-                        "11141                                        \n" +
-                        "11141                                        \n" +
-                        " 1111                                        \n" +
-                        " 1111                                        \n" +
-                        " 1112                                        \n" +
-                        " 1112                                        \n" +
-                        "    w                                        \n" +
-                        "  555                                        \n" +
-                        "  333                                        \n" +
-                        "   5x                                        \n" +
-                        "   8a                                        \n" +
-                        "   1a                                        \n" +
-                        "   28                                        \n" +
-                        "    g                                        \n" +
                         "\n" +
                         "\n");
     }
@@ -4148,13 +4073,6 @@ public class SolverTest extends AbstractSolverTest {
                         "   4----------****------         \n" +
                         "\n" +
                         "\n");
-    }
-
-    @Ignore
-    @Test
-    public void case_k2() {
-        assertF("k2.jap",
-                "От");
     }
 
     @Test
