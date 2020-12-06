@@ -18,8 +18,6 @@ public class LineSolver {
 
     private Blocks blocks;
     private Probabilities probabilities;
-    private Range range;
-    private Cut cut;
 
     protected boolean enableHistory = false;
     private List<String> history;
@@ -39,8 +37,6 @@ public class LineSolver {
 
         probabilities = new Probabilities(length);
         blocks = new Blocks(countNumbers*2 + 1);
-        range = new Range(length);
-        cut = new Cut(this);
         history = new LinkedList<>();
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
@@ -58,12 +54,7 @@ public class LineSolver {
             return !foundBlack;
         }
 
-        boolean result = true;
-        // обрезаем слева и справа уже отгаданные числа
-//        if (cut.process()) {
-            // дальше работаем в диапазоне from...to
-            result = generateCombinations();
-//        }
+        boolean result = generateCombinations();
 
         // и превращаем явные (1.0, 0.0) probabilities в dots
         probabilities.updateDots(dots);
@@ -88,32 +79,25 @@ public class LineSolver {
     }
 
     private boolean generateCombinations() {
-        if (!blocks.packTightToTheLeft(numbers, countNumbers, range)) {
+        if (!blocks.packTightToTheLeft(numbers, countNumbers, length)) {
             // если упаковка не удалась (места не хватило), то дальше нет смысла считать
             return false;
         }
 
         // пошли генерить комбинации
         do {
-            blocks.saveCombinations(range, probabilities.combinations());
-            boolean applicable = probabilities.isApplicable(range, dots);
+            blocks.saveCombinations(probabilities.combinations());
+            boolean applicable = probabilities.isApplicable(dots);
             if (enableHistory) {
                 history.add(toString(applicable));
             }
             if (applicable) {
-                probabilities.addCombination(range);
+                probabilities.addCombination();
             }
         } while (blocks.hasNext());
 
-        probabilities.calculate(range);
+        probabilities.calculate();
         return probabilities.isAny();
-    }
-
-    public void shlNumbers() {
-        for (int j = 2; j <= countNumbers; j++) {
-            numbers[j - 1] = numbers[j];
-        }
-        countNumbers--;
     }
 
     public double probability(int x) {
@@ -130,22 +114,6 @@ public class LineSolver {
 
     public int numbers(int index) {
         return numbers[index];
-    }
-
-    public Range range() {
-        return range;
-    }
-
-    public Probabilities probabilities() {
-        return probabilities;
-    }
-
-    public int countNumbers() {
-        return countNumbers;
-    }
-
-    public void countNumbers(int count) {
-        countNumbers = count;
     }
 
     public List<String> history() {

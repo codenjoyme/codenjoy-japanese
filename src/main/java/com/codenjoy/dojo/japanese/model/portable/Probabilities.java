@@ -24,33 +24,33 @@ public class Probabilities {
         combinations = 0;
     }
 
-    public void addCombination(Range range) {
+    public void addCombination() {
         combinations++;
 
-        range.iterate(i -> {
+        for (int i = 1; i <= length; i++) {
             if (dots[i]) {
                 probabilities[i]++;
             }
-        });
+        }
     }
 
     public boolean isAny() {
         return combinations != 0;
     }
 
-    public void calculate(Range range) {
-        range.iterate(i -> {
+    public void calculate() {
+        for (int i = 1; i <= length; i++) {
             if (combinations != 0) {
                 probabilities[i] -= UNKNOWN; // TODO так как изначально у нас был -1, его надо отнять
                 probabilities[i] = probabilities[i] / combinations;
             } else {
                 probabilities[i] = UNKNOWN;
             }
-        });
+        }
     }
 
-    public boolean isApplicable(Range range, Dot[] reference) {
-        for (int i = range.from(); i <= range.to(); i++) {
+    public boolean isApplicable(Dot[] reference) {
+        for (int i = 1; i <= length; i++) {
             boolean isBlack = dots[i];
             switch (reference[i]) {
                 case UNSET:

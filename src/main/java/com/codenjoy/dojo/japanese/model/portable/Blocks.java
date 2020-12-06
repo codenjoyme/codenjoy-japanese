@@ -17,7 +17,7 @@ public class Blocks {
             return StringUtils.repeat(color, length);
         }
     }
-    
+
     private Info[] items;
 
     public Blocks(int length) {
@@ -27,7 +27,7 @@ public class Blocks {
         }
     }
 
-    public boolean packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
+    public boolean packTightToTheLeft(int[] numbers, int countNumbers, int length) {
         int size = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
             if (size != 0) {
@@ -37,7 +37,7 @@ public class Blocks {
             }
             size += numbers[numIndex]; // BLACK
         }
-        if (size > range.length()) {
+        if (size > length) {
             // если упаковать не получится, сразу выходим и сигнализируем
             return false;
         }
@@ -71,20 +71,20 @@ public class Blocks {
             offset += items[current].length;
         }
 
-        if (offset < range.length()) {
+        if (offset < length) {
             // последний WHITE блок мы делаем длинной так, чтобы он заполнил остаток рабочей зоны range (от from до to)
             // по умолчанию он длинной 1
-            items[current].length = items[current].length + range.length() - offset;
-        } else if (offset == range.length()) {
+            items[current].length = items[current].length + length - offset;
+        } else if (offset == length) {
             // вписались точно, ничего делать не надо
-        } else if (offset > range.length()) {
+        } else if (offset > length) {
             items[current].length = 0;
         }
         return true;
     }
 
-    public void saveCombinations(Range range, boolean[] combinations) {
-        int offset = range.from() - 1;
+    public void saveCombinations(boolean[] combinations) {
+        int offset = 0;
         for (int block = 1; block <= items.length - 1; block++) {
             for (int len = 1; len <= items[block].length; len++) {
                 combinations[offset + len] = items[block].isBlack;
