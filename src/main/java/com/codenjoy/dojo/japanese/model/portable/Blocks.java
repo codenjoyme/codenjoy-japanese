@@ -92,31 +92,6 @@ public class Blocks {
         }
     }
 
-    public void loadCombination(Range range, boolean[] combinations) {
-        boolean color = combinations[range.from()];
-        int blockLength = 1;
-        current = 1;
-        if (color) { // первым всегда должен быть
-            items[current].length = 0;
-            items[current].isBlack = false;
-            current++;
-        }
-        for (int offset = range.from() + 1; offset <= range.to(); offset++) {
-            if (combinations[offset] ^ color) {
-                items[current].length = blockLength;
-                items[current].isBlack = color;
-                current++; ;
-                blockLength = 0;
-            }
-            blockLength++;
-            color = combinations[offset];
-        }
-        if (blockLength != 0) {
-            items[current].length = blockLength;
-            items[current].isBlack = color;
-        }
-    }
-
     public boolean hasNext() {
         for (int i = items.length - 1; i >= 1; i--) {
             if (items[i].isBlack) {
