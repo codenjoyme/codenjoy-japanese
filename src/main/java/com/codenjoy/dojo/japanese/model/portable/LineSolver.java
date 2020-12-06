@@ -80,7 +80,10 @@ public class LineSolver {
     }
 
     private boolean generateCombinations() {
-        blocks.packTightToTheLeft(numbers, countNumbers, range);
+        if (!blocks.packTightToTheLeft(numbers, countNumbers, range)) {
+            // если упаковка не удалась (места не хватило), то дальше нет смысла считать
+            return false;
+        }
 
         // пошли генерить комбинации
         do {

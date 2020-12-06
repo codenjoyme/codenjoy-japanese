@@ -17,7 +17,7 @@ public class Blocks {
         }
     }
 
-    public void packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
+    public boolean packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
         // упаковываем максимально все блоки слева впритык друг к другу
         // возвращаем количество блоков, которые удалось упаковать
         current = 0;
@@ -25,8 +25,12 @@ public class Blocks {
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
             current++;
             if (current >= items.length) {
-                // работаем дальше, если нам хватает места
-                break;
+                // если нам не хватает места сигналим, что задача нерешаемая
+                if (numIndex < countNumbers) {
+                    return false;
+                } else {
+                    break;
+                }
             }
 
             // если размер BLACK блока больше 0 тогда мы рисуем его
@@ -38,8 +42,12 @@ public class Blocks {
 
                 current++;
                 if (current >= items.length) {
-                    // работаем дальше, если нам хватает места
-                    break;
+                    // если нам не хватает места сигналим, что задача нерешаемая
+                    if (numIndex < countNumbers) {
+                        return false;
+                    } else {
+                        break;
+                    }
                 }
             }
 
@@ -50,11 +58,17 @@ public class Blocks {
             offset += items[current].length;
         }
 
-        if (offset < range.length()) {
+        if (offset >= range.length() + 1) {
+            return false;
+        }
+
+        if (offset < range.length() /*TODO test me && !items[current].isBlack*/) {
             // последний WHITE блок мы делаем длинной так, чтобы он заполнил остаток рабочей зоны range (от from до to)
             // по умолчанию он длинной 1
             items[current].length = items[current].length + range.length() - offset;
+
         }
+        return true;
     }
 
     public void saveCombinations(Range range, boolean[] combinations) {

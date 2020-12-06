@@ -81,11 +81,56 @@ public class LineSolverTest {
     @Test
     public void test_7() {
         // пытаемся разместить ряд, который физически не может поместиться
-        // solver вернет false с вероятностями -1 что бы на вход не было предложено
-        assertEquals("true:[B:100%]\n" +
-                        "\t+[1,1]:*",
+        // solver вернет false что бы на вход не было предложено
+        assertEquals("false:[U:-100%]",
                 getCombinations("1,1", "U"));
+
+        assertEquals("false:[B:-100%]",
+                getCombinations("1,1", "B"));
+
+        assertEquals("false:[W:-100%]",
+                getCombinations("1,1", "W"));
     }
+
+    @Test
+    public void test_8() {
+        // один пиксель размещается ок в одном UNSET
+        assertEquals("true:[B:100%]\n" +
+                        "\t+[1]:*",
+                getCombinations("1", "U"));
+
+        // так же если он уже установлен
+        assertEquals("true:[B:100%]\n" +
+                        "\t+[1]:*",
+                getCombinations("1", "B"));
+
+        // а вот WHITE не прокатит
+        assertEquals("false:[W:-100%]\n" +
+                        "\t-[1]:*",
+                getCombinations("1", "W"));
+    }
+
+    @Test
+    public void test_9() {
+        // пустой ряд в двух позициях разместиться может
+        assertEquals("true:[W:0%, W:0%]",
+                getCombinations("", "UU"));
+
+        assertEquals("true:[W:0%, W:0%]\n" +
+                        "\t+[0]:..",
+                getCombinations("0", "UU"));
+
+        // даже если через запятую будем размещать нули
+        assertEquals("true:[W:0%, W:0%]\n" +
+                        "\t+[0,0]:..",
+                getCombinations("0,0", "UU"));
+
+        assertEquals("true:[W:0%, W:0%]\n" +
+                        "\t+[0,0,0]:..",
+                getCombinations("0,0,0", "UU"));
+    }
+
+    // [{0,3}, U] = true:[W:0%]
 
     @Test
     public void test1() {

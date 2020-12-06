@@ -4,8 +4,6 @@ import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 
 public class Probabilities {
 
-    private static final double INITIAL = 0.0;
-
     private int length;
     private boolean[] dots;
     private int combinations;
@@ -18,9 +16,9 @@ public class Probabilities {
         dots = new boolean[length + 1 + 100];
         probabilities = new double[length + 1 + 100];
 
-        // изначально вероятности у нас нулевые
+        // изначально вероятности у нас неясные
         for (int i = 1; i <= length; i++) {
-            set(i, INITIAL);
+            set(i, UNKNOWN);
         }
 
         combinations = 0;
@@ -43,6 +41,7 @@ public class Probabilities {
     public void calculate(Range range) {
         range.iterate(i -> {
             if (combinations != 0) {
+                probabilities[i] -= UNKNOWN; // TODO так как изначально у нас был -1, его надо отнять
                 probabilities[i] = probabilities[i] / combinations;
             } else {
                 probabilities[i] = UNKNOWN;
