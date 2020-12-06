@@ -10,8 +10,8 @@ public class Blocks {
     private int current;
     private Info[] items;
 
-    public Blocks(int len) {
-        items = new Info[len + 1];
+    public Blocks(int length) {
+        items = new Info[length + 1];
         for (int i = 1; i < items.length; i++) {
             items[i] = new Info();
         }
@@ -20,31 +20,34 @@ public class Blocks {
     public void packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
         // упаковываем максимально все блоки слева впритык друг к другу
         // возвращаем количество блоков, которые удалось упаковать
-        current = 1;
-        int j = 0;
+        current = 0;
+        int offset = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
-            // работаем попарно черный как сказано в числах
-            items[current].isBlack = true;
-            items[current].length = numbers[numIndex];
+            current++;
 
-            // потом 1 пиксель белый
-            items[current + 1].isBlack = false;
-            items[current + 1].length = 1;
+            // если размер BLACK блока больше 0 тогда мы рисуем его
+            if (numbers[numIndex] > 0) {
+                items[current].isBlack = true;
+                items[current].length = numbers[numIndex];
+                // отступаем в ряду размер новосозданного блока
+                offset += items[current].length;
+                current++;
+            }
 
-            // отступаем в ряду размеры новосозданных блоков
-            j += items[current].length + items[current + 1].length;
-            // всегда чередуются черный-белый попарно
-            current += 2;
+            // за каждым BLACK идет WHITE -
+            // добавляем если только сумарная длинна  вписывается в range
+            if (current < items.length) {
+                items[current].isBlack = false;
+                items[current].length = 1;
+                // отступаем в ряду размер новосозданного блока
+                offset += items[current].length;
+            }
         }
-        current--; // сбрасываем последний increase чтобы block ссылался на WHITE из последней пары BLACK-WHITE
 
-        if (j > range.length()) {
-            // убираем последний WHITE блок, если сумарная длинна не вписывается в range
-            current--;
-        } else if (j < range.length()) {
+        if (offset < range.length()) {
             // последний WHITE блок мы делаем длинной так, чтобы он заполнил остаток рабочей зоны range (от from до to)
             // по умолчанию он длинной 1
-            items[current].length = items[current].length + range.length() - j;
+            items[current].length = items[current].length + range.length() - offset;
         }
     }
 

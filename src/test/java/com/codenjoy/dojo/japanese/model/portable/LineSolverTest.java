@@ -40,6 +40,27 @@ public class LineSolverTest {
     }
 
     @Test
+    public void test_4() {
+        assertEquals("true:[W:0%]\n" +
+                        "\t+[0]:.",
+                getCombinations("0", "U"));
+    }
+
+    @Test
+    public void test_5() {
+        assertEquals("false:[B:-100%]\n" +
+                        "\t-[0]:.",
+                getCombinations("0", "B"));
+    }
+
+    @Test
+    public void test_6() {
+        assertEquals("true:[W:0%]\n" +
+                        "\t+[0]:.",
+                getCombinations("0", "W"));
+    }
+
+    @Test
     public void test1() {
         String[] dots = new String[]{
                 "U",
