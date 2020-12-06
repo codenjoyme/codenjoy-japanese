@@ -18,14 +18,12 @@ public class Blocks {
     }
 
     public boolean packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
-        int prev = 0; // добавили потому что BLACK ряд может быть длинной в 0 и надо WHITE добавлять только после ряда BLACK != 0
         int size = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
-            if (size != prev && numbers[numIndex] != 0) {
-                // WHITE только после BLACK блока не равного 0
+            if (size != 0) {
+                // WHITE только после BLACK блока
                 // BLACK всегда идет первым
                 size += 1; // WHITE
-                prev = size;
             }
             size += numbers[numIndex]; // BLACK
         }
@@ -39,10 +37,6 @@ public class Blocks {
         current = 0;
         int offset = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
-            // если размер BLACK блока равно 0 тогда мы пропускаем его
-            if (numbers[numIndex] == 0) {
-                continue;
-            }
 
             current++;
 
@@ -61,11 +55,6 @@ public class Blocks {
                 // отступаем в ряду размер новосозданного блока
                 offset += items[current].length;
             }
-        }
-        // так может случиться, что весь ряд - это нули
-        // тогда индекс вообще не увеличится
-        if (current == 0) {
-            current++;
         }
 
         if (offset < range.length() /*TODO test me && !items[current].isBlack*/) {
