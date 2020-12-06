@@ -53,21 +53,20 @@ public class Blocks {
 
             current++;
 
-            // если нарисовали BLACK ряд, и есть место для WHITE - рисуем 1 пиксель WHITE
-            if (current < items.length) {
-                // за каждым BLACK идет WHITE
-                items[current].isBlack = false;
-                items[current].length = 1;
-                // отступаем в ряду размер новосозданного блока
-                offset += items[current].length;
-            }
+            // если нарисовали BLACK ряд после обязательно WHITE
+            // за каждым BLACK идет WHITE
+            items[current].isBlack = false;
+            items[current].length = 1;
+            // отступаем в ряду размер новосозданного блока
+            offset += items[current].length;
         }
 
-        if (offset < range.length() /*TODO test me && !items[current].isBlack*/) {
+        if (offset < range.length()) {
             // последний WHITE блок мы делаем длинной так, чтобы он заполнил остаток рабочей зоны range (от from до to)
             // по умолчанию он длинной 1
             items[current].length = items[current].length + range.length() - offset;
-
+        } else {
+            items[current].length = 0;
         }
         return true;
     }
