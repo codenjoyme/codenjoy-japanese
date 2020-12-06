@@ -166,16 +166,25 @@ public class Blocks {
                     if (a < 1) break;
                     current++;
                     for (int i = current - 1; i >= 1; i--) {
+                        if (i + 1 >= items.length) break; // TODO если убрать будет ArrayIndexOutOfBoundsException
                         items[i + 1].length = items[i].length;
                         items[i + 1].isBlack = items[i].isBlack;
                     }
-                    items[1].length = 1;
-                    items[1].isBlack = false;
-                    if (current > 3) {
-                        items[3].length = 1;
-                    }
-                    if (current == 3) {
-                        items[3].length--;
+                    if (items.length == 2 + 1) {
+                        // TODO это костыль для ситуации *. -> .*
+                        items[2].length = items[1].length;
+                        items[2].isBlack = items[1].isBlack;
+                        items[1].length = 1;
+                        items[1].isBlack = false;
+                    } else {
+                        items[1].length = 1;
+                        items[1].isBlack = false;
+                        if (current > 3) {
+                            items[3].length = 1;
+                        }
+                        if (current == 3) {
+                            items[3].length--;
+                        }
                     }
                     break;
                 }
@@ -188,7 +197,7 @@ public class Blocks {
                     } else {
                         items[a - 2].length--;
                         items[a].length++;
-                        a = a - 2;
+                        a -= 2;
                     }
                     continue;
                 } else {
