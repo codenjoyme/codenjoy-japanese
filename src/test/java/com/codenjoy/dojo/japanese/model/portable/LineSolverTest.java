@@ -51,18 +51,16 @@ public class LineSolverTest {
     public void test_4() {
         // ряд чисел отсутствует
         // это значит только одно на UNSET будет WHITE
-        assertEquals("true:[W:0%]\n" +
-                        "\t+[0]:.",
+        assertEquals("true:[W:0%]",
                 getCombinations("0", "U"));
     }
 
     @Test
     public void test_5() {
         // ряд чисел отсутствует, но предложенa BLACK точка
-        // это значит что solver Вернет false и вероятность ее = -1
+        // это значит что solver вернет false -
         // это маркер ошибки рассчета
-        assertEquals("false:[B:-100%]\n" +
-                        "\t-[0]:.",
+        assertEquals("false:[W:0%]",
                 getCombinations("0", "B"));
     }
 
@@ -73,8 +71,7 @@ public class LineSolverTest {
         // это ок для solver и он ответит true
         // при этом вероятность = 0%, но стоит понимать что в probability
         // у нас хранятся вероятности BLACK, а не WHITE - так что все ок
-        assertEquals("true:[W:0%]\n" +
-                        "\t+[0]:.",
+        assertEquals("true:[W:0%]",
                 getCombinations("0", "W"));
     }
 
@@ -116,17 +113,14 @@ public class LineSolverTest {
         assertEquals("true:[W:0%, W:0%]",
                 getCombinations("", "UU"));
 
-        assertEquals("true:[W:0%, W:0%]\n" +
-                        "\t+[0]:..",
+        assertEquals("true:[W:0%, W:0%]",
                 getCombinations("0", "UU"));
 
         // даже если через запятую будем размещать нули
-        assertEquals("true:[W:0%, W:0%]\n" +
-                        "\t+[0,0]:..",
+        assertEquals("true:[W:0%, W:0%]",
                 getCombinations("0,0", "UU"));
 
-        assertEquals("true:[W:0%, W:0%]\n" +
-                        "\t+[0,0,0]:..",
+        assertEquals("true:[W:0%, W:0%]",
                 getCombinations("0,0,0", "UU"));
     }
 
@@ -177,19 +171,19 @@ public class LineSolverTest {
     public void test_13() {
         // все помещается, даже если окружить нолями
         assertEquals("true:[B:100%, B:100%]\n" +
-                        "\t+[0,2]:**",
+                        "\t+[2]:**",
                 getCombinations("0,2", "UU"));
 
         assertEquals("true:[B:100%, B:100%]\n" +
-                        "\t+[2,0]:**",
+                        "\t+[2]:**",
                 getCombinations("2,0", "UU"));
 
         assertEquals("true:[B:100%, B:100%]\n" +
-                        "\t+[0,2,0]:**",
+                        "\t+[2]:**",
                 getCombinations("0,2,0", "UU"));
 
         assertEquals("true:[B:100%, B:100%]\n" +
-                        "\t+[0,0,2,0,0,0]:**",
+                        "\t+[2]:**",
                 getCombinations("0,0,2,0,0,0", "UU"));
     }
 

@@ -209,4 +209,29 @@ public class Blocks {
         return true;
     }
 
+//    public boolean hasNext() {
+//        for (int i = items.length - 1; i >= 1; i--) {
+//            if (items[i].isBlack) {
+//                continue;
+//            }
+//
+//            if (items[i].length <= 1) {
+//                continue;
+//            }
+//
+//            if (i == 1) {
+//                break;
+//            }
+//
+//            if (i == 2) {
+//
+//            }
+//
+//            items[i - 2].length++;
+//            items[i].length--;
+//        }
+//
+//        return true;
+//    }
+
 }

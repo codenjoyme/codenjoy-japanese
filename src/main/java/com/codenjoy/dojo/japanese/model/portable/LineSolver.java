@@ -1,5 +1,6 @@
 package com.codenjoy.dojo.japanese.model.portable;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -25,12 +26,19 @@ public class LineSolver {
 
     public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
         dots = inputDots;
-        numbers = inputNumbers;
+        numbers = Arrays.stream(inputNumbers)
+                .filter(number -> number != 0)
+                .toArray();
+        int[] copy = new int[numbers.length + 1];
+        System.arraycopy(numbers, 0, copy, 1,
+                Math.min(numbers.length, numbers.length + 1));
+        numbers = copy;
+
         length = dots.length - 1;
         countNumbers = numbers.length - 1;
 
         probabilities = new Probabilities(length);
-        blocks = new Blocks(length);
+        blocks = new Blocks(countNumbers*2 + 1);
         range = new Range(length);
         cut = new Cut(this);
         history = new LinkedList<>();
