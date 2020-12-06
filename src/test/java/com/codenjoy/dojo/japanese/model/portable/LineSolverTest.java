@@ -292,10 +292,10 @@ public class LineSolverTest {
     @Test
     public void test_15() {
         // кейз когда все почти впритык, но есть 1 белый пиксель после последнего черного
-        assertEquals("true:[U:50%, U:50%]\n" +
-                        "\t+[1]:*.\n" +
-                        "\t+[1]:.*",
-                getCombinations("1", "UU"));
+//        assertEquals("true:[U:50%, U:50%]\n" +
+//                        "\t+[1]:*.\n" +
+//                        "\t+[1]:.*",
+//                getCombinations("1", "UU"));
 
         assertEquals("true:[U:67%, U:33%, U:33%, U:67%]\n" +
                         "\t+[1,1]:*.*.\n" +

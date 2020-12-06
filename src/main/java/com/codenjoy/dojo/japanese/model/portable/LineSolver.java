@@ -103,7 +103,7 @@ public class LineSolver {
             if (applicable) {
                 probabilities.addCombination(range);
             }
-            blocks.loadCombination(range, probabilities.combinations());
+            // blocks.loadCombination(range, probabilities.combinations());
         } while (blocks.hasNext());
 
         probabilities.calculate(range);
