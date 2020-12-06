@@ -529,7 +529,7 @@ public class LineSolverTest {
     }
 
     public String getCombinations(String inputNumbers, String dots, boolean history) {
-        LineSolver solver = new LineSolver(new CombinationsStorage()){{
+        LineSolver solver = new LineSolver(){{
             enableHistory = history;
         }};
 
@@ -538,7 +538,7 @@ public class LineSolverTest {
                 .toArray();
 
         try {
-            return formatResult(solver, solver.calculate(numbers, parseDots(dots), "line"));
+            return formatResult(solver, solver.calculate(numbers, parseDots(dots)));
         } catch (Exception e) {
             if (history) {
                 e.printStackTrace();
