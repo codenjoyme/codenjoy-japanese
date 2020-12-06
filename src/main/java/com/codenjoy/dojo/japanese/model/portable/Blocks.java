@@ -18,48 +18,54 @@ public class Blocks {
     }
 
     public boolean packTightToTheLeft(int[] numbers, int countNumbers, Range range) {
+        int prev = 0; // добавили потому что BLACK ряд может быть длинной в 0 и надо WHITE добавлять только после ряда BLACK != 0
+        int size = 0;
+        for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
+            if (size != prev && numbers[numIndex] != 0) {
+                // WHITE только после BLACK блока не равного 0
+                // BLACK всегда идет первым
+                size += 1; // WHITE
+                prev = size;
+            }
+            size += numbers[numIndex]; // BLACK
+        }
+        if (size > range.length()) {
+            // если упаковать не получится, сразу выходим и сигнализируем
+            return false;
+        }
+
         // упаковываем максимально все блоки слева впритык друг к другу
         // возвращаем количество блоков, которые удалось упаковать
         current = 0;
         int offset = 0;
         for (int numIndex = 1; numIndex <= countNumbers; numIndex++) {
+            // если размер BLACK блока равно 0 тогда мы пропускаем его
+            if (numbers[numIndex] == 0) {
+                continue;
+            }
+
             current++;
-            if (current >= items.length) {
-                // если нам не хватает места сигналим, что задача нерешаемая
-                if (numIndex < countNumbers) {
-                    return false;
-                } else {
-                    break;
-                }
-            }
 
-            // если размер BLACK блока больше 0 тогда мы рисуем его
-            if (numbers[numIndex] > 0) {
-                items[current].isBlack = true;
-                items[current].length = numbers[numIndex];
-                // отступаем в ряду размер новосозданного блока
-                offset += items[current].length;
-
-                current++;
-                if (current >= items.length) {
-                    // если нам не хватает места сигналим, что задача нерешаемая
-                    if (numIndex < countNumbers) {
-                        return false;
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            // за каждым BLACK идет WHITE
-            items[current].isBlack = false;
-            items[current].length = 1;
+            items[current].isBlack = true;
+            items[current].length = numbers[numIndex];
             // отступаем в ряду размер новосозданного блока
             offset += items[current].length;
-        }
 
-        if (offset >= range.length() + 1) {
-            return false;
+            current++;
+
+            // если нарисовали BLACK ряд, и есть место для WHITE - рисуем 1 пиксель WHITE
+            if (current < items.length) {
+                // за каждым BLACK идет WHITE
+                items[current].isBlack = false;
+                items[current].length = 1;
+                // отступаем в ряду размер новосозданного блока
+                offset += items[current].length;
+            }
+        }
+        // так может случиться, что весь ряд - это нули
+        // тогда индекс вообще не увеличится
+        if (current == 0) {
+            current++;
         }
 
         if (offset < range.length() /*TODO test me && !items[current].isBlack*/) {
