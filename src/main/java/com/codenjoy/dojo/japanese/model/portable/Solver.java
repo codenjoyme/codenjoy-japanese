@@ -35,13 +35,15 @@ public class Solver implements BoardReader {
     private int[] countNumbersX; // тут хранятся количества цифер рядов
     private int[] countNumbersY;
     private LineSolver lineSolver;
+    private CombinationsStorage storage;
 
     int offsetX;
     int offsetY;
 
     public Solver(boolean withAssumption) {
         this.withAssumption = withAssumption;
-        lineSolver = new LineSolver();
+        storage = new CombinationsStorage();
+        lineSolver = new LineSolver(storage);
     }
 
     public String printData() {
@@ -211,7 +213,7 @@ public class Solver implements BoardReader {
                     if (data.finX[y]) continue;
                     if (!data.chX[y]) continue;
 
-                    if (!lineSolver.calculate(numbersX(y), data.dataX(y))) {
+                    if (!lineSolver.calculate(numbersX(y), data.dataX(y), "LineY:" + y)) {
                         // если нет ни одной комбинации - ошибка
                         if (!withAssumption) {
                             System.out.println("Ошибка в кроссворде (строка " + y + ").");
@@ -257,7 +259,7 @@ public class Solver implements BoardReader {
                 for (int x = 1; x <= width; x++) { // дальше то же только для столбцов
                     if (data.finY[x]) continue;
                     if (!data.chY[x]) continue;
-                    if (!lineSolver.calculate(numbersY(x), data.dataY(x))) {
+                    if (!lineSolver.calculate(numbersY(x), data.dataY(x), "LineX:" + x)) {
                         if (!withAssumption) {
                             System.out.println("Ошибка в кроссворде (столбец " + x + ").");
                             wasError = true;

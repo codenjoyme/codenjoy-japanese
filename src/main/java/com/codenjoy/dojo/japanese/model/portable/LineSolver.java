@@ -16,13 +16,18 @@ public class LineSolver {
     private int[] numbers;
     private int countNumbers;
 
-    private Blocks blocks;
     private Probabilities probabilities;
 
     protected boolean enableHistory = false;
     private List<String> history;
+    private GetCombination combinations;
+    private CombinationsStorage storage;
 
-    public boolean calculate(int[] inputNumbers, Dot[] inputDots) {
+    public LineSolver(CombinationsStorage storage) {
+        this.storage = storage;
+    }
+
+    public boolean calculate(int[] inputNumbers, Dot[] inputDots, String lineId) {
         dots = inputDots;
         numbers = Arrays.stream(inputNumbers)
                 .filter(number -> number != 0)
@@ -36,8 +41,8 @@ public class LineSolver {
         countNumbers = numbers.length - 1;
 
         probabilities = new Probabilities(length);
-        blocks = new Blocks(countNumbers*2 + 1);
         history = new LinkedList<>();
+        combinations = getFor(lineId);
 
         // если цифер нет вообще, то в этом ряде не может быть никаких BLACK
         // если кто-то в ходе проверки гипотезы все же сделал это, то
@@ -79,25 +84,77 @@ public class LineSolver {
     }
 
     private boolean generateCombinations() {
-        if (!blocks.packTightToTheLeft(numbers, countNumbers, length)) {
+        if (!combinations.packTightToTheLeft(length)) {
             // если упаковка не удалась (места не хватило), то дальше нет смысла считать
             return false;
         }
 
         // пошли генерить комбинации
         do {
-            blocks.saveCombinations(probabilities.combinations());
+            combinations.saveCombinations(probabilities.combinations());
             boolean applicable = probabilities.isApplicable(dots);
             if (enableHistory) {
                 history.add(toString(applicable));
             }
             if (applicable) {
+                combinations.saveApplicable(probabilities.combinations());
                 probabilities.addCombination();
+            } else {
+                combinations.removeNotApplicable();
             }
-        } while (blocks.hasNext());
+        } while (combinations.hasNext());
 
         probabilities.calculate();
         return probabilities.isAny();
+    }
+
+    private GetCombination getFor(String lineId) {
+        Blocks blocks = new Blocks(countNumbers * 2 + 1);
+        boolean hasCached = storage.has(lineId);
+        GetCombination cached = storage.getFor(lineId);
+
+        return new GetCombination() {
+            @Override
+            public void saveCombinations(boolean[] combinations) {
+                if (hasCached) {
+                    cached.saveCombinations(combinations);
+                } else {
+                    blocks.saveCombinations(combinations);
+                }
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (hasCached) {
+                    return cached.hasNext();
+                } else {
+                    return blocks.hasNext();
+                }
+            }
+
+            @Override
+            public void saveApplicable(boolean[] combinations) {
+                if (hasCached) {
+                    // do nothing
+                } else {
+                    cached.saveApplicable(combinations);
+                }
+            }
+
+            @Override
+            public boolean packTightToTheLeft(int length) {
+                return blocks.packTightToTheLeft(numbers, countNumbers, length);
+            }
+
+            @Override
+            public void removeNotApplicable() {
+                if (hasCached) {
+                    cached.removeNotApplicable();
+                } else {
+                    // do nothing
+                }
+            }
+        };
     }
 
     public double probability(int x) {
