@@ -166,7 +166,7 @@ public class Blocks {
                     if (a < 1) break;
                     current++;
                     for (int i = current - 1; i >= 1; i--) {
-                        if (i + 1 >= items.length) break; // TODO если убрать будет ArrayIndexOutOfBoundsException
+                        if (i + 1 >= items.length) continue; // TODO если убрать будет ArrayIndexOutOfBoundsException
                         items[i + 1].length = items[i].length;
                         items[i + 1].isBlack = items[i].isBlack;
                     }

@@ -213,11 +213,11 @@ public class LineSolverTest {
                         "\t+[1,1,1]:*.*.*",
                 getCombinations("1,1,1", "UUUUU"));
 
-        assertEquals("true:[U:75%, W:0%, U:50%, U:50%, U:25%, U:75%]\n" +
+        assertEquals("true:[U:75%, U:25%, U:50%, U:50%, U:25%, U:75%]\n" +
                         "\t+[1,1,1]:*.*.*.\n" +
                         "\t+[1,1,1]:*.*..*\n" +
                         "\t+[1,1,1]:*..*.*\n" +
-                        "\t+[1,1,1]:...*.*",
+                        "\t+[1,1,1]:.*.*.*",
                 getCombinations("1,1,1", "UUUUUU"));
 
         assertEquals("true:[U:60%, U:30%, U:40%, U:40%, U:40%, U:30%, U:60%]\n" +
@@ -298,31 +298,30 @@ public class LineSolverTest {
     @Test
     public void test_15() {
         // кейз когда все почти впритык, но есть 1 белый пиксель после последнего черного
-//        assertEquals("true:[U:50%, U:50%]\n" +
-//                        "\t+[1]:*.\n" +
-//                        "\t+[1]:.*",
-//                getCombinations("1", "UU"));
+        assertEquals("true:[U:50%, U:50%]\n" +
+                        "\t+[1]:*.\n" +
+                        "\t+[1]:.*",
+                getCombinations("1", "UU"));
 
-        assertEquals("true:[U:67%, W:0%, U:33%, U:67%]\n" +
+        assertEquals("true:[U:67%, U:33%, U:33%, U:67%]\n" +
                         "\t+[1,1]:*.*.\n" +
                         "\t+[1,1]:*..*\n" +
-                        "\t+[1,1]:.*.*\n" +
-                        "\t+[1,1]:...*",
+                        "\t+[1,1]:.*.*",
                 getCombinations("1,1", "UUUU"));
 
-        assertEquals("true:[U:75%, W:0%, U:50%, U:50%, U:25%, U:75%]\n" +
+        assertEquals("true:[U:75%, U:25%, U:50%, U:50%, U:25%, U:75%]\n" +
                         "\t+[1,1,1]:*.*.*.\n" +
                         "\t+[1,1,1]:*.*..*\n" +
                         "\t+[1,1,1]:*..*.*\n" +
-                        "\t+[1,1,1]:...*.*",
+                        "\t+[1,1,1]:.*.*.*",
                 getCombinations("1,1,1", "UUUUUU"));
 
-        assertEquals("true:[U:80%, W:0%, U:60%, U:40%, U:40%, U:60%, U:20%, U:80%]\n" +
+        assertEquals("true:[U:80%, U:20%, U:60%, U:40%, U:40%, U:60%, U:20%, U:80%]\n" +
                         "\t+[1,1,1,1]:*.*.*.*.\n" +
                         "\t+[1,1,1,1]:*.*.*..*\n" +
                         "\t+[1,1,1,1]:*.*..*.*\n" +
                         "\t+[1,1,1,1]:*..*.*.*\n" +
-                        "\t+[1,1,1,1]:...*.*.*",
+                        "\t+[1,1,1,1]:.*.*.*.*",
                 getCombinations("1,1,1,1", "UUUUUUUU"));
     }
 
