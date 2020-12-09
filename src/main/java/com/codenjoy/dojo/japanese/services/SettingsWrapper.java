@@ -60,7 +60,7 @@ public final class SettingsWrapper {
         winScore = settings.addEditBox("Win score").type(Integer.class).def(1000);
         loosePenalty = settings.addEditBox("Loose penalty").type(Integer.class).def(1000);
 
-        levelsCount = settings.addEditBox("levels.count").type(Integer.class).def(0);
+        levelsCount = settings.addEditBox("Levels count").type(Integer.class).def(0);
         Levels.setup();
     }
 
@@ -82,7 +82,7 @@ public final class SettingsWrapper {
     }
 
     private String levelPrefix(int index) {
-        return "levels[" + index + "]";
+        return "Levels" + index;
     }
 
     public int loosePenalty() {
