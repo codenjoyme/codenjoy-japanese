@@ -31,10 +31,16 @@ import static org.junit.Assert.assertEquals;
 public class AbstractSolverTest {
 
     protected void assertF(String fileName, String expected) {
+        if (ignore()) return;
+
         Solver solver = new Solver(true);
         String file = "src\\main\\resources\\data\\" + fileName;
         String board = process(solver, new File(file));
         assertEquals(expected, board);
+    }
+
+    protected boolean ignore() {
+        return false;
     }
 
     private String process(Solver solver, File file) {
@@ -46,6 +52,8 @@ public class AbstractSolverTest {
     }
 
     protected void assertA(boolean tryAssumption, String map, String expected) {
+        if (ignore()) return;
+
         // given
         Solver solver = new Solver(tryAssumption);
         solver.load(new LevelImpl(map));
@@ -58,6 +66,8 @@ public class AbstractSolverTest {
     }
 
     protected void assertS(boolean tryAssumption, String map, String expected, String expected1) {
+        if (ignore()) return;
+
         // given
         Solver solver = new Solver(tryAssumption);
         solver.load(new LevelImpl(map));

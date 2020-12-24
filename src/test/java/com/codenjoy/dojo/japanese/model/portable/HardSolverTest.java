@@ -27,6 +27,11 @@ import org.junit.Test;
 
 public class HardSolverTest extends AbstractSolverTest {
 
+    @Override
+    protected boolean ignore() {
+        return true;
+    }
+
     @Test
     public void case_b15() {
         assertF("b15.jap",
