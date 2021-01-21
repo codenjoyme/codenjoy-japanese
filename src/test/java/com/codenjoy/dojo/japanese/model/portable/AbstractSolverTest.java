@@ -34,7 +34,7 @@ public class AbstractSolverTest {
         if (ignore()) return;
 
         Solver solver = new Solver(true);
-        String file = "src\\main\\resources\\data\\" + fileName;
+        String file = "src/main/resources/data/" + fileName;
         String board = process(solver, new File(file));
         assertEquals(expected, board);
     }
