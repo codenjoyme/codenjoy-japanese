@@ -39,7 +39,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
-public class JapaneseTest {
+public class GameTest {
 
     private Japanese game;
     private Hero hero;
