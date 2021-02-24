@@ -23,6 +23,7 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
+import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.EventListener;
 import com.codenjoy.dojo.services.hero.HeroData;
 import com.codenjoy.dojo.services.hero.HeroDataImpl;
@@ -34,8 +35,8 @@ public class Player extends GamePlayer<Hero, Field> {
     Hero hero;
     private Field field;
 
-    public Player(EventListener listener) {
-        super(listener);
+    public Player(EventListener listener, GameSettings settings) {
+        super(listener, settings);
     }
 
     public Hero getHero() {

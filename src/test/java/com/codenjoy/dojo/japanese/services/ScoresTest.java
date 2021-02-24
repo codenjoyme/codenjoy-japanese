@@ -29,18 +29,13 @@ import com.codenjoy.dojo.services.settings.SettingsImpl;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
 import static org.junit.Assert.assertEquals;
 
 public class ScoresTest {
 
     private PlayerScores scores;
-    private SettingsWrapper wrapper;
-
-    private Settings settings;
-    private Integer loosePenalty;
-    private Integer winScore;
-    private Integer validScore;
-    private Integer invalidPenalty;
+    private GameSettings settings;
 
     public void loose() {
         scores.event(Events.LOOSE);
@@ -60,19 +55,13 @@ public class ScoresTest {
 
     @Before
     public void setup() {
-        settings = new SettingsImpl();
-        wrapper = SettingsWrapper.setup(settings);
-        scores = new Scores(0, wrapper);
-
-        loosePenalty = settings.getParameter("Loose penalty").type(Integer.class).getValue();
-        winScore = settings.getParameter("Win score").type(Integer.class).getValue();
-        validScore = settings.getParameter("Valid pixel score").type(Integer.class).getValue();
-        invalidPenalty = settings.getParameter("Invalid pixel penalty").type(Integer.class).getValue();
+        settings = new GameSettings();
+        scores = new Scores(0, settings);
     }
 
     @Test
     public void shouldCollectScores() {
-        scores = new Scores(140, wrapper);
+        scores = new Scores(140, settings);
 
         valid();
         valid();
@@ -89,28 +78,26 @@ public class ScoresTest {
         loose();
 
         assertEquals(140
-                + 3 * validScore
-                - 4 * invalidPenalty
-                + 2 * winScore
-                - loosePenalty,
+                + 3 * settings.integer(VALID_PIXEL_SCORE)
+                - 4 * settings.integer(INVALID_PIXEL_PENALTY)
+                + 2 * settings.integer(WIN_SCORE)
+                - settings.integer(LOOSE_PENALTY),
                 scores.getScore());
     }
 
     @Test
     public void shouldStillZeroAfterDead() {
-        loose();    //-100
+        loose();
 
         assertEquals(0, scores.getScore());
     }
 
     @Test
     public void shouldClearScore() {
-        win();    // +30
+        win();
 
         scores.clear();
 
         assertEquals(0, scores.getScore());
     }
-
-
 }

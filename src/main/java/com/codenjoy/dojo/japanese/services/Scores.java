@@ -28,13 +28,15 @@ import com.codenjoy.dojo.services.settings.EditBox;
 import com.codenjoy.dojo.services.settings.Parameter;
 import com.codenjoy.dojo.services.settings.Settings;
 
+import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
+
 public class Scores implements PlayerScores {
 
     private volatile int score;
 
-    private SettingsWrapper settings;
+    private GameSettings settings;
 
-    public Scores(int startScore, SettingsWrapper settings) {
+    public Scores(int startScore, GameSettings settings) {
         this.score = startScore;
         this.settings = settings;
     }
@@ -52,13 +54,13 @@ public class Scores implements PlayerScores {
     @Override
     public void event(Object event) {
         if (event.equals(Events.WIN)) {
-            score += settings.winScore();
+            score += settings.integer(WIN_SCORE);
         } else if (event.equals(Events.LOOSE)) {
-            score -= settings.loosePenalty();
+            score -= settings.integer(LOOSE_PENALTY);
         } else if (event.equals(Events.VALID)) {
-            score += settings.validScore();
+            score += settings.integer(VALID_PIXEL_SCORE);
         } else if (event.equals(Events.INVALID)) {
-            score -= settings.invalidPenalty();
+            score -= settings.integer(INVALID_PIXEL_PENALTY);
         }
         score = Math.max(0, score);
     }

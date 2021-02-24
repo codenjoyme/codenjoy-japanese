@@ -41,35 +41,28 @@ import com.codenjoy.dojo.services.settings.Parameter;
 
 import static com.codenjoy.dojo.services.settings.SimpleParameter.v;
 
-public class GameRunner extends AbstractGameType implements GameType {
+public class GameRunner extends AbstractGameType<GameSettings> {
 
-    public GameRunner() {
-        setupSettings();
-    }
-
-    private void setupSettings() {
-        SettingsWrapper.setup(settings);
+    @Override
+    public GameSettings getSettings() {
+        return new GameSettings();
     }
 
     @Override
-    public PlayerScores getPlayerScores(Object score) {
-        return new Scores((Integer)score, SettingsWrapper.data);
+    public PlayerScores getPlayerScores(Object score, GameSettings settings) {
+        return new Scores((Integer)score, settings);
     }
 
     @Override
-    public GameField createGame(int levelNumber) {
+    public GameField createGame(int levelNumber, GameSettings settings) {
         int index = levelNumber - LevelProgress.levelsStartsFrom1;
-        Level level = getLevel(levelNumber);
-        return new Japanese(level, getDice(), index);
-    }
-
-    private Level getLevel(int levelNumber) {
-        return new LevelImpl(SettingsWrapper.data.levelMap(levelNumber));
+        Level level = settings.getLevel(levelNumber);
+        return new Japanese(level, getDice(), index, settings);
     }
 
     @Override
-    public Parameter<Integer> getBoardSize() {
-        return v(SettingsWrapper.data.getSize());
+    public Parameter<Integer> getBoardSize(GameSettings settings) {
+        return v(settings.size());
     }
 
     @Override
@@ -93,12 +86,12 @@ public class GameRunner extends AbstractGameType implements GameType {
     }
 
     @Override
-    public MultiplayerType getMultiplayerType() {
+    public MultiplayerType getMultiplayerType(GameSettings settings) {
         return MultiplayerType.SINGLE_LEVELS.apply(Levels.all().size());
     }
 
     @Override
-    public GamePlayer createPlayer(EventListener listener, String playerId) {
-        return new Player(listener);
+    public GamePlayer createPlayer(EventListener listener, String playerId, GameSettings settings) {
+        return new Player(listener, settings);
     }
 }

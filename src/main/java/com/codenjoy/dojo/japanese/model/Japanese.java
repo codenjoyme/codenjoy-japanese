@@ -29,9 +29,11 @@ import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.japanese.services.Events;
+import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
+import com.codenjoy.dojo.services.settings.SettingsReader;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -54,12 +56,15 @@ public class Japanese implements Field {
     private Dice dice;
     private int levelNumber;
 
-    public Japanese(Level level, Dice dice, int levelNumber) {
+    private GameSettings settings;
+
+    public Japanese(Level level, Dice dice, int levelNumber, GameSettings settings) {
         this.dice = dice;
         this.levelNumber = levelNumber;
         size = level.size();
 
         pixels = level.pixels();
+        this.settings = settings;
         resetActs();
 
         offset = pt(getOffsetX(), getOffsetY());
@@ -208,5 +213,10 @@ public class Japanese implements Field {
                 }};
             }
         };
+    }
+
+    @Override
+    public GameSettings settings() {
+        return settings;
     }
 }
