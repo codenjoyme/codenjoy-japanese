@@ -586,7 +586,7 @@ public class Solver implements BoardReader {
     public Iterable<? extends Point> elements() {
         return new LinkedList<>(){{
             List<Point> pixels = (List<Point>) main.elements();
-            pixels.forEach(pixel -> pixel.change(pt(offsetX, 0)));
+            pixels.forEach(pixel -> pixel.moveDelta(pt(offsetX, 0)));
             addAll(pixels);
 
             int dx = offsetX; // горизонтальные циферки вверху, должны быть
@@ -653,7 +653,7 @@ public class Solver implements BoardReader {
         List<Nan> nans = level.nans();
         Point pt = pt(0, level.size() - 1);
         while (nans.contains(pt)) {
-            pt.change(pt(1, -1));
+            pt.moveDelta(pt(1, -1));
         }
         offsetX = pt.getX();
         offsetY = level.size() - 1 - pt.getY();

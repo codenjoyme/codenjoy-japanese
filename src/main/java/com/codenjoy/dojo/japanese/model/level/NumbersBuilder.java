@@ -122,7 +122,7 @@ public class NumbersBuilder {
 
         // меняем размер поля и двигаем все пиксели так, чтобы поместились циферки
         level.size(level.size() + max);
-        level.pixels().forEach(pixel -> pixel.change(pt(max, 0)));
+        level.pixels().forEach(pixel -> pixel.moveDelta(pt(max, 0)));
 
         // закрашиваем квадратик пустоты слева сверху
         range(0, max).forEach(x ->
