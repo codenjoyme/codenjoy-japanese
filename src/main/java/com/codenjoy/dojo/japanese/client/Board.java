@@ -29,6 +29,8 @@ import com.codenjoy.dojo.services.Point;
 
 import java.util.List;
 
+import static com.codenjoy.dojo.japanese.model.Elements.*;
+
 public class Board extends AbstractBoard<Elements> {
 
     @Override
@@ -41,9 +43,9 @@ public class Board extends AbstractBoard<Elements> {
     }
 
     public List<Point> getPixels() {
-        return get(Elements.BLACK,
-                Elements.WHITE,
-                Elements.UNSET);
+        return get(BLACK,
+                WHITE,
+                UNSET);
     }
 
 }
