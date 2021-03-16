@@ -132,7 +132,7 @@ public class FileReaderWriter {
                 if (fileExists(japFile) && fileExists(jdtFile)) {
                     loadNumbersFromFile(japFile);
                     loadDataFromFile(jdtFile);
-                    System.out.println("Японские головоломки - "
+                    System.out.println("Japanese - "
                             + extractfileName(japFile)
                             + ", " + extractfileName(jdtFile));
                 }
@@ -140,7 +140,7 @@ public class FileReaderWriter {
             }
             case 1: { // файл расшифровщика
                 loadNumbersFromFile(fileName);
-                System.out.println("Японские головоломки - "
+                System.out.println("Japanese - "
                         + extractfileName(fileName));
             }
             break;
@@ -148,7 +148,7 @@ public class FileReaderWriter {
                 loadDataFromFile(fileName);
                 solver.getNumbersX();
                 solver.getNumbersY();
-                System.out.println("Японские головоломки - "
+                System.out.println("Japanese - "
                         + extractfileName(fileName));
             }
             break;
