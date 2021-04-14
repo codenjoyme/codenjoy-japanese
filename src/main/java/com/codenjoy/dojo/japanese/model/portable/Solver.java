@@ -22,6 +22,7 @@ package com.codenjoy.dojo.japanese.model.portable;
  * #L%
  */
 
+import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.level.Level;
@@ -38,7 +39,7 @@ import static com.codenjoy.dojo.services.PointImpl.pt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
-public class Solver implements BoardReader {
+public class Solver implements BoardReader<Player> {
 
     public static final double EXACTLY_BLACK = 1.0;
     public static final double EXACTLY_NOT_BLACK = 0.0;
@@ -583,9 +584,9 @@ public class Solver implements BoardReader {
 
     // используется для отрисовки состояния кроссворда в текстовом представлении принтером
     @Override
-    public Iterable<? extends Point> elements() {
+    public Iterable<? extends Point> elements(Player player) {
         return new LinkedList<>(){{
-            List<Point> pixels = (List<Point>) main.elements();
+            List<Point> pixels = (List<Point>) main.elements(player);
             pixels.forEach(pixel -> pixel.moveDelta(pt(offsetX, 0)));
             addAll(pixels);
 

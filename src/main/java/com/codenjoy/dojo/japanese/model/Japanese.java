@@ -196,7 +196,7 @@ public class Japanese implements Field {
 
     @Override
     public BoardReader reader() {
-        return new BoardReader() {
+        return new BoardReader<Player>() {
             private int size = Japanese.this.size;
 
             @Override
@@ -205,7 +205,7 @@ public class Japanese implements Field {
             }
 
             @Override
-            public Iterable<? extends Point> elements() {
+            public Iterable<? extends Point> elements(Player player) {
                 return new LinkedList<>(){{
                     addAll(Japanese.this.getActPixels());
                     addAll(Japanese.this.getNans());

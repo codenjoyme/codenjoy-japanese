@@ -22,6 +22,7 @@ package com.codenjoy.dojo.japanese.model.portable;
  * #L%
  */
 
+import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.services.Point;
@@ -33,7 +34,7 @@ import java.util.List;
 import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
-public class AllData implements BoardReader {
+public class AllData implements BoardReader<Player> {
 
     private final int width;
     private final int height;
@@ -100,7 +101,7 @@ public class AllData implements BoardReader {
     }
 
     @Override
-    public Iterable<? extends Point> elements() {
+    public Iterable<? extends Point> elements(Player player) {
         List<Pixel> result = new LinkedList<>();
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {

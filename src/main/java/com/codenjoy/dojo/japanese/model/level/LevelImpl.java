@@ -24,6 +24,7 @@ package com.codenjoy.dojo.japanese.model.level;
 
 
 import com.codenjoy.dojo.japanese.model.Elements;
+import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
@@ -39,7 +40,7 @@ import java.util.List;
 
 import static com.codenjoy.dojo.japanese.model.Elements.*;
 
-public class LevelImpl implements Level, BoardReader {
+public class LevelImpl implements Level, BoardReader<Player> {
 
     private LengthToXY xy;
     private String map;
@@ -133,7 +134,7 @@ public class LevelImpl implements Level, BoardReader {
 
     // только для целей тестирования
     @Override
-    public Iterable<? extends Point> elements() {
+    public Iterable<? extends Point> elements(Player player) {
         return new LinkedList<>() {{
             addAll(LevelImpl.this.numbers());
             addAll(LevelImpl.this.nans());
