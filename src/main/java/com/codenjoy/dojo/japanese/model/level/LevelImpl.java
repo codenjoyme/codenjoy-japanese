@@ -41,8 +41,7 @@ import static com.codenjoy.dojo.japanese.model.Elements.*;
 
 public class LevelImpl implements Level, BoardReader {
 
-    private final LengthToXY xy;
-
+    private LengthToXY xy;
     private String map;
 
     private int size;
@@ -51,7 +50,7 @@ public class LevelImpl implements Level, BoardReader {
     private List<Nan> nans;
 
     public LevelImpl(String map) {
-        this.map = map.replaceAll("[\n\r]", "");
+        this.map = LevelUtils.clear(map);
         size = (int) Math.sqrt(map.length());
         xy = new LengthToXY(size);
 
