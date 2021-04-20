@@ -33,7 +33,6 @@ import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
-import com.codenjoy.dojo.services.settings.SettingsReader;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -120,7 +119,7 @@ public class Japanese implements Field {
             if (win) {
                 player.event(Events.WIN);
             } else {
-                player.event(Events.LOOSE);
+                player.event(Events.LOSE);
             }
             hero.gameOver(win);
         }

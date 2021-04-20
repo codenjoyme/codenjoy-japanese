@@ -24,9 +24,6 @@ package com.codenjoy.dojo.japanese.services;
 
 
 import com.codenjoy.dojo.services.PlayerScores;
-import com.codenjoy.dojo.services.settings.EditBox;
-import com.codenjoy.dojo.services.settings.Parameter;
-import com.codenjoy.dojo.services.settings.Settings;
 
 import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
 
@@ -55,8 +52,8 @@ public class Scores implements PlayerScores {
     public void event(Object event) {
         if (event.equals(Events.WIN)) {
             score += settings.integer(WIN_SCORE);
-        } else if (event.equals(Events.LOOSE)) {
-            score -= settings.integer(LOOSE_PENALTY);
+        } else if (event.equals(Events.LOSE)) {
+            score -= settings.integer(LOSE_PENALTY);
         } else if (event.equals(Events.VALID)) {
             score += settings.integer(VALID_PIXEL_SCORE);
         } else if (event.equals(Events.INVALID)) {

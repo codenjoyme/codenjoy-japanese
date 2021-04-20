@@ -446,7 +446,7 @@ public class GameTest {
     }
 
     @Test
-    public void shouldLooseEvent_whenSolvedPuzzleWithErrors() {
+    public void shouldLoseEvent_whenSolvedPuzzleWithErrors() {
         // given
         givenAlmostSolved();
 
@@ -462,7 +462,7 @@ public class GameTest {
 
         // then
         verify(listener).event(INVALID);
-        verify(listener).event(LOOSE);
+        verify(listener).event(LOSE);
         verifyNoMoreInteractions(listener);
 
         assertE("........" +

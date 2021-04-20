@@ -39,7 +39,7 @@ public final class GameSettings extends SettingsImpl implements SettingsReader<G
     public enum Keys implements Key {
 
         LEVELS_COUNT("Levels count"),
-        LOOSE_PENALTY("Loose penalty"),
+        LOSE_PENALTY("Lose penalty"),
         WIN_SCORE("Win score"),
         INVALID_PIXEL_PENALTY("Invalid pixel penalty"),
         VALID_PIXEL_SCORE("Valid pixel score");
@@ -65,7 +65,7 @@ public final class GameSettings extends SettingsImpl implements SettingsReader<G
         integer(VALID_PIXEL_SCORE, 10);
         integer(INVALID_PIXEL_PENALTY, 1);
         integer(WIN_SCORE, 1000);
-        integer(LOOSE_PENALTY, 1000);
+        integer(LOSE_PENALTY, 1000);
         integer(LEVELS_COUNT, 0);
         Levels.setup(this);
     }
