@@ -82,6 +82,7 @@ public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
         color = Color.UNSET;
     }
 
+    @Override
     public boolean isAlive() {
         return alive;
     }

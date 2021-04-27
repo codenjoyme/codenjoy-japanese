@@ -71,8 +71,7 @@ public class GameTest {
         listener = mock(EventListener.class);
         player = new Player(listener, settings);
         game.newGame(player);
-        this.hero = player.getHero();
-        hero.init(game);
+        hero = player.getHero();
     }
 
     private void assertE(String expected) {

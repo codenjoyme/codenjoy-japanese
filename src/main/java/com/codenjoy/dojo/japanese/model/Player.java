@@ -25,6 +25,7 @@ package com.codenjoy.dojo.japanese.model;
 
 import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.EventListener;
+import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.hero.HeroData;
 import com.codenjoy.dojo.services.hero.HeroDataImpl;
 import com.codenjoy.dojo.services.multiplayer.GamePlayer;
@@ -32,33 +33,19 @@ import com.codenjoy.dojo.services.multiplayer.MultiplayerType;
 
 public class Player extends GamePlayer<Hero, Field> {
 
-    Hero hero;
-    private Field field;
-
     public Player(EventListener listener, GameSettings settings) {
         super(listener, settings);
     }
 
-    public Hero getHero() {
-        return hero;
-    }
-
     @Override
-    public void newHero(Field field) {
-        hero = new Hero();
-        hero.init(field);
-        this.field = field;
+    public Hero createHero(Point pt) {
+        return new Hero();
     }
 
     @Override
     public HeroData getHeroData() {
         return new HeroDataImpl(field.level(),
                 MultiplayerType.SINGLE.isSingle());
-    }
-
-    @Override
-    public boolean isAlive() {
-        return hero != null && hero.isAlive();
     }
 
     @Override
