@@ -24,7 +24,7 @@ package com.codenjoy.dojo.japanese;
 
 import com.codenjoy.dojo.client.KeyboardSolver;
 import com.codenjoy.dojo.client.local.LocalGameRunner;
-import com.codenjoy.dojo.japanese.client.Board;
+import com.codenjoy.dojo.games.japanese.Board;
 import com.codenjoy.dojo.japanese.services.GameRunner;
 
 public class DryRunGame {

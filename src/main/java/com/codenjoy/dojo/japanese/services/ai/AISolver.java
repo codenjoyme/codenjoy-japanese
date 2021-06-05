@@ -1,4 +1,4 @@
-package com.codenjoy.dojo.japanese.client;
+package com.codenjoy.dojo.japanese.services.ai;
 
 /*-
  * #%L
@@ -23,36 +23,24 @@ package com.codenjoy.dojo.japanese.client;
  */
 
 
-import com.codenjoy.dojo.japanese.model.Elements;
-import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.client.Solver;
-import com.codenjoy.dojo.client.WebSocketRunner;
+import com.codenjoy.dojo.games.japanese.Board;
 import com.codenjoy.dojo.services.Dice;
-import com.codenjoy.dojo.services.RandomDice;
+import com.codenjoy.dojo.services.Direction;
 
-public class YourSolver implements Solver<Board> {
+public class AISolver implements Solver<Board> {
 
     private Dice dice;
-    private Board board;
 
-    public YourSolver(Dice dice) {
+    public AISolver(Dice dice) {
         this.dice = dice;
     }
 
     @Override
     public String get(Board board) {
-        this.board = board;
-
-        return Direction.ACT(1, 1, Elements.BLACK.code());
+        int x = dice.next(board.size());
+        int y = dice.next(board.size());
+        int color = dice.next(3) - 1; // generates -1, 0, 1
+        return Direction.ACT(x, y, color);
     }
-
-    public static void main(String[] args) {
-        WebSocketRunner.runClient(args,
-                // paste here board page url from browser after registration
-                // or put it as command line parameter
-                "http://codenjoy.com:80/codenjoy-contest/board/player/3edq63tw0bq4w4iem7nb?code=1234567890123456789",
-                new YourSolver(new RandomDice()),
-                new Board());
-    }
-
 }

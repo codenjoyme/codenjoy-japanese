@@ -23,13 +23,13 @@ package com.codenjoy.dojo.japanese.model.items;
  */
 
 
-import com.codenjoy.dojo.japanese.model.Elements;
+import com.codenjoy.dojo.games.japanese.Element;
 import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
 import com.codenjoy.dojo.services.State;
 
-public class Pixel extends PointImpl implements State<Elements, Player> {
+public class Pixel extends PointImpl implements State<Element, Player> {
 
     private Color color;
 
@@ -39,11 +39,11 @@ public class Pixel extends PointImpl implements State<Elements, Player> {
     }
 
     @Override
-    public Elements state(Player player, Object... alsoAtPoint) {
+    public Element state(Player player, Object... alsoAtPoint) {
         switch (color) {
-            case BLACK: return Elements.BLACK;
-            case WHITE: return Elements.WHITE;
-            default: return Elements.UNSET;
+            case BLACK: return Element.BLACK;
+            case WHITE: return Element.WHITE;
+            default: return Element.UNSET;
         }
     }
 

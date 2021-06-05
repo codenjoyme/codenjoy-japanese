@@ -23,13 +23,13 @@ package com.codenjoy.dojo.japanese.model.items;
  */
 
 
-import com.codenjoy.dojo.japanese.model.Elements;
+import com.codenjoy.dojo.games.japanese.Element;
 import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
 import com.codenjoy.dojo.services.State;
 
-public class Number extends PointImpl implements State<Elements, Player> {
+public class Number extends PointImpl implements State<Element, Player> {
 
     private final int number;
 
@@ -39,8 +39,8 @@ public class Number extends PointImpl implements State<Elements, Player> {
     }
 
     @Override
-    public Elements state(Player player, Object... alsoAtPoint) {
-        return Elements.forNumber(number);
+    public Element state(Player player, Object... alsoAtPoint) {
+        return Element.forNumber(number);
     }
 
     @Override

@@ -23,12 +23,9 @@ package com.codenjoy.dojo.japanese.model.portable;
  */
 
 import com.codenjoy.dojo.services.Point;
-import com.codenjoy.dojo.services.multiplayer.TriFunction;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 

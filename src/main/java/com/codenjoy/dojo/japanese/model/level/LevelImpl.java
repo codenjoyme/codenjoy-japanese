@@ -23,7 +23,7 @@ package com.codenjoy.dojo.japanese.model.level;
  */
 
 
-import com.codenjoy.dojo.japanese.model.Elements;
+import com.codenjoy.dojo.games.japanese.Element;
 import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.codenjoy.dojo.japanese.model.Elements.*;
+import static com.codenjoy.dojo.games.japanese.Element.*;
 
 public class LevelImpl implements Level, BoardReader<Player> {
 
@@ -93,7 +93,7 @@ public class LevelImpl implements Level, BoardReader<Player> {
     private List<Number> parseNumbers() {
         return LevelUtils.getObjects(xy, map,
                 (pt, el) -> new Number(pt, el.code()),
-                Elements.getNumbers());
+                Element.getNumbers());
     }
 
 

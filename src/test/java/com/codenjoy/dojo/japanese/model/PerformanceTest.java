@@ -23,8 +23,8 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
-import com.codenjoy.dojo.profile.Profiler;
 import com.codenjoy.dojo.japanese.services.GameRunner;
+import com.codenjoy.dojo.profile.Profiler;
 import com.codenjoy.dojo.services.EventListener;
 import com.codenjoy.dojo.services.Game;
 import com.codenjoy.dojo.services.printer.PrinterFactory;

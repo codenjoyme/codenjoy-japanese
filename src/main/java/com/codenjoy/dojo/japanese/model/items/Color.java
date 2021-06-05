@@ -22,18 +22,18 @@ package com.codenjoy.dojo.japanese.model.items;
  * #L%
  */
 
-import com.codenjoy.dojo.japanese.model.Elements;
+import com.codenjoy.dojo.games.japanese.Element;
 
 public enum Color {
 
     WHITE, BLACK, UNSET;
 
     public static Color get(int color) {
-        if (color == Elements.WHITE.code()) {
+        if (color == Element.WHITE.code()) {
             return WHITE;
         }
 
-        if (color == Elements.BLACK.code()) {
+        if (color == Element.BLACK.code()) {
             return BLACK;
         }
 

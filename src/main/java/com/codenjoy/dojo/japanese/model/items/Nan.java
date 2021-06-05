@@ -23,20 +23,20 @@ package com.codenjoy.dojo.japanese.model.items;
  */
 
 
-import com.codenjoy.dojo.japanese.model.Elements;
+import com.codenjoy.dojo.games.japanese.Element;
 import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
 import com.codenjoy.dojo.services.State;
 
-public class Nan extends PointImpl implements State<Elements, Player> {
+public class Nan extends PointImpl implements State<Element, Player> {
 
     public Nan(Point point) {
         super(point);
     }
 
     @Override
-    public Elements state(Player player, Object... alsoAtPoint) {
-        return Elements.NAN;
+    public Element state(Player player, Object... alsoAtPoint) {
+        return Element.NAN;
     }
 }

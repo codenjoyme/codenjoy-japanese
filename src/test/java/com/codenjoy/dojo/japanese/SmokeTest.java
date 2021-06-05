@@ -24,18 +24,15 @@ package com.codenjoy.dojo.japanese;
 
 
 import com.codenjoy.dojo.client.local.LocalGameRunner;
-import com.codenjoy.dojo.japanese.client.Board;
-import com.codenjoy.dojo.japanese.client.ai.AISolver;
+import com.codenjoy.dojo.games.japanese.Board;
 import com.codenjoy.dojo.japanese.services.GameRunner;
 import com.codenjoy.dojo.japanese.services.GameSettings;
+import com.codenjoy.dojo.japanese.services.ai.AISolver;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.utils.Smoke;
 import org.junit.Test;
 
 import java.util.Arrays;
-
-import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
-import static org.junit.Assert.assertEquals;
 
 public class SmokeTest {
 

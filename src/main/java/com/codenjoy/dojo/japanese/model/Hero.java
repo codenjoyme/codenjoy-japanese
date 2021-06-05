@@ -28,7 +28,7 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.joystick.NoDirectionJoystick;
 import com.codenjoy.dojo.services.multiplayer.PlayerHero;
 
-import static com.codenjoy.dojo.japanese.model.Elements.*;
+import static com.codenjoy.dojo.games.japanese.Element.*;
 
 public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
 

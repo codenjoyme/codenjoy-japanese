@@ -23,20 +23,22 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
+import com.codenjoy.dojo.games.japanese.Element;
 import com.codenjoy.dojo.japanese.model.level.LevelImpl;
 import com.codenjoy.dojo.japanese.services.GameSettings;
-import com.codenjoy.dojo.services.printer.PrinterFactory;
-import com.codenjoy.dojo.utils.TestUtils;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.EventListener;
+import com.codenjoy.dojo.services.printer.PrinterFactory;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
+import com.codenjoy.dojo.utils.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.OngoingStubbing;
 
-import static com.codenjoy.dojo.japanese.model.Elements.*;
+import static com.codenjoy.dojo.games.japanese.Element.*;
 import static com.codenjoy.dojo.japanese.services.Events.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -518,7 +520,7 @@ public class GameTest {
         act(6, 0, WHITE);
     }
 
-    private void act(int x, int y, Elements color) {
+    private void act(int x, int y, Element color) {
         hero.act(x, y, color.code());
         game.tick();
     }

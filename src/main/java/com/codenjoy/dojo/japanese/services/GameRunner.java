@@ -25,13 +25,16 @@ package com.codenjoy.dojo.japanese.services;
 
 import com.codenjoy.dojo.client.ClientBoard;
 import com.codenjoy.dojo.client.Solver;
-import com.codenjoy.dojo.japanese.client.Board;
-import com.codenjoy.dojo.japanese.client.ai.AISolver;
-import com.codenjoy.dojo.japanese.model.*;
+import com.codenjoy.dojo.games.japanese.Board;
+import com.codenjoy.dojo.games.japanese.Element;
+import com.codenjoy.dojo.japanese.model.Japanese;
+import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.japanese.model.level.Level;
-import com.codenjoy.dojo.japanese.model.level.LevelImpl;
 import com.codenjoy.dojo.japanese.model.level.Levels;
-import com.codenjoy.dojo.services.*;
+import com.codenjoy.dojo.japanese.services.ai.AISolver;
+import com.codenjoy.dojo.services.AbstractGameType;
+import com.codenjoy.dojo.services.EventListener;
+import com.codenjoy.dojo.services.PlayerScores;
 import com.codenjoy.dojo.services.multiplayer.GameField;
 import com.codenjoy.dojo.services.multiplayer.GamePlayer;
 import com.codenjoy.dojo.services.multiplayer.LevelProgress;
@@ -72,7 +75,7 @@ public class GameRunner extends AbstractGameType<GameSettings> {
 
     @Override
     public CharElements[] getPlots() {
-        return Elements.values();
+        return Element.values();
     }
 
     @Override
