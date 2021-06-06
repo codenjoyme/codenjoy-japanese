@@ -30,7 +30,7 @@ import java.util.Arrays;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 
-public class ElementsTest {
+public class ElementTest {
 
     @Test
     public void testValuesExcept() {
