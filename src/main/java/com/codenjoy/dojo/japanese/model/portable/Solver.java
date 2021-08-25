@@ -30,9 +30,11 @@ import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.printer.BoardReader;
 import com.codenjoy.dojo.services.printer.PrinterFactoryImpl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
@@ -584,28 +586,31 @@ public class Solver implements BoardReader<Player> {
 
     // используется для отрисовки состояния кроссворда в текстовом представлении принтером
     @Override
-    public Iterable<? extends Point> elements(Player player) {
-        return new LinkedList<>(){{
-            List<Point> pixels = (List<Point>) main.elements(player);
-            pixels.forEach(pixel -> pixel.moveDelta(pt(offsetX, 0)));
-            addAll(pixels);
+    public void addAll(Player player, Consumer<Iterable<? extends Point>> processor) {
+        List<Point> pixels = new LinkedList<>() ;
+        main.addAll(player, list -> pixels.addAll((Collection) list));
+        pixels.forEach(pixel -> pixel.moveDelta(pt(offsetX, 0)));
 
-            int dx = offsetX; // горизонтальные циферки вверху, должны быть
-            int dy = height;  // потому мы их смещаем туда
-            for (int x = 1; x <= width; x++) {
-                for (int y = 1; y <= countNumbersY[x]; y++) {
-                    int dyy = countNumbersY[x] + 1; // зеркальное отображение по вертикали
-                    add(new Number(pt(x - 1 + dx, dyy - y - 1 + dy), numbersY[x][y]));
-                }
+        List<Point> numbers = new LinkedList<>() ;
+        int dx = offsetX; // горизонтальные циферки вверху, должны быть
+        int dy = height;  // потому мы их смещаем туда
+        for (int x = 1; x <= width; x++) {
+            for (int y = 1; y <= countNumbersY[x]; y++) {
+                int dyy = countNumbersY[x] + 1; // зеркальное отображение по вертикали
+                numbers.add(new Number(pt(x - 1 + dx, dyy - y - 1 + dy), numbersY[x][y]));
             }
-            for (int y = 1; y <= height; y++) {
-                for (int x = 1; x <= countNumbersX[y]; x++) {
-                    int dxx = offsetX - countNumbersX[y]; // атут надо смещать хитрее
-                    int dyy = height + 1; // зеркальное отображение по вертикали
-                    add(new Number(pt(x - 1 + dxx, dyy - y - 1), numbersX[x][y]));
-                }
+        }
+        for (int y = 1; y <= height; y++) {
+            for (int x = 1; x <= countNumbersX[y]; x++) {
+                int dxx = offsetX - countNumbersX[y]; // атут надо смещать хитрее
+                int dyy = height + 1; // зеркальное отображение по вертикали
+                numbers.add(new Number(pt(x - 1 + dxx, dyy - y - 1), numbersX[x][y]));
             }
-        }};
+        }
+
+        processor.accept(pixels);
+        processor.accept(numbers);
+
     }
 
     public void load(Level level) {

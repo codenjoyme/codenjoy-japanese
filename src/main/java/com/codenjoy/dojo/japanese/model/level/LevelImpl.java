@@ -37,6 +37,7 @@ import com.codenjoy.dojo.utils.LevelUtils;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.codenjoy.dojo.games.japanese.Element.*;
 
@@ -134,11 +135,9 @@ public class LevelImpl implements Level, BoardReader<Player> {
 
     // только для целей тестирования
     @Override
-    public Iterable<? extends Point> elements(Player player) {
-        return new LinkedList<>() {{
-            addAll(LevelImpl.this.numbers());
-            addAll(LevelImpl.this.nans());
-            addAll(LevelImpl.this.pixels());
-        }};
+    public void addAll(Player player, Consumer<Iterable<? extends Point>> processor) {
+        processor.accept(numbers());
+        processor.accept(nans());
+        processor.accept(pixels());
     }
 }

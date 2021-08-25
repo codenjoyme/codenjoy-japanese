@@ -30,6 +30,7 @@ import com.codenjoy.dojo.services.printer.BoardReader;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.codenjoy.dojo.japanese.model.portable.Solver.*;
 import static com.codenjoy.dojo.services.PointImpl.pt;
@@ -101,7 +102,7 @@ public class AllData implements BoardReader<Player> {
     }
 
     @Override
-    public Iterable<? extends Point> elements(Player player) {
+    public void addAll(Player player, Consumer<Iterable<? extends Point>> processor) {
         List<Pixel> result = new LinkedList<>();
         for (int x = 1; x <= width; x++) {
             for (int y = 1; y <= height; y++) {
@@ -112,7 +113,7 @@ public class AllData implements BoardReader<Player> {
                 result.add(new Pixel(pt(x - 1, (dy) - y - 1), Color.get(color)));
             }
         }
-        return result;
+        processor.accept(result);
     }
 
     public void clear() {
