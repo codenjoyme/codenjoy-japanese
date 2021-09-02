@@ -36,6 +36,7 @@ import com.codenjoy.dojo.services.printer.BoardReader;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.codenjoy.dojo.services.PointImpl.pt;
 
@@ -204,12 +205,10 @@ public class Japanese implements Field {
             }
 
             @Override
-            public Iterable<? extends Point> elements(Player player) {
-                return new LinkedList<>(){{
-                    addAll(Japanese.this.getActPixels());
-                    addAll(Japanese.this.getNans());
-                    addAll(Japanese.this.getNumbers());
-                }};
+            public void addAll(Player player, Consumer<Iterable<? extends Point>> processor) {
+                processor.accept(getActPixels());
+                processor.accept(getNans());
+                processor.accept(getNumbers());
             }
         };
     }
