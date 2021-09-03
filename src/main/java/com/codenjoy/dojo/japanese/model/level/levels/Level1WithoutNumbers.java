@@ -23,9 +23,8 @@ package com.codenjoy.dojo.japanese.model.level.levels;
  */
 
 import com.codenjoy.dojo.japanese.model.level.Level;
-import com.codenjoy.dojo.japanese.model.level.LevelImpl;
 
-public class Level1WithoutNumbers extends LevelImpl implements Level {
+public class Level1WithoutNumbers extends Level {
 
     public Level1WithoutNumbers() {
         super(

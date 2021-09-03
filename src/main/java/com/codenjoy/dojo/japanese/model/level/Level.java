@@ -23,21 +23,103 @@ package com.codenjoy.dojo.japanese.model.level;
  */
 
 
+import com.codenjoy.dojo.games.japanese.Element;
+import com.codenjoy.dojo.japanese.model.Player;
+import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
+import com.codenjoy.dojo.services.LengthToXY;
+import com.codenjoy.dojo.services.Point;
+import com.codenjoy.dojo.services.field.AbstractLevel;
+import com.codenjoy.dojo.services.printer.BoardReader;
+import com.codenjoy.dojo.utils.LevelUtils;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
-public interface Level {
+import static com.codenjoy.dojo.games.japanese.Element.*;
 
-    int size();
+public class Level extends AbstractLevel {
 
-    List<Number> numbers();
+    private List<Pixel> pixels;
+    private List<Number> numbers;
+    private List<Nan> nans;
 
-    List<Nan> nans();
+    public Level(String map) {
+        super(map);
 
-    List<Pixel> pixels();
+        pixels = parsePixels();
+        numbers = parseNumbers();
+        nans = parseNans();
 
-    String map();
+        if (!pixelsExists()) {
+            // TODO рисунка нет - надо решить паззл и нарисовать
+            return;
+        }
+
+        // нет цифер - надо сгенерить
+        if (!numbersExists()) {
+            new NumbersBuilder(this).process();
+            return;
+        }
+
+        // TODO только проверяем соответствие циферок и рисунка
+    }
+
+    private boolean numbersExists() {
+        return !(nans.isEmpty() && numbers.isEmpty());
+    }
+
+    private boolean pixelsExists() {
+        return pixels.stream().allMatch(Pixel::isSet);
+    }
+
+    public void size(int size) {
+        this.size = size;
+    }
+
+    private List<Number> parseNumbers() {
+        return find((pt, el) -> new Number(pt, el.code()),
+                Element.getNumbers());
+    }
+
+
+    private List<Nan> parseNans() {
+        return find(Nan::new,
+                NAN);
+    }
+
+    private List<Pixel> parsePixels() {
+        return find(new HashMap<>(){{
+                    put(BLACK, pt -> new Pixel(pt, Color.BLACK));
+                    put(WHITE, pt -> new Pixel(pt, Color.WHITE));
+                    put(UNSET, pt -> new Pixel(pt, Color.UNSET));
+                }});
+    }
+
+    public List<Number> numbers() {
+        return numbers;
+    }
+
+    public List<Nan> nans() {
+        return nans;
+    }
+
+    public List<Pixel> pixels() {
+        return pixels;
+    }
+
+    public String map() {
+        return map;
+    }
+
+    @Override
+    protected void addAll(Consumer<Iterable<? extends Point>> processor) {
+        processor.accept(numbers());
+        processor.accept(pixels());
+        processor.accept(nans());
+    }
 }

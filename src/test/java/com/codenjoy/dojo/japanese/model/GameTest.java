@@ -24,7 +24,7 @@ package com.codenjoy.dojo.japanese.model;
 
 
 import com.codenjoy.dojo.games.japanese.Element;
-import com.codenjoy.dojo.japanese.model.level.LevelImpl;
+import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.EventListener;
@@ -67,7 +67,7 @@ public class GameTest {
     }
 
     private void givenFl(String board) {
-        LevelImpl level = new LevelImpl(board);
+        Level level = new Level(board);
 
         game = new Japanese(level, dice, 0, settings);
         listener = mock(EventListener.class);

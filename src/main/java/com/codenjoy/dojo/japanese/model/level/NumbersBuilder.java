@@ -39,7 +39,7 @@ import static java.util.stream.IntStream.range;
 
 public class NumbersBuilder {
 
-    private LevelImpl level;
+    private Level level;
 
     private List<Pixels> pixelsRows;
     private List<Pixels> pixelsCols;
@@ -47,7 +47,7 @@ public class NumbersBuilder {
     private List<Numbers> numbersCols;
     private int max;
 
-    public NumbersBuilder(LevelImpl level) {
+    public NumbersBuilder(Level level) {
         this.level = level;
     }
 

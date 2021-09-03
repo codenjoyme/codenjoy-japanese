@@ -24,7 +24,6 @@ package com.codenjoy.dojo.japanese.services;
 
 
 import com.codenjoy.dojo.japanese.model.level.Level;
-import com.codenjoy.dojo.japanese.model.level.LevelImpl;
 import com.codenjoy.dojo.japanese.model.level.Levels;
 import com.codenjoy.dojo.services.settings.SettingsImpl;
 import com.codenjoy.dojo.services.settings.SettingsReader;
@@ -90,11 +89,11 @@ public final class GameSettings extends SettingsImpl implements SettingsReader<G
     public int size() {
         // TODO надо сделать чтобы разные уровни имели разные размеры
         // без рефакторинга в codenjoy не справиться
-        return new LevelImpl(levelMap(1)).size();
+        return new Level(levelMap(1)).size();
     }
 
     public Level getLevel(int levelNumber) {
-        return new LevelImpl(levelMap(levelNumber));
+        return new Level(levelMap(levelNumber));
     }
 
 

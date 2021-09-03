@@ -22,7 +22,7 @@ package com.codenjoy.dojo.japanese.model.portable;
  * #L%
  */
 
-import com.codenjoy.dojo.japanese.model.level.LevelImpl;
+import com.codenjoy.dojo.japanese.model.level.Level;
 
 import java.io.File;
 
@@ -56,7 +56,7 @@ public class AbstractSolverTest {
 
         // given
         Solver solver = new Solver(tryAssumption);
-        solver.load(new LevelImpl(map));
+        solver.load(new Level(map));
 
         // when
         solver.solve();
@@ -70,7 +70,7 @@ public class AbstractSolverTest {
 
         // given
         Solver solver = new Solver(tryAssumption);
-        solver.load(new LevelImpl(map));
+        solver.load(new Level(map));
         solver.clear(false);
         assertEquals(expected, solver.printAll());
 

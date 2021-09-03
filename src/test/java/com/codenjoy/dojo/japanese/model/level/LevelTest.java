@@ -30,7 +30,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class LevelImplTest {
+public class LevelTest {
 
     private Level level;
 
@@ -151,7 +151,7 @@ public class LevelImplTest {
     }
 
     private void assertB(String expected) {
-        String board = (String) new PrinterFactoryImpl<>().getPrinter((BoardReader)level, null).print();
+        String board = (String) new PrinterFactoryImpl<>().getPrinter(level.reader(), null).print();
         assertEquals(expected, board);
     }
 
