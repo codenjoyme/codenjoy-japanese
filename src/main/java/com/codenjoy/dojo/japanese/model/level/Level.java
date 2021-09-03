@@ -88,8 +88,7 @@ public class Level extends AbstractLevel {
 
 
     private List<Nan> parseNans() {
-        return find(Nan::new,
-                NAN);
+        return find(Nan::new, NAN);
     }
 
     private List<Pixel> parsePixels() {
