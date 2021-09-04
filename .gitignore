@@ -1,3 +1,4 @@
 /target/
 /*.iml
 /src/main/webapp/resources/user/*-servers.zip
+/**/pitest/**
