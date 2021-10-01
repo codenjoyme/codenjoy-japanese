@@ -24,15 +24,17 @@ package com.codenjoy.dojo.japanese;
 
 import com.codenjoy.dojo.client.KeyboardSolver;
 import com.codenjoy.dojo.client.local.LocalGameRunner;
-import com.codenjoy.dojo.games.japanese.Board;
+import com.codenjoy.dojo.games.sample.Board;
 import com.codenjoy.dojo.japanese.services.GameRunner;
 
 public class DryRunGame {
 
     public static void main(String[] args) {
-        LocalGameRunner.run(new GameRunner(),
-                new KeyboardSolver(),
-                // new AISolver(new RandomDice()),
-                new Board());
+        new LocalGameRunner()
+                .with(new GameRunner())
+                .add(new KeyboardSolver(),
+                        // new AISolver(new RandomDice()),
+                        new Board())
+                .run();
     }
 }
