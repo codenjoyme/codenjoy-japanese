@@ -24,19 +24,14 @@ package com.codenjoy.dojo.japanese.model.level;
 
 
 import com.codenjoy.dojo.games.japanese.Element;
-import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
-import com.codenjoy.dojo.services.LengthToXY;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.field.AbstractLevel;
-import com.codenjoy.dojo.services.printer.BoardReader;
-import com.codenjoy.dojo.utils.LevelUtils;
 
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -92,7 +87,7 @@ public class Level extends AbstractLevel {
     }
 
     private List<Pixel> parsePixels() {
-        return find(new HashMap<>(){{
+        return find(new LinkedHashMap<>(){{
                     put(BLACK, pt -> new Pixel(pt, Color.BLACK));
                     put(WHITE, pt -> new Pixel(pt, Color.WHITE));
                     put(UNSET, pt -> new Pixel(pt, Color.UNSET));
