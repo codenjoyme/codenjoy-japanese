@@ -1,4 +1,5 @@
+/.idea/
+*.iml
 /target/
-/*.iml
-/src/main/webapp/resources/user/*-servers.zip
+/src/main/webapp/resources/**/user/
 /**/pitest/**
