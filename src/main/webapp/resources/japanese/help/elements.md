@@ -1,0 +1,71 @@
+<meta charset="UTF-8">
+
+## Symbol breakdown
+| Sprite | Code | Description |
+| -------- | -------- | -------- |
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/white.png" style="width:40px;" /> | `WHITE('-')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/black.png" style="width:40px;" /> | `BLACK('*')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/unset.png" style="width:40px;" /> | `UNSET(' ')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/nan.png" style="width:40px;" /> | `NAN('.')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_0.png" style="width:40px;" /> | `_0('0')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_1.png" style="width:40px;" /> | `_1('1')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_2.png" style="width:40px;" /> | `_2('2')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_3.png" style="width:40px;" /> | `_3('3')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_4.png" style="width:40px;" /> | `_4('4')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_5.png" style="width:40px;" /> | `_5('5')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_6.png" style="width:40px;" /> | `_6('6')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_7.png" style="width:40px;" /> | `_7('7')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_8.png" style="width:40px;" /> | `_8('8')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_9.png" style="width:40px;" /> | `_9('9')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_10.png" style="width:40px;" /> | `_10('a')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_11.png" style="width:40px;" /> | `_11('b')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_12.png" style="width:40px;" /> | `_12('c')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_13.png" style="width:40px;" /> | `_13('d')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_14.png" style="width:40px;" /> | `_14('e')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_15.png" style="width:40px;" /> | `_15('f')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_16.png" style="width:40px;" /> | `_16('g')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_17.png" style="width:40px;" /> | `_17('h')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_18.png" style="width:40px;" /> | `_18('i')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_19.png" style="width:40px;" /> | `_19('j')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_20.png" style="width:40px;" /> | `_20('k')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_21.png" style="width:40px;" /> | `_21('l')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_22.png" style="width:40px;" /> | `_22('m')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_23.png" style="width:40px;" /> | `_23('n')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_24.png" style="width:40px;" /> | `_24('o')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_25.png" style="width:40px;" /> | `_25('p')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_26.png" style="width:40px;" /> | `_26('q')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_27.png" style="width:40px;" /> | `_27('r')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_28.png" style="width:40px;" /> | `_28('s')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_29.png" style="width:40px;" /> | `_29('t')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_30.png" style="width:40px;" /> | `_30('u')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_31.png" style="width:40px;" /> | `_31('v')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_32.png" style="width:40px;" /> | `_32('w')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_33.png" style="width:40px;" /> | `_33('x')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_34.png" style="width:40px;" /> | `_34('y')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_35.png" style="width:40px;" /> | `_35('z')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_36.png" style="width:40px;" /> | `_36('A')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_37.png" style="width:40px;" /> | `_37('B')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_38.png" style="width:40px;" /> | `_38('C')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_39.png" style="width:40px;" /> | `_39('D')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_40.png" style="width:40px;" /> | `_40('E')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_41.png" style="width:40px;" /> | `_41('F')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_42.png" style="width:40px;" /> | `_42('G')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_43.png" style="width:40px;" /> | `_43('H')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_44.png" style="width:40px;" /> | `_44('I')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_45.png" style="width:40px;" /> | `_45('J')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_46.png" style="width:40px;" /> | `_46('K')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_47.png" style="width:40px;" /> | `_47('L')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_48.png" style="width:40px;" /> | `_48('M')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_49.png" style="width:40px;" /> | `_49('N')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_50.png" style="width:40px;" /> | `_50('O')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_51.png" style="width:40px;" /> | `_51('P')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_52.png" style="width:40px;" /> | `_52('Q')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_53.png" style="width:40px;" /> | `_53('R')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_54.png" style="width:40px;" /> | `_54('S')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_55.png" style="width:40px;" /> | `_55('T')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_56.png" style="width:40px;" /> | `_56('U')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_57.png" style="width:40px;" /> | `_57('V')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_58.png" style="width:40px;" /> | `_58('W')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_59.png" style="width:40px;" /> | `_59('X')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_60.png" style="width:40px;" /> | `_60('Y')` |  | 
+|<img src="https://github.com/codenjoyme/codenjoy-japanese/raw/master/src/main/webapp/resources/japanese/sprite/_61.png" style="width:40px;" /> | `_61('Z')` |  | 
