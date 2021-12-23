@@ -36,19 +36,19 @@ public class ScoresTest {
     private GameSettings settings;
 
     public void lose() {
-        scores.event(Events.LOSE);
+        scores.event(Event.LOSE);
     }
 
     public void win() {
-        scores.event(Events.WIN);
+        scores.event(Event.WIN);
     }
 
     public void valid() {
-        scores.event(Events.VALID);
+        scores.event(Event.VALID);
     }
 
     public void invalid() {
-        scores.event(Events.INVALID);
+        scores.event(Event.INVALID);
     }
 
     @Before

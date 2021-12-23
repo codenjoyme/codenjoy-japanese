@@ -36,7 +36,7 @@ import org.junit.Test;
 import org.mockito.stubbing.OngoingStubbing;
 
 import static com.codenjoy.dojo.games.japanese.Element.*;
-import static com.codenjoy.dojo.japanese.services.Events.*;
+import static com.codenjoy.dojo.japanese.services.Event.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.anyInt;

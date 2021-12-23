@@ -28,7 +28,7 @@ import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
 import com.codenjoy.dojo.japanese.model.items.Pixel;
 import com.codenjoy.dojo.japanese.model.level.Level;
-import com.codenjoy.dojo.japanese.services.Events;
+import com.codenjoy.dojo.japanese.services.Event;
 import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Point;
@@ -118,9 +118,9 @@ public class Japanese implements Field {
         if (isSolved()) {
             boolean win = isGotItRight();
             if (win) {
-                player.event(Events.WIN);
+                player.event(Event.WIN);
             } else {
-                player.event(Events.LOSE);
+                player.event(Event.LOSE);
             }
             hero.gameOver(win);
         }
@@ -152,7 +152,7 @@ public class Japanese implements Field {
 
         Pixel expected = pixels.get(index);
         if (expected.color() != actual.color()) {
-            player.event(Events.INVALID);
+            player.event(Event.INVALID);
             return;
         }
 
@@ -161,7 +161,7 @@ public class Japanese implements Field {
         }
 
         winPixels.add(actual);
-        player.event(Events.VALID);
+        player.event(Event.VALID);
     }
 
     public List<Number> getNumbers() {
