@@ -28,6 +28,9 @@ import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
 
 public class TestGameSettings extends GameSettings {
 
+    /**
+     * Here you can override the settings for all tests.
+     */
     public TestGameSettings() {
         integer(VALID_PIXEL_SCORE, 10);
         integer(INVALID_PIXEL_PENALTY, -1);
