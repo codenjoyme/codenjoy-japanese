@@ -35,6 +35,7 @@ import com.codenjoy.dojo.japanese.services.ai.AISolver;
 import com.codenjoy.dojo.services.AbstractGameType;
 import com.codenjoy.dojo.services.EventListener;
 import com.codenjoy.dojo.services.PlayerScores;
+import com.codenjoy.dojo.services.event.ScoresImpl;
 import com.codenjoy.dojo.services.multiplayer.GameField;
 import com.codenjoy.dojo.services.multiplayer.GamePlayer;
 import com.codenjoy.dojo.services.multiplayer.LevelProgress;
@@ -53,7 +54,7 @@ public class GameRunner extends AbstractGameType<GameSettings> {
 
     @Override
     public PlayerScores getPlayerScores(Object score, GameSettings settings) {
-        return new Scores(Integer.valueOf(score.toString()), settings);
+        return new ScoresImpl<>(Integer.parseInt(score.toString()), new Scores(settings));
     }
 
     @Override

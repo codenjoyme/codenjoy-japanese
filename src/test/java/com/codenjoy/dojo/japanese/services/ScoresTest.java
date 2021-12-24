@@ -23,7 +23,9 @@ package com.codenjoy.dojo.japanese.services;
  */
 
 
+import com.codenjoy.dojo.japanese.TestGameSettings;
 import com.codenjoy.dojo.services.PlayerScores;
+import com.codenjoy.dojo.services.event.ScoresImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,14 +55,16 @@ public class ScoresTest {
 
     @Before
     public void setup() {
-        settings = new GameSettings();
-        scores = new Scores(0, settings);
+        settings = new TestGameSettings();
+        givenScores(0);
     }
 
     @Test
     public void shouldCollectScores() {
-        scores = new Scores(140, settings);
+        // given
+        givenScores(140);
 
+        // when
         valid();
         valid();
         valid();
@@ -75,27 +79,101 @@ public class ScoresTest {
 
         lose();
 
+        // then
         assertEquals(140
-                + 3 * settings.integer(VALID_PIXEL_SCORE)
-                - 4 * settings.integer(INVALID_PIXEL_PENALTY)
-                + 2 * settings.integer(WIN_SCORE)
-                - settings.integer(LOSE_PENALTY),
+                    + 3 * settings.integer(VALID_PIXEL_SCORE)
+                    + 4 * settings.integer(INVALID_PIXEL_PENALTY)
+                    + 2 * settings.integer(WIN_SCORE)
+                    + settings.integer(LOSE_PENALTY),
                 scores.getScore());
+    }
+
+    private void givenScores(int score) {
+        scores = new ScoresImpl<>(score, new Scores(settings));
     }
 
     @Test
     public void shouldStillZeroAfterDead() {
+        // given
+        givenScores(0);
+
+        // when
         lose();
 
+        // then
         assertEquals(0, scores.getScore());
     }
 
     @Test
     public void shouldClearScore() {
+        // given
+        givenScores(0);
         win();
 
+        // when
         scores.clear();
 
+        // then
         assertEquals(0, scores.getScore());
+    }
+
+    @Test
+    public void shouldLose() {
+        // given
+        givenScores(1400);
+
+        // when
+        lose();
+        lose();
+
+        // then
+        assertEquals(1400
+                    + 2 * settings.integer(LOSE_PENALTY),
+                scores.getScore());
+    }
+
+    @Test
+    public void shouldWin() {
+        // given
+        givenScores(140);
+
+        // when
+        win();
+        win();
+
+        // then
+        assertEquals(140
+                    + 2 * settings.integer(WIN_SCORE),
+                scores.getScore());
+    }
+
+    @Test
+    public void shouldValidPixel() {
+        // given
+        givenScores(140);
+
+        // when
+        valid();
+        valid();
+
+        // then
+        assertEquals(140
+                    + 2 * settings.integer(VALID_PIXEL_SCORE),
+                scores.getScore());
+    }
+
+    @Test
+    public void shouldInvalidPixel() {
+        // given
+        givenScores(140);
+
+        // when
+        invalid();
+        invalid();
+
+        // then
+        assertEquals(140
+                    + 2 * settings.integer(INVALID_PIXEL_PENALTY),
+                scores.getScore());
     }
 }

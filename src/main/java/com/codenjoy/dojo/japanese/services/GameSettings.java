@@ -33,15 +33,15 @@ import java.util.List;
 
 import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
 
-public final class GameSettings extends SettingsImpl implements SettingsReader<GameSettings> {
+public class GameSettings extends SettingsImpl implements SettingsReader<GameSettings> {
 
     public enum Keys implements Key {
 
-        LEVELS_COUNT("Levels count"),
-        LOSE_PENALTY("Lose penalty"),
-        WIN_SCORE("Win score"),
-        INVALID_PIXEL_PENALTY("Invalid pixel penalty"),
-        VALID_PIXEL_SCORE("Valid pixel score");
+        LEVELS_COUNT("[Level] Levels count"),
+        LOSE_PENALTY("[Score] Lose penalty"),
+        WIN_SCORE("[Score] Win score"),
+        INVALID_PIXEL_PENALTY("[Score] Invalid pixel penalty"),
+        VALID_PIXEL_SCORE("[Score] Valid pixel score");
 
         private String key;
 
@@ -62,9 +62,9 @@ public final class GameSettings extends SettingsImpl implements SettingsReader<G
 
     public GameSettings() {
         integer(VALID_PIXEL_SCORE, 10);
-        integer(INVALID_PIXEL_PENALTY, 1);
+        integer(INVALID_PIXEL_PENALTY, -1);
         integer(WIN_SCORE, 1000);
-        integer(LOSE_PENALTY, 1000);
+        integer(LOSE_PENALTY, -1000);
         integer(LEVELS_COUNT, 0);
         Levels.setup(this);
     }

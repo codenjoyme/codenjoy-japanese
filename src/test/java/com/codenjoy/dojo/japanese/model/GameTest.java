@@ -24,6 +24,7 @@ package com.codenjoy.dojo.japanese.model;
 
 
 import com.codenjoy.dojo.games.japanese.Element;
+import com.codenjoy.dojo.japanese.TestGameSettings;
 import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.japanese.services.GameSettings;
 import com.codenjoy.dojo.services.Dice;
@@ -56,7 +57,7 @@ public class GameTest {
     public void setup() {
         dice = mock(Dice.class);
         printer = new PrinterFactoryImpl();
-        settings = new GameSettings();
+        settings = new TestGameSettings();
     }
 
     private void dice(int... ints) {
