@@ -27,7 +27,7 @@ import com.codenjoy.dojo.services.settings.SettingsReader;
 
 import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
 
-public class Scores extends ScoresMap<Event> {
+public class Scores extends ScoresMap<Void> {
 
     public Scores(SettingsReader settings) {
         super(settings);

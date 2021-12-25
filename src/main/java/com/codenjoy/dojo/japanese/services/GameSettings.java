@@ -97,7 +97,7 @@ public class GameSettings extends SettingsImpl implements SettingsReader<GameSet
         return new Level(levelMap(levelNumber));
     }
 
-    public Calculator<Event> calculator() {
+    public Calculator<Void> calculator() {
         return new Calculator<>(new Scores(this));
     }
 }
