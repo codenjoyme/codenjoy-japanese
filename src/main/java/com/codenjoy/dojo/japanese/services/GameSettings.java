@@ -25,6 +25,7 @@ package com.codenjoy.dojo.japanese.services;
 
 import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.japanese.model.level.Levels;
+import com.codenjoy.dojo.services.event.Calculator;
 import com.codenjoy.dojo.services.settings.SettingsImpl;
 import com.codenjoy.dojo.services.settings.SettingsReader;
 
@@ -96,5 +97,7 @@ public class GameSettings extends SettingsImpl implements SettingsReader<GameSet
         return new Level(levelMap(levelNumber));
     }
 
-
+    public Calculator<Event> calculator() {
+        return new Calculator<>(new Scores(this));
+    }
 }
