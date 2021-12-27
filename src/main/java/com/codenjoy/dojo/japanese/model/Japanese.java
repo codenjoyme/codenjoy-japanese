@@ -195,8 +195,8 @@ public class Japanese implements Field {
     }
 
     @Override
-    public BoardReader reader() {
-        return new BoardReader<Player>() {
+    public BoardReader<Player> reader() {
+        return new BoardReader<>() {
             private int size = Japanese.this.size;
 
             @Override
