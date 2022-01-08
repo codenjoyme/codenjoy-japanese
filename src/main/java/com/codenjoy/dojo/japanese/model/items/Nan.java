@@ -27,7 +27,7 @@ import com.codenjoy.dojo.games.japanese.Element;
 import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
-import com.codenjoy.dojo.services.State;
+import com.codenjoy.dojo.services.printer.state.State;
 
 public class Nan extends PointImpl implements State<Element, Player> {
 
