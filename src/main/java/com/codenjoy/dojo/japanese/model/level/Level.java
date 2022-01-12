@@ -106,10 +106,6 @@ public class Level extends AbstractLevel {
         return pixels;
     }
 
-    public String map() {
-        return map;
-    }
-
     @Override
     protected void addAll(Consumer<Iterable<? extends Point>> processor) {
         processor.accept(numbers());
