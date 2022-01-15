@@ -55,7 +55,7 @@ public class Level extends AbstractLevel {
             return;
         }
 
-        // нет цифер - надо сгенерить
+        // нет цифр - надо сгенерить
         if (!numbersExists()) {
             new NumbersBuilder(this).process();
             return;
@@ -70,10 +70,6 @@ public class Level extends AbstractLevel {
 
     private boolean pixelsExists() {
         return pixels.stream().allMatch(Pixel::isSet);
-    }
-
-    public void size(int size) {
-        this.size = size;
     }
 
     private List<Number> parseNumbers() {
