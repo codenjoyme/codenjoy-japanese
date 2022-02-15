@@ -23,7 +23,7 @@ package com.codenjoy.dojo.japanese.model.level;
  */
 
 
-import com.codenjoy.dojo.games.japanese.Element;
+import com.codenjoy.dojo.games.japanese.ElementUtils;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.japanese.model.items.Nan;
 import com.codenjoy.dojo.japanese.model.items.Number;
@@ -73,8 +73,8 @@ public class Level extends AbstractLevel {
     }
 
     private List<Number> parseNumbers() {
-        return find((pt, el) -> new Number(pt, el.code()),
-                Element.getNumbers());
+        return find((pt, el) -> new Number(pt, ElementUtils.code(el)),
+                ElementUtils.numbers());
     }
 
 

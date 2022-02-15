@@ -24,6 +24,7 @@ package com.codenjoy.dojo.japanese.model;
 
 
 import com.codenjoy.dojo.games.japanese.Element;
+import com.codenjoy.dojo.games.japanese.ElementUtils;
 import com.codenjoy.dojo.japanese.TestGameSettings;
 import com.codenjoy.dojo.japanese.model.level.Level;
 import com.codenjoy.dojo.japanese.services.GameSettings;
@@ -376,10 +377,10 @@ public class GameTest {
         assertActProcessed(-1); // -1
 
         // when then
-        assertActProcessed(BLACK.code()); // 0
+        assertActProcessed(ElementUtils.code(BLACK)); // 0
 
         // when then
-        assertActProcessed(WHITE.code()); // 1
+        assertActProcessed(ElementUtils.code(WHITE)); // 1
 
         // when then
         assertActIgnored(2); // 2
@@ -517,7 +518,7 @@ public class GameTest {
     }
 
     private void act(int x, int y, Element color) {
-        hero.act(x, y, color.code());
+        hero.act(x, y, ElementUtils.code(color));
         game.tick();
     }
 }

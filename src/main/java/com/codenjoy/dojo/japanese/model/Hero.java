@@ -23,6 +23,7 @@ package com.codenjoy.dojo.japanese.model;
  */
 
 
+import com.codenjoy.dojo.games.japanese.ElementUtils;
 import com.codenjoy.dojo.japanese.model.items.Color;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.joystick.NoDirectionJoystick;
@@ -63,9 +64,9 @@ public class Hero extends PlayerHero<Field> implements NoDirectionJoystick {
 
         int color = p[2];
 
-        if (color != BLACK.code()
-            && color != WHITE.code()
-            && color != UNSET.code()) return;
+        if (color != ElementUtils.code(BLACK)
+            && color != ElementUtils.code(WHITE)
+            && color != ElementUtils.code(UNSET)) return;
 
         this.point = point;
         this.color = Color.get(color);

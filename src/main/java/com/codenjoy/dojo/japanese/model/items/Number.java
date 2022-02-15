@@ -24,6 +24,7 @@ package com.codenjoy.dojo.japanese.model.items;
 
 
 import com.codenjoy.dojo.games.japanese.Element;
+import com.codenjoy.dojo.games.japanese.ElementUtils;
 import com.codenjoy.dojo.japanese.model.Player;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
@@ -40,7 +41,7 @@ public class Number extends PointImpl implements State<Element, Player> {
 
     @Override
     public Element state(Player player, Object... alsoAtPoint) {
-        return Element.forNumber(number);
+        return ElementUtils.forNumber(number);
     }
 
     @Override
