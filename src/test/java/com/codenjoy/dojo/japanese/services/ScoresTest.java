@@ -24,156 +24,101 @@ package com.codenjoy.dojo.japanese.services;
 
 
 import com.codenjoy.dojo.japanese.TestGameSettings;
-import com.codenjoy.dojo.services.PlayerScores;
-import com.codenjoy.dojo.services.event.Calculator;
-import com.codenjoy.dojo.services.event.ScoresImpl;
-import org.junit.Before;
+import com.codenjoy.dojo.services.event.ScoresMap;
+import com.codenjoy.dojo.utils.scorestest.AbstractScoresTest;
 import org.junit.Test;
 
 import static com.codenjoy.dojo.japanese.services.GameSettings.Keys.*;
-import static org.junit.Assert.assertEquals;
 
-public class ScoresTest {
+public class ScoresTest extends AbstractScoresTest {
 
-    private PlayerScores scores;
-    private GameSettings settings;
-
-    public void lose() {
-        scores.event(Event.LOSE);
+    @Override
+    public GameSettings settings() {
+        return new TestGameSettings();
     }
 
-    public void win() {
-        scores.event(Event.WIN);
+    @Override
+    protected Class<? extends ScoresMap<?>> scores() {
+        return Scores.class;
     }
 
-    public void valid() {
-        scores.event(Event.VALID);
-    }
-
-    public void invalid() {
-        scores.event(Event.INVALID);
-    }
-
-    @Before
-    public void setup() {
-        settings = new TestGameSettings();
+    @Override
+    protected Class<? extends Enum> eventTypes() {
+        return Event.class;
     }
 
     @Test
     public void shouldCollectScores() {
-        // given
-        givenScores(140);
-
-        // when
-        valid();
-        valid();
-        valid();
-
-        invalid();
-        invalid();
-        invalid();
-        invalid();
-
-        win();
-        win();
-
-        lose();
-
-        // then
-        assertEquals(140
-                    + 3 * settings.integer(VALID_PIXEL_SCORE)
-                    + 4 * settings.integer(INVALID_PIXEL_PENALTY)
-                    + 2 * settings.integer(WIN_SCORE)
-                    + settings.integer(LOSE_PENALTY),
-                scores.getScore());
-    }
-
-    private void givenScores(int score) {
-        scores = new ScoresImpl<>(score, new Calculator<>(new Scores(settings)));
+        assertEvents("100:\n" +
+                "VALID > +10 = 110\n" +
+                "VALID > +10 = 120\n" +
+                "VALID > +10 = 130\n" +
+                "INVALID > -1 = 129\n" +
+                "INVALID > -1 = 128\n" +
+                "INVALID > -1 = 127\n" +
+                "INVALID > -1 = 126\n" +
+                "WIN > +100 = 226\n" +
+                "WIN > +100 = 326\n" +
+                "LOSE > -100 = 226");
     }
 
     @Test
-    public void shouldStillZeroAfterDead() {
-        // given
-        givenScores(0);
-
-        // when
-        lose();
-
-        // then
-        assertEquals(0, scores.getScore());
+    public void shouldNotLessThanZero() {
+        assertEvents("0:\n" +
+                "LOSE > +0 = 0");
     }
 
     @Test
-    public void shouldClearScore() {
-        // given
-        givenScores(0);
-        win();
-
-        // when
-        scores.clear();
-
-        // then
-        assertEquals(0, scores.getScore());
+    public void shouldCleanScore() {
+        assertEvents("100:\n" +
+                "WIN > +100 = 200\n" +
+                "WIN > +100 = 300\n" +
+                "(CLEAN) > -300 = 0\n" +
+                "WIN > +100 = 100\n" +
+                "WIN > +100 = 200");
     }
 
     @Test
-    public void shouldLose() {
+    public void shouldCollectScores_whenWin() {
         // given
-        givenScores(1400);
+        settings.integer(WIN_SCORE, 100);
 
-        // when
-        lose();
-        lose();
-
-        // then
-        assertEquals(1400
-                    + 2 * settings.integer(LOSE_PENALTY),
-                scores.getScore());
+        // when then
+        assertEvents("100:\n" +
+                "WIN > +100 = 200\n" +
+                "WIN > +100 = 300");
     }
 
     @Test
-    public void shouldWin() {
+    public void shouldCollectScores_whenLose() {
         // given
-        givenScores(140);
+        settings.integer(LOSE_PENALTY, -100);
 
-        // when
-        win();
-        win();
-
-        // then
-        assertEquals(140
-                    + 2 * settings.integer(WIN_SCORE),
-                scores.getScore());
+        // when then
+        assertEvents("100:\n" +
+                "LOSE > -100 = 0\n" +
+                "LOSE > +0 = 0");
     }
 
     @Test
-    public void shouldValidPixel() {
+    public void shouldCollectScores_whenValidPixel() {
         // given
-        givenScores(140);
+        settings.integer(VALID_PIXEL_SCORE, 10);
 
-        // when
-        valid();
-        valid();
-
-        // then
-        assertEquals(140
-                    + 2 * settings.integer(VALID_PIXEL_SCORE),
-                scores.getScore());
+        // when then
+        assertEvents("100:\n" +
+                "VALID > +10 = 110\n" +
+                "VALID > +10 = 120");
     }
 
     @Test
-    public void shouldInvalidPixel() {
+    public void shouldCollectScores_whenInvalidPixel() {
         // given
-        givenScores(140);
+        settings.integer(INVALID_PIXEL_PENALTY, -1);
 
-        // when
-        invalid();
-        invalid();
-
-        // then
-        assertEquals(140
-                    + 2 * settings.integer(INVALID_PIXEL_PENALTY),
-                scores.getScore());
+        // when then
+        assertEvents("100:\n" +
+                "INVALID > -1 = 99\n" +
+                "INVALID > -1 = 98");
     }
 }

@@ -24,6 +24,11 @@ package com.codenjoy.dojo.japanese.services;
 
 
 public enum Event {
-    VALID, INVALID, // отгадал (или нет) ячейку
-    WIN, LOSE;     // отгадал (или нет) всю картину
+    // отгадал (или нет) ячейку
+    VALID,
+    INVALID,
+
+    // отгадал (или нет) всю картину,
+    WIN,
+    LOSE;
 }
